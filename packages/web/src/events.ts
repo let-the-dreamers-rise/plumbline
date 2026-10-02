@@ -1,5 +1,27 @@
 import { PublicKey } from "@solana/web3.js";
-import { Reader, discriminator } from "@pct/oracle";
+import { DEFAULT_PROGRAM_ID, Reader, discriminator } from "@pct/oracle";
+
+/**
+ * The "Program data:" payloads logged while `programId` itself was executing. Any program can log
+ * bytes that look like our events, so a line only counts when the innermost running program is ours.
+ */
+export function programData(logs: readonly string[], programId: string = DEFAULT_PROGRAM_ID.toBase58()): Buffer[] {
+  const stack: string[] = [];
+  const out: Buffer[] = [];
+  for (const line of logs) {
+    const invoke = /^Program (\w+) invoke \[\d+\]$/.exec(line);
+    if (invoke) {
+      stack.push(invoke[1]!);
+      continue;
+    }
+    if (/^Program \w+ (success|failed)/.test(line)) {
+      stack.pop();
+      continue;
+    }
+    if (line.startsWith("Program data: ") && stack.at(-1) === programId) out.push(Buffer.from(line.slice("Program data: ".length), "base64"));
+  }
+  return out;
+}
 
 export interface ObservationAccepted {
   source: string;
@@ -15,11 +37,9 @@ export interface ObservationAccepted {
 const OBS_DISC = Buffer.from(discriminator("event", "ObservationAccepted")).toString("hex");
 
 /** Decodes Anchor `emit!` events (logged as "Program data: <base64>") from one transaction's logs. */
-export function parseObservations(logs: readonly string[]): ObservationAccepted[] {
+export function parseObservations(logs: readonly string[], programId?: string): ObservationAccepted[] {
   const out: ObservationAccepted[] = [];
-  for (const line of logs) {
-    if (!line.startsWith("Program data: ")) continue;
-    const data = Buffer.from(line.slice("Program data: ".length), "base64");
+  for (const data of programData(logs, programId)) {
     if (data.subarray(0, 8).toString("hex") !== OBS_DISC) continue;
     const r = new Reader(data.subarray(8));
     out.push({
@@ -59,16 +79,14 @@ export interface DrawApproved {
 const REVENUE_DISC = Buffer.from(discriminator("event", "RevenueProven")).toString("hex");
 const DRAW_DISC = Buffer.from(discriminator("event", "DrawApproved")).toString("hex");
 
-function events(logs: readonly string[], disc: string): Reader[] {
-  return logs
-    .filter((l) => l.startsWith("Program data: "))
-    .map((l) => Buffer.from(l.slice("Program data: ".length), "base64"))
+function events(logs: readonly string[], disc: string, programId?: string): Reader[] {
+  return programData(logs, programId)
     .filter((d) => d.subarray(0, 8).toString("hex") === disc)
     .map((d) => new Reader(d.subarray(8)));
 }
 
-export function parseRevenueProven(logs: readonly string[]): RevenueProven[] {
-  return events(logs, REVENUE_DISC).map((r) => ({
+export function parseRevenueProven(logs: readonly string[], programId?: string): RevenueProven[] {
+  return events(logs, REVENUE_DISC, programId).map((r) => ({
     loan: new PublicKey(r.take(32)).toBase58(),
     source: new PublicKey(r.take(32)).toBase58(),
     providerId: r.u16(),
@@ -83,8 +101,8 @@ export function parseRevenueProven(logs: readonly string[]): RevenueProven[] {
   }));
 }
 
-export function parseDrawApproved(logs: readonly string[]): DrawApproved[] {
-  return events(logs, DRAW_DISC).map((r) => ({
+export function parseDrawApproved(logs: readonly string[], programId?: string): DrawApproved[] {
+  return events(logs, DRAW_DISC, programId).map((r) => ({
     loan: new PublicKey(r.take(32)).toBase58(),
     lamports: Number(r.u64()),
     coverageBps: Number(r.u64()),

@@ -194,12 +194,13 @@ function render() {
 function openVerify(li, i) {
   const loan = state.loans[li];
   const p = loan.proofs[i];
+  sym = SYMBOL[loan.currency] ?? `${loan.currency} `;
   $("v-title").textContent = `${p.provider} · ${sym}${usd(p.revenueMicro)} · week of ${week(p.period * loan.periodS)}`;
   const step = (html) => { const li = el("li"); li.innerHTML = html; return li; };
   $("v-steps").replaceChildren(
     step(`The operator fetched their ${p.provider} ${{ stripe: "payout", razorpay: "payment" }[p.provider] ?? "earnings statement"} over zkTLS. A Reclaim attestor signed claim <code>${p.identifier}</code>. Only the amount, hours, date and a payment id or hashed account id were revealed.`),
     step(`Transaction <a href="${explorer("tx", p.signature)}" target="_blank" rel="noopener"><code>${short(p.signature)}</code></a> re-hashed the claim onchain and recovered the attestor's signature.`),
-    step(`It checked the request matches registered source <a href="${explorer("address", p.source)}" target="_blank" rel="noopener"><code>${short(p.source)}</code></a> (same URL and match rules) and that the hashed account equals this loan's operator key <code>${short(loan.operatorKey)}</code>. Another operator's revenue cannot count here.`),
+    step(`It checked the request matches registered source <a href="${explorer("address", p.source)}" target="_blank" rel="noopener"><code>${short(p.source)}</code></a> (same URL and match rules) and that the hashed account (for Razorpay, the operator's own proving app) equals this loan's operator key <code>${short(loan.operatorKey)}</code>. Another operator's revenue cannot count here.`),
     step(`A receipt keyed by the ${["stripe", "razorpay"].includes(p.provider) ? "payment id" : "operator and week"} makes sure the same revenue never counts twice.`),
     step(`Trailing coverage after this proof: ${x(p.trailingCoverageBps)} against ${x(loan.minCoverageBps)} required.${p.rentMicro ? ` Realized rent ${sym}${usd(p.rentMicro)}/GPU-hr also went to the public price tape.` : ""}`),
   );
@@ -220,7 +221,7 @@ async function load() {
   }
 }
 load();
-setInterval(load, Number(new URLSearchParams(location.search).get("refresh") ?? 5000));
+setInterval(load, Math.max(1000, Number(new URLSearchParams(location.search).get("refresh")) || 5000));
 </script>
 </body>
 </html>

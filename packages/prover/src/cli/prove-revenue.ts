@@ -8,14 +8,15 @@ import type { Proof } from "@reclaimprotocol/js-sdk";
 // Proves an operator's revenue from a third-party system of record, revealing only the amount,
 // date, payment/payout id and (where the response has one) an OPRF hash of the account.
 //   npm run prove:revenue            (Razorpay latest payment; needs RAZORPAY_KEY_ID + RAZORPAY_KEY_SECRET)
-//   npm run prove:revenue stripe     (Stripe latest payout; needs STRIPE_KEY=rk_test_...)
+//   npm run prove:revenue stripe-payout-test   (Stripe test-mode payout; STRIPE_KEY=rk_test_...)
+//   npm run prove:revenue stripe     (Stripe live payout; STRIPE_KEY=rk_live_... read-only)
 //   npm run prove:revenue vast       (Vast host earnings; needs VAST_API_KEY)
 loadEnv();
 const spec = revenueSpec(process.argv[2] ?? "razorpay");
 const authHeader =
   spec.name === "razorpay-payment"
     ? `Basic ${Buffer.from(`${requireEnv("RAZORPAY_KEY_ID")}:${requireEnv("RAZORPAY_KEY_SECRET")}`).toString("base64")}`
-    : `Bearer ${spec.name === "stripe-payout" ? requireEnv("STRIPE_KEY") : requireEnv("VAST_API_KEY")}`;
+    : `Bearer ${spec.name.startsWith("stripe") ? requireEnv("STRIPE_KEY") : requireEnv("VAST_API_KEY")}`;
 const req = buildRevenueRequest(spec, authHeader);
 
 const started = Date.now();

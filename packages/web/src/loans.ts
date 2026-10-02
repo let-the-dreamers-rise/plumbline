@@ -47,7 +47,7 @@ export function covenantStatus(loan: LoanState, nowS: number): { status: Covenan
   return { status: coverageBps < loan.minCoverageBps ? "breached" : "ok", coverageBps };
 }
 
-async function activity(connection: Connection, loan: PublicKey) {
+async function activity(connection: Connection, loan: PublicKey, programId: PublicKey) {
   const sigs = (await connection.getSignaturesForAddress(loan, { limit: 50 }, "confirmed")).filter((s) => s.err === null);
   const txs = await Promise.all(sigs.map((s) => connection.getTransaction(s.signature, { commitment: "confirmed", maxSupportedTransactionVersion: 0 })));
   const proofs: LoanView["proofs"] = [];
@@ -55,8 +55,10 @@ async function activity(connection: Connection, loan: PublicKey) {
   txs.forEach((tx, i) => {
     const logs = tx?.meta?.logMessages ?? [];
     const { signature, slot, blockTime } = sigs[i]!;
-    for (const p of parseRevenueProven(logs)) proofs.push({ ...p, provider: providerName(p.providerId), signature, slot });
-    for (const d of parseDrawApproved(logs)) draws.push({ ...d, signature, slot, blockTime: blockTime ?? null });
+    // A transaction can touch several loans; only events about this one belong on its page.
+    const id = loan.toBase58();
+    for (const p of parseRevenueProven(logs, programId.toBase58())) if (p.loan === id) proofs.push({ ...p, provider: providerName(p.providerId), signature, slot });
+    for (const d of parseDrawApproved(logs, programId.toBase58())) if (d.loan === id) draws.push({ ...d, signature, slot, blockTime: blockTime ?? null });
   });
   return { proofs, draws };
 }
@@ -100,7 +102,7 @@ export async function loadLoans(connection: Connection, programId: PublicKey = D
           proofs: p.proofs,
           utilization: p.gpuHoursMicro > 0n ? Number(p.gpuHoursMicro) / 1e6 / fleetHours : null,
         })),
-        ...(await activity(connection, a.pubkey)),
+        ...(await activity(connection, a.pubkey, programId)),
       };
     }),
   );

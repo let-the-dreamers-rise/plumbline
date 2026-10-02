@@ -11,13 +11,18 @@ export function formatHlPrice(micro: bigint | number, szDecimals: number): strin
   const sigDecimals = Math.max(0, 5 - (Math.floor(Math.log10(value)) + 1));
   const decimals = Math.min(maxDecimals, sigDecimals);
   const fixed = value.toFixed(decimals);
-  return decimals > 0 ? fixed.replace(/\.?0+$/, "") : fixed;
+  const out = decimals > 0 ? fixed.replace(/\.?0+$/, "") : fixed;
+  // A price below the smallest tick would post as 0, which HIP-3 rejects or (worse) reads as a crash.
+  if (!(Number(out) > 0)) throw new Error(`price ${value} rounds to 0 at ${maxDecimals} decimals`);
+  return out;
 }
 
 /** Moves from `prev` toward `target` by at most `maxStepBps`, so a shock walks in instead of jumping. */
 export function clampStep(prev: bigint | null, target: bigint, maxStepBps: number): bigint {
   if (prev === null || prev <= 0n) return target;
-  const maxMove = (prev * BigInt(maxStepBps)) / 10_000n;
+  // At least one micro-unit, so a tiny price can still move toward its target.
+  const step = (prev * BigInt(maxStepBps)) / 10_000n;
+  const maxMove = step > 0n ? step : 1n;
   if (target > prev + maxMove) return prev + maxMove;
   if (target < prev - maxMove) return prev - maxMove;
   return target;

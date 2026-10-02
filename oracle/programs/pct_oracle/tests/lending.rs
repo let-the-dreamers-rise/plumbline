@@ -74,7 +74,7 @@ fn setup() -> Setup {
     let borrower = Keypair::new();
     h.svm.airdrop(&borrower.pubkey(), SOL).unwrap();
     let operator_key = keccak(fx["operators"]["op1"].as_str().unwrap().as_bytes());
-    let loan = pda(&[b"loan", &operator_key]);
+    let loan = pda(&[b"loan", payer.as_ref(), &operator_key]);
     let terms = LoanTerms {
         operator_key,
         borrower: borrower.pubkey(),
@@ -84,6 +84,7 @@ fn setup() -> Setup {
         debt_service_micro: 1_500_000_000, // $1,500 per week
         min_coverage_bps: 11_500, // 1.15x, USD.AI's debt-service threshold
         currency: *b"USD",
+        covenant_periods: 2,
     };
     h.send(&[
         Harness::ix(
@@ -104,7 +105,9 @@ fn submit(s: &mut Setup, name: &str, loan: Pubkey, receipt_operator: [u8; 32]) -
     let c = claim(&s.fx, name).clone();
     s.h.set_time(c["timestampS"].as_i64().unwrap() + 60);
     let buffer = s.h.upload(b"http", c["parameters"].as_str().unwrap().as_bytes(), c["context"].as_str().unwrap().as_bytes())?;
-    let source = pda(&[b"source", &source_id(&s.fx, c["source"].as_str().unwrap())]);
+    let source_name = c["source"].as_str().unwrap();
+    let source = pda(&[b"source", &source_id(&s.fx, source_name)]);
+    let provider = s.fx["sources"].as_array().unwrap().iter().find(|x| x["name"] == source_name).unwrap()["provider"].as_u64().unwrap() as u16;
     let timestamp_s = c["timestampS"].as_u64().unwrap() as u32;
     let extracted = &c["extracted"];
     let receipt_key = match extracted["item"].as_str() {
@@ -130,7 +133,7 @@ fn submit(s: &mut Setup, name: &str, loan: Pubkey, receipt_operator: [u8; 32]) -
             loan,
             book: pda(&[b"book", &[0], &[0]]),
             buffer,
-            receipt: pda(&[b"receipt", source.as_ref(), &receipt_key]),
+            receipt: pda(&[b"receipt", &provider.to_le_bytes(), loan.as_ref(), &receipt_key]),
             system_program: system_program::ID,
         },
     )]);
@@ -161,6 +164,7 @@ fn proven_revenue_unlocks_draws_and_feeds_the_tape() {
 
     assert!(draw(&mut s, SOL).unwrap_err().contains("NoRecentRevenue"), "no proofs yet");
 
+    submit(&mut s, "op1-vast-wm1", loan, op).expect("the week before");
     let cu_vast = submit(&mut s, "op1-vast-w0", loan, op).expect("vast payout accepted");
     let cu_stripe = submit(&mut s, "op1-stripe-w0", loan, op).expect("stripe balance accepted");
     let l: Loan = s.h.account(&loan);
@@ -172,10 +176,10 @@ fn proven_revenue_unlocks_draws_and_feeds_the_tape() {
     assert_eq!(s.h.account::<Loan>(&loan).drawn_lamports, 2 * SOL);
 
     let book: Book = s.h.book(0, 0);
-    assert_eq!(book.len, 1, "stripe has no hours, so only vast adds realized rent");
+    assert_eq!(book.len, 2, "one realized rent per week with hours; stripe has none");
     assert_eq!(book.slots[0].price_micro, 2_400_000, "2580.48 / 1075.2 = $2.40 per GPU-hour");
 
-    // Week 1: utilization collapses to 150 GPU-hours ($360). Trailing two weeks:
+    // Week 1: utilization collapses to 150 GPU-hours ($360). Two-week window:
     // (2980.48 + 360) / (2 x 1500) = 1.11x, under the 1.15x covenant.
     submit(&mut s, "op1-vast-w1", loan, op).expect("week 1 accepted");
     let l: Loan = s.h.account(&loan);
@@ -222,6 +226,7 @@ fn another_operators_proof_cannot_count_toward_this_loan() {
 fn only_the_borrower_draws_and_only_what_is_funded() {
     let mut s = setup();
     let (loan, op) = (s.loan, s.operator_key);
+    submit(&mut s, "op1-vast-wm1", loan, op).unwrap();
     submit(&mut s, "op1-vast-w0", loan, op).unwrap();
     assert!(draw(&mut s, 11 * SOL).unwrap_err().contains("InsufficientFunds"));
 
@@ -246,7 +251,8 @@ fn stale_revenue_blocks_draws() {
 /// Opens a second, INR loan bound to `operator` (the Razorpay claim owner) with the setup's lender.
 fn open_inr_loan(s: &mut Setup, operator: &str) -> ([u8; 32], Pubkey) {
     let operator_key = keccak(operator.as_bytes());
-    let loan = pda(&[b"loan", &operator_key]);
+    let lender = s.h.payer.pubkey();
+    let loan = pda(&[b"loan", lender.as_ref(), &operator_key]);
     let terms = LoanTerms {
         operator_key,
         borrower: s.borrower.pubkey(),
@@ -256,8 +262,8 @@ fn open_inr_loan(s: &mut Setup, operator: &str) -> ([u8; 32], Pubkey) {
         debt_service_micro: 120_000_000_000, // ₹120,000 per week
         min_coverage_bps: 11_500,
         currency: *b"INR",
+        covenant_periods: 2,
     };
-    let lender = s.h.payer.pubkey();
     s.h.send(&[Harness::ix(
         pct_oracle::instruction::OpenLoan { terms },
         pct_oracle::accounts::OpenLoan { lender, loan, system_program: system_program::ID },
@@ -275,7 +281,7 @@ fn razorpay_payments_bind_to_the_claim_owner_and_the_loan_currency() {
     submit(&mut s, "rzp-w0", loan, op).expect("captured INR payment from the operator's own app");
     let l: Loan = s.h.account(&loan);
     assert_eq!(l.latest().unwrap().revenue_micro, 250_000_000_000, "25,000,000 paise = ₹250,000");
-    assert_eq!(l.trailing_coverage_bps(l.latest().unwrap().period), 20_833, "250k / 120k");
+    assert_eq!(l.trailing_coverage_bps(l.latest().unwrap().period), 10_416, "250k / (2 x 120k)");
 
     let err = submit(&mut s, "rzp-w0-other-owner", loan, op).unwrap_err();
     assert!(err.contains("OperatorMismatch"), "{err}");
@@ -293,7 +299,7 @@ fn rejects_malformed_loan_terms() {
     let mut s = setup();
     let lender = s.h.payer.pubkey();
     let operator_key = keccak(b"someone");
-    let loan = pda(&[b"loan", &operator_key]);
+    let loan = pda(&[b"loan", lender.as_ref(), &operator_key]);
     let base = LoanTerms {
         operator_key,
         borrower: s.borrower.pubkey(),
@@ -303,8 +309,12 @@ fn rejects_malformed_loan_terms() {
         debt_service_micro: 1,
         min_coverage_bps: 11_500,
         currency: *b"USD",
+        covenant_periods: 13,
     };
     for bad in [
+        LoanTerms { currency: *b"JPY", ..base },
+        LoanTerms { covenant_periods: 0, ..base },
+        LoanTerms { covenant_periods: 14, ..base },
         LoanTerms { currency: *b"usd", ..base },
         LoanTerms { sku: 9, ..base },
         LoanTerms { fleet_gpus: 0, ..base },
@@ -320,4 +330,81 @@ fn rejects_malformed_loan_terms() {
             .unwrap_err();
         assert!(err.contains("BadLoanTerms"), "{err}");
     }
+}
+
+#[test]
+fn one_good_week_cannot_carry_a_two_week_covenant() {
+    let mut s = setup();
+    let (loan, op) = (s.loan, s.operator_key);
+    submit(&mut s, "op1-vast-w0", loan, op).unwrap();
+    submit(&mut s, "op1-stripe-w0", loan, op).unwrap();
+    let err = draw(&mut s, SOL).unwrap_err();
+    assert!(err.contains("coverage 9934 bps"), "2980.48 / (2 x 1500): {err}");
+}
+
+#[test]
+fn minor_units_need_a_currency() {
+    let mut s = setup();
+    let (loan, op) = (s.loan, s.operator_key);
+    let err = submit(&mut s, "op1-stripe-nocurrency", loan, op).unwrap_err();
+    assert!(err.contains("CurrencyMismatch"), "{err}");
+}
+
+fn withdraw_ix(lender: Pubkey, loan: Pubkey, lamports: u64) -> anchor_lang::solana_program::instruction::Instruction {
+    Harness::ix(pct_oracle::instruction::Withdraw { lamports }, pct_oracle::accounts::Withdraw { lender, loan })
+}
+
+#[test]
+fn only_the_lender_withdraws_undrawn_funds() {
+    let mut s = setup();
+    let lender = s.h.payer.pubkey();
+    let before = s.h.svm.get_balance(&lender).unwrap();
+    s.h.send(&[withdraw_ix(lender, s.loan, 3 * SOL)]).expect("lender withdraws");
+    assert!(s.h.svm.get_balance(&lender).unwrap() > before + 3 * SOL - 10_000);
+
+    // The borrower signing as "lender" is refused.
+    let blockhash = s.h.svm.latest_blockhash();
+    let ix = withdraw_ix(s.borrower.pubkey(), s.loan, SOL);
+    let msg = solana_message::Message::new_with_blockhash(&[ix], Some(&s.borrower.pubkey()), &blockhash);
+    let tx = solana_transaction::versioned::VersionedTransaction::try_new(solana_message::VersionedMessage::Legacy(msg), &[&s.borrower]).unwrap();
+    let err = s.h.svm.send_transaction(tx).map_err(|e| e.meta.logs.join("\n")).unwrap_err();
+    assert!(err.contains("NotLender"), "{err}");
+
+    let err = s.h.send(&[withdraw_ix(lender, s.loan, 100 * SOL)]).unwrap_err();
+    assert!(err.contains("InsufficientFunds"), "{err}");
+}
+
+#[test]
+fn loans_from_other_lenders_do_not_feed_the_price_tape() {
+    let mut s = setup();
+    // A second lender (not the oracle authority) opens its own loan for the same operator: its
+    // PDA differs, so it cannot squat the first lender's loan either.
+    let other = Keypair::new();
+    s.h.svm.airdrop(&other.pubkey(), 5 * SOL).unwrap();
+    let op = s.operator_key;
+    let loan = pda(&[b"loan", other.pubkey().as_ref(), &op]);
+    assert_ne!(loan, s.loan);
+    let terms = LoanTerms {
+        operator_key: op,
+        borrower: s.borrower.pubkey(),
+        sku: 0,
+        fleet_gpus: 8,
+        period_s: 604_800,
+        debt_service_micro: 1_500_000_000,
+        min_coverage_bps: 11_500,
+        currency: *b"USD",
+        covenant_periods: 2,
+    };
+    let blockhash = s.h.svm.latest_blockhash();
+    let ix = Harness::ix(
+        pct_oracle::instruction::OpenLoan { terms },
+        pct_oracle::accounts::OpenLoan { lender: other.pubkey(), loan, system_program: system_program::ID },
+    );
+    let msg = solana_message::Message::new_with_blockhash(&[ix], Some(&other.pubkey()), &blockhash);
+    let tx = solana_transaction::versioned::VersionedTransaction::try_new(solana_message::VersionedMessage::Legacy(msg), &[&other]).unwrap();
+    s.h.svm.send_transaction(tx).unwrap();
+
+    submit(&mut s, "op1-vast-w0", loan, op).expect("revenue still counts for that lender's loan");
+    assert_eq!(s.h.account::<Loan>(&loan).latest().unwrap().revenue_micro, 2_580_480_000);
+    assert_eq!(s.h.book(0, 0).len, 0, "but its rent never reaches the public book");
 }

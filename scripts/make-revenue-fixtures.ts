@@ -3,7 +3,7 @@ import { keccak256, toUtf8Bytes } from "ethers";
 import {
   RAZORPAY_PAYMENT,
   REVENUE_SOURCES,
-  STRIPE_PAYOUT,
+  STRIPE_PAYOUT_TEST,
   TEST_ATTESTOR,
   VAST_HOST_PAYOUT,
   revenueParameters,
@@ -22,19 +22,27 @@ const RZP_OWNER = "0x" + "cd".repeat(20);
 const OTHER_OWNER = "0x" + "ee".repeat(20);
 
 const CLAIMS = [
+  { name: "op1-vast-wm1", source: VAST_HOST_PAYOUT, at: WEEK0 - PERIOD_S + 3_600, extracted: { account: OP1, amount: "2580.48", hours: "1075.2" } },
   { name: "op1-vast-w0", source: VAST_HOST_PAYOUT, at: WEEK0 + 3_600, extracted: { account: OP1, amount: "2580.48", hours: "1075.2" } },
   {
     name: "op1-stripe-w0",
-    source: STRIPE_PAYOUT,
+    source: STRIPE_PAYOUT_TEST,
     at: WEEK0 + 7_200,
-    extracted: { account: OP1, amount_cents: "40000", at: String(WEEK0 + 3_600), item: "po_test_w0" },
+    extracted: { account: OP1, amount_cents: "40000", currency: "usd", at: String(WEEK0 + 3_600), item: "po_test_w0" },
+  },
+  {
+    // Minor units without a currency: refused rather than assumed to be USD cents.
+    name: "op1-stripe-nocurrency",
+    source: STRIPE_PAYOUT_TEST,
+    at: WEEK0 + 7_250,
+    extracted: { account: OP1, amount_cents: "40000", at: String(WEEK0 + 3_600), item: "po_test_nc" },
   },
   {
     // The same payout proven again a week later must not count twice.
     name: "op1-stripe-w0-again",
-    source: STRIPE_PAYOUT,
+    source: STRIPE_PAYOUT_TEST,
     at: WEEK0 + PERIOD_S + 7_200,
-    extracted: { account: OP1, amount_cents: "40000", at: String(WEEK0 + 3_600), item: "po_test_w0" },
+    extracted: { account: OP1, amount_cents: "40000", currency: "usd", at: String(WEEK0 + 3_600), item: "po_test_w0" },
   },
   { name: "op1-vast-w1", source: VAST_HOST_PAYOUT, at: WEEK0 + PERIOD_S + 3_600, extracted: { account: OP1, amount: "360", hours: "150" } },
   { name: "op2-vast-w0", source: VAST_HOST_PAYOUT, at: WEEK0 + 3_600, extracted: { account: OP2, amount: "999", hours: "400" } },

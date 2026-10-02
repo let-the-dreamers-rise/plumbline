@@ -69,11 +69,16 @@ export class OraclePdas {
   buffer(authority: PublicKey): PublicKey {
     return this.find(Buffer.from("buffer"), authority.toBytes());
   }
-  receipt(source: PublicKey, receiptKey: Uint8Array): PublicKey {
-    return this.find(Buffer.from("receipt"), source.toBytes(), receiptKey);
+  /** Price-proof nullifier, scoped by provider and kind (not by source, so a re-registered source shape cannot reuse an invoice). */
+  receipt(providerId: number, kind: number, receiptKey: Uint8Array): PublicKey {
+    return this.find(Buffer.from("receipt"), u16le(providerId), Uint8Array.of(kind), receiptKey);
   }
-  loan(operatorKey: Uint8Array): PublicKey {
-    return this.find(Buffer.from("loan"), operatorKey);
+  /** Revenue nullifier, scoped by provider and loan. */
+  revenueReceipt(providerId: number, loan: PublicKey, receiptKey: Uint8Array): PublicKey {
+    return this.find(Buffer.from("receipt"), u16le(providerId), loan.toBytes(), receiptKey);
+  }
+  loan(lender: PublicKey, operatorKey: Uint8Array): PublicKey {
+    return this.find(Buffer.from("loan"), lender.toBytes(), operatorKey);
   }
 }
 
@@ -89,8 +94,11 @@ export interface LoanTerms {
   minCoverageBps: number;
   /** ISO 4217 code, e.g. "USD" or "INR"; proofs carrying another currency are refused. */
   currency: string;
+  /** Covenant window in periods (13 weekly periods = a quarter); unproven periods count as zero. */
+  covenantPeriods: number;
 }
 
+const u16le = (v: number): Uint8Array => Uint8Array.of(v & 0xff, v >> 8);
 const signer = (pubkey: PublicKey, isWritable = true): AccountMeta => ({ pubkey, isSigner: true, isWritable });
 const writable = (pubkey: PublicKey): AccountMeta => ({ pubkey, isSigner: false, isWritable: true });
 const readonly = (pubkey: PublicKey): AccountMeta => ({ pubkey, isSigner: false, isWritable: false });
@@ -169,7 +177,7 @@ export class OracleInstructions {
 
   submitObservation(
     submitter: PublicKey,
-    source: { sourceId: Uint8Array; sku: number; kind: number },
+    source: { sourceId: Uint8Array; providerId: number; sku: number; kind: number },
     sig: ClaimSig,
     receiptKey: Uint8Array,
   ): TransactionInstruction {
@@ -180,7 +188,7 @@ export class OracleInstructions {
       readonly(sourcePda),
       writable(this.pdas.book(source.sku, source.kind)),
       writable(this.pdas.buffer(submitter)),
-      writable(this.pdas.receipt(sourcePda, receiptKey)),
+      writable(this.pdas.receipt(source.providerId, source.kind, receiptKey)),
       system,
     ];
     const args = new Writer().string(sig.owner).u32(sig.timestampS).u32(sig.epoch).fixed(sig.signature, 65).fixed(receiptKey, 32);
@@ -196,39 +204,45 @@ export class OracleInstructions {
       .u32(t.periodS)
       .u64(t.debtServiceMicro)
       .u16(t.minCoverageBps)
-      .fixed(currencyBytes(t.currency), 3);
-    return this.ix("open_loan", [signer(lender), writable(this.pdas.loan(t.operatorKey)), system], args);
+      .fixed(currencyBytes(t.currency), 3)
+      .u8(t.covenantPeriods);
+    return this.ix("open_loan", [signer(lender), writable(this.pdas.loan(lender, t.operatorKey)), system], args);
   }
 
   fundLoan(lender: PublicKey, operatorKey: Uint8Array, lamports: bigint | number): TransactionInstruction {
-    return this.ix("fund_loan", [signer(lender), writable(this.pdas.loan(operatorKey)), system], new Writer().u64(lamports));
+    return this.ix("fund_loan", [signer(lender), writable(this.pdas.loan(lender, operatorKey)), system], new Writer().u64(lamports));
+  }
+
+  withdraw(lender: PublicKey, operatorKey: Uint8Array, lamports: bigint | number): TransactionInstruction {
+    return this.ix("withdraw", [signer(lender), writable(this.pdas.loan(lender, operatorKey))], new Writer().u64(lamports));
   }
 
   /** `receiptKey` comes from revenueReceiptKeyFor (claim.ts): per payout item, else per loan period. */
   submitRevenue(
     submitter: PublicKey,
-    sourceId: Uint8Array,
-    loan: { operatorKey: Uint8Array; sku: number },
+    source: { sourceId: Uint8Array; providerId: number },
+    loan: { lender: PublicKey; operatorKey: Uint8Array; sku: number },
     sig: ClaimSig,
     receiptKey: Uint8Array,
   ): TransactionInstruction {
-    const sourcePda = this.pdas.source(sourceId);
+    const sourcePda = this.pdas.source(source.sourceId);
+    const loanPda = this.pdas.loan(loan.lender, loan.operatorKey);
     const keys = [
       signer(submitter),
       readonly(this.pdas.config()),
       readonly(sourcePda),
-      writable(this.pdas.loan(loan.operatorKey)),
+      writable(loanPda),
       writable(this.pdas.book(loan.sku, KIND_IDS.paid)),
       writable(this.pdas.buffer(submitter)),
-      writable(this.pdas.receipt(sourcePda, receiptKey)),
+      writable(this.pdas.revenueReceipt(source.providerId, loanPda, receiptKey)),
       system,
     ];
     const args = new Writer().string(sig.owner).u32(sig.timestampS).u32(sig.epoch).fixed(sig.signature, 65).fixed(receiptKey, 32);
     return this.ix("submit_revenue", keys, args);
   }
 
-  draw(borrower: PublicKey, operatorKey: Uint8Array, lamports: bigint | number): TransactionInstruction {
-    return this.ix("draw", [signer(borrower), writable(this.pdas.loan(operatorKey))], new Writer().u64(lamports));
+  draw(borrower: PublicKey, loan: { lender: PublicKey; operatorKey: Uint8Array }, lamports: bigint | number): TransactionInstruction {
+    return this.ix("draw", [signer(borrower), writable(this.pdas.loan(loan.lender, loan.operatorKey))], new Writer().u64(lamports));
   }
 
   crankIndex(sku: number, kind: number): TransactionInstruction {
@@ -333,6 +347,7 @@ export interface LoanState {
   debtServiceMicro: bigint;
   minCoverageBps: number;
   currency: string;
+  covenantPeriods: number;
   drawnLamports: bigint;
   /** Proven periods only, oldest first. */
   history: PeriodRevenue[];
@@ -351,6 +366,7 @@ export function decodeLoan(data: Uint8Array): LoanState {
   const debtServiceMicro = r.u64();
   const minCoverageBps = r.u16();
   const currency = Buffer.from(r.take(3)).toString("ascii");
+  const covenantPeriods = r.u8();
   const drawnLamports = r.u64();
   const history: PeriodRevenue[] = [];
   for (let i = 0; i < LOAN_HISTORY; i++) {
@@ -366,22 +382,17 @@ export function decodeLoan(data: Uint8Array): LoanState {
     debtServiceMicro,
     minCoverageBps,
     currency,
+    covenantPeriods,
     drawnLamports,
     history: history.filter((p) => p.proofs > 0).sort((a, b) => a.period - b.period),
     updatedAt: r.i64(),
   };
 }
 
-/** Covenant window (COVENANT_WINDOW_S in constants.rs): one quarter. */
-export const COVENANT_WINDOW_S = 91 * 86_400;
-
-/** Same as Loan::trailing_coverage_bps: unproven periods inside the window count as zero revenue. */
-export function trailingCoverageBps(loan: Pick<LoanState, "history" | "periodS" | "debtServiceMicro">, latest: number): bigint {
-  if (loan.history.length === 0) return 0n;
-  const first = Math.min(...loan.history.map((p) => p.period));
-  const maxPeriods = Math.min(Math.max(Math.ceil(COVENANT_WINDOW_S / loan.periodS), 1), LOAN_HISTORY);
-  const start = Math.max(latest - (maxPeriods - 1), first);
-  const periods = BigInt(latest - start + 1);
+/** Same as Loan::trailing_coverage_bps: the full covenant window, unproven periods counting as zero. */
+export function trailingCoverageBps(loan: Pick<LoanState, "history" | "covenantPeriods" | "debtServiceMicro">, latest: number): bigint {
+  const window = Math.min(Math.max(loan.covenantPeriods, 1), LOAN_HISTORY);
+  const start = Math.max(latest - (window - 1), 0);
   const revenue = loan.history.filter((p) => p.period >= start && p.period <= latest).reduce((sum, p) => sum + p.revenueMicro, 0n);
-  return (revenue * 10_000n) / (periods * loan.debtServiceMicro);
+  return (revenue * 10_000n) / (BigInt(window) * loan.debtServiceMicro);
 }

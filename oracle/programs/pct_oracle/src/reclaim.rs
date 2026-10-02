@@ -60,20 +60,60 @@ pub fn recover_eth_signer(digest: &[u8; 32], signature: &[u8; 65]) -> Result<[u8
     Ok(address)
 }
 
-fn find(haystack: &[u8], needle: &[u8]) -> Option<usize> {
-    haystack.windows(needle.len()).position(|w| w == needle)
+/// Reads a JSON string starting at `at` (which must be `"`) and returns (contents, index after
+/// the closing quote). Escapes are skipped, not decoded.
+fn json_string(bytes: &[u8], at: usize) -> Result<(&[u8], usize), ClaimError> {
+    if bytes.get(at) != Some(&b'"') {
+        return Err(ClaimError::MissingParam);
+    }
+    let mut i = at + 1;
+    while i < bytes.len() {
+        match bytes[i] {
+            b'\\' => i += 2,
+            b'"' => return Ok((&bytes[at + 1..i], i + 1)),
+            _ => i += 1,
+        }
+    }
+    Err(ClaimError::MissingParam)
 }
 
-/// Reads an attestor-extracted value from a canonical context. Only text after the unescaped
-/// `"extractedParameters":{` key is searched, so prover-chosen contextMessage text (where every
-/// quote is escaped) cannot spoof a value.
+fn expect(bytes: &[u8], at: usize, lit: &[u8]) -> Result<usize, ClaimError> {
+    if bytes.len() >= at + lit.len() && &bytes[at..at + lit.len()] == lit {
+        Ok(at + lit.len())
+    } else {
+        Err(ClaimError::MissingParam)
+    }
+}
+
+/// Reads an attestor-extracted value from a canonical (sorted-key) Reclaim context:
+/// `{"contextAddress":"…","contextMessage":"…","extractedParameters":{"k":"v",…},…}`.
+/// The structure is walked from the start, so prover-chosen text (contextMessage, or an extra
+/// object that sorts first) can never be mistaken for the real extractedParameters, and only
+/// that object's own keys are searched. Values containing escapes are refused.
 pub fn extract_param<'a>(context: &'a [u8], name: &str) -> Result<&'a [u8], ClaimError> {
-    const OBJECT: &[u8] = b"\"extractedParameters\":{";
-    let start = find(context, OBJECT).ok_or(ClaimError::MissingParam)? + OBJECT.len();
-    let key = format!("\"{}\":\"", name);
-    let value_start = start + find(&context[start..], key.as_bytes()).ok_or(ClaimError::MissingParam)? + key.len();
-    let len = context[value_start..].iter().position(|b| *b == b'"').ok_or(ClaimError::MissingParam)?;
-    Ok(&context[value_start..value_start + len])
+    let i = expect(context, 0, br#"{"contextAddress":"#)?;
+    let (_, i) = json_string(context, i)?;
+    let i = expect(context, i, br#","contextMessage":"#)?;
+    let (_, i) = json_string(context, i)?;
+    let mut i = expect(context, i, br#","extractedParameters":{"#)?;
+    if context.get(i) == Some(&b'}') {
+        return Err(ClaimError::MissingParam);
+    }
+    loop {
+        let (key, next) = json_string(context, i)?;
+        let next = expect(context, next, b":")?;
+        let (value, next) = json_string(context, next)?;
+        if key == name.as_bytes() {
+            if value.contains(&b'\\') {
+                return Err(ClaimError::BadNumber);
+            }
+            return Ok(value);
+        }
+        match context.get(next) {
+            Some(b',') => i = next + 1,
+            _ => return Err(ClaimError::MissingParam),
+        }
+    }
 }
 
 /// Strict decimal (up to 6 places) to integer millionths: "2.49" -> 2_490_000.
@@ -130,19 +170,35 @@ mod tests {
 
     #[test]
     fn extracts_only_from_extracted_parameters() {
-        let ctx = br#"{"contextAddress":"0x0","contextMessage":"note \"rate\":\"0.01\"","extractedParameters":{"rate":"98.32"},"providerHash":"0x00"}"#;
+        let ctx = br#"{"contextAddress":"0x0","contextMessage":"note \"rate\":\"0.01\" \\","extractedParameters":{"amount_cents":"5","rate":"98.32"},"providerHash":"0x00"}"#;
         assert_eq!(extract_param(ctx, "rate").unwrap(), b"98.32");
-        assert_eq!(extract_param(ctx, "amount"), Err(ClaimError::MissingParam));
+        assert_eq!(extract_param(ctx, "amount"), Err(ClaimError::MissingParam), "prefix of amount_cents");
         assert_eq!(extract_param(b"{}", "rate"), Err(ClaimError::MissingParam));
     }
 
     #[test]
+    fn refuses_spoofed_structures() {
+        // An extra object that sorts before the real one.
+        let sorted_first = br#"{"a":{"extractedParameters":{"rate":"0.01"}},"contextAddress":"0x0","contextMessage":"","extractedParameters":{"rate":"98.32"}}"#;
+        assert_eq!(extract_param(sorted_first, "rate"), Err(ClaimError::MissingParam));
+        // contextMessage as an object instead of a string.
+        let object_message = br#"{"contextAddress":"0x0","contextMessage":{"extractedParameters":{"rate":"0.01"}},"extractedParameters":{"rate":"98.32"}}"#;
+        assert_eq!(extract_param(object_message, "rate"), Err(ClaimError::MissingParam));
+        // A key that only appears after the object closes.
+        let outside = br#"{"contextAddress":"0x0","contextMessage":"","extractedParameters":{"x":"1"},"rate":"0.01"}"#;
+        assert_eq!(extract_param(outside, "rate"), Err(ClaimError::MissingParam));
+        // Escaped value.
+        let escaped = br#"{"contextAddress":"0x0","contextMessage":"","extractedParameters":{"rate":"9\"8"}}"#;
+        assert_eq!(extract_param(escaped, "rate"), Err(ClaimError::BadNumber));
+    }
+
+    #[test]
     fn prices_rate_and_amount_modes() {
-        let rate = br#"{"extractedParameters":{"rate":"98.32"}}"#;
+        let rate = br#"{"contextAddress":"0x0","contextMessage":"","extractedParameters":{"rate":"98.32"}}"#;
         assert_eq!(price_per_gpu_hour(rate, false, 8), Ok(12_290_000));
-        let amount = br#"{"extractedParameters":{"amount":"4.98","hours":"2"}}"#;
+        let amount = br#"{"contextAddress":"0x0","contextMessage":"","extractedParameters":{"amount":"4.98","hours":"2"}}"#;
         assert_eq!(price_per_gpu_hour(amount, true, 1), Ok(2_490_000));
-        let zero = br#"{"extractedParameters":{"amount":"4.98","hours":"0"}}"#;
+        let zero = br#"{"contextAddress":"0x0","contextMessage":"","extractedParameters":{"amount":"4.98","hours":"0"}}"#;
         assert_eq!(price_per_gpu_hour(zero, true, 1), Err(ClaimError::BadNumber));
     }
 

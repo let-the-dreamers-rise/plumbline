@@ -74,4 +74,8 @@ pub mod pct_oracle {
     pub fn draw(ctx: Context<Draw>, lamports: u64) -> Result<()> {
         instructions::lending::handle_draw(ctx, lamports)
     }
+
+    pub fn withdraw(ctx: Context<Withdraw>, lamports: u64) -> Result<()> {
+        instructions::lending::handle_withdraw(ctx, lamports)
+    }
 }

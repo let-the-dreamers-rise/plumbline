@@ -44,7 +44,7 @@ pub struct SubmitObservation<'info> {
         init,
         payer = submitter,
         space = 8 + Receipt::INIT_SPACE,
-        seeds = [RECEIPT_SEED, source.key().as_ref(), receipt_key.as_ref()],
+        seeds = [RECEIPT_SEED, &source.provider_id.to_le_bytes(), &[source.kind], receipt_key.as_ref()],
         bump
     )]
     pub receipt: Account<'info, Receipt>,

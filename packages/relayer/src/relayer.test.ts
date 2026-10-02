@@ -20,6 +20,7 @@ describe("formatHlPrice", () => {
     expect(formatHlPrice(2_123_456n, 4)).toBe("2.12");
     expect(formatHlPrice(3_000_000n, 2)).toBe("3");
     expect(() => formatHlPrice(0n, 2)).toThrow();
+    expect(() => formatHlPrice(1n, 2)).toThrow(/rounds to 0/);
   });
 });
 
@@ -32,6 +33,7 @@ describe("decide", () => {
 
   it("clamps each step to 1%", () => {
     expect(clampStep(null, 2_490_000n, 100)).toBe(2_490_000n);
+    expect(clampStep(50n, 90n, 100)).toBe(51n);
     expect(clampStep(2_000_000n, 3_000_000n, 100)).toBe(2_020_000n);
     expect(clampStep(2_000_000n, 1_000_000n, 100)).toBe(1_980_000n);
     expect(clampStep(2_000_000n, 2_010_000n, 100)).toBe(2_010_000n);

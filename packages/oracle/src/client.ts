@@ -103,7 +103,7 @@ export class OracleClient {
 
   async submitProof(proof: ReclaimProof, source: SourceArgs): Promise<SubmitResult> {
     const s = toSubmission(proof, source.requiresNullifier);
-    const receipt = this.ix.pdas.receipt(this.ix.pdas.source(source.sourceId), s.receiptKey);
+    const receipt = this.ix.pdas.receipt(source.providerId, source.kind, s.receiptKey);
     return this.uploadAndSubmit(s, receipt, this.ix.submitObservation(this.payer.publicKey, source, s.sig, s.receiptKey));
   }
 
@@ -111,26 +111,36 @@ export class OracleClient {
   async openLoan(terms: LoanTerms, lamports: bigint = 0n): Promise<string | null> {
     const me = this.payer.publicKey;
     const ixs: TransactionInstruction[] = [];
-    if (!(await this.exists(this.ix.pdas.loan(terms.operatorKey)))) ixs.push(this.ix.openLoan(me, terms));
+    if (!(await this.exists(this.ix.pdas.loan(me, terms.operatorKey)))) ixs.push(this.ix.openLoan(me, terms));
     if (lamports > 0n) ixs.push(this.ix.fundLoan(me, terms.operatorKey, lamports));
     return ixs.length > 0 ? this.send(...ixs) : null;
   }
 
-  /** Submits an operator revenue proof against the loan keyed by `operatorKey`. */
-  async submitRevenue(proof: ReclaimProof, sourceId: Uint8Array, operatorKey: Uint8Array): Promise<SubmitResult> {
-    const loan = await this.loan(operatorKey);
+  /** Submits an operator revenue proof against `lender`'s loan for `operatorKey` (default lender: this payer). */
+  async submitRevenue(
+    proof: ReclaimProof,
+    source: { sourceId: Uint8Array; providerId: number },
+    operatorKey: Uint8Array,
+    lender: PublicKey = this.payer.publicKey,
+  ): Promise<SubmitResult> {
+    const loan = await this.loan(operatorKey, lender);
     if (!loan) throw new Error("no loan for this operator");
     const s = toSubmission(proof, false);
     const receiptKey = revenueReceiptKeyFor(proof, operatorKey, loan.periodS);
-    const receipt = this.ix.pdas.receipt(this.ix.pdas.source(sourceId), receiptKey);
-    return this.uploadAndSubmit(s, receipt, this.ix.submitRevenue(this.payer.publicKey, sourceId, loan, s.sig, receiptKey));
+    const receipt = this.ix.pdas.revenueReceipt(source.providerId, this.ix.pdas.loan(lender, operatorKey), receiptKey);
+    return this.uploadAndSubmit(s, receipt, this.ix.submitRevenue(this.payer.publicKey, source, loan, s.sig, receiptKey));
   }
 
   /** The borrower draws from the loan; the program refuses unless the covenant holds. */
-  async draw(borrower: Keypair, operatorKey: Uint8Array, lamports: bigint): Promise<SubmitResult> {
-    const tx = new Transaction().add(this.ix.draw(borrower.publicKey, operatorKey, lamports));
+  async draw(borrower: Keypair, operatorKey: Uint8Array, lamports: bigint, lender: PublicKey = this.payer.publicKey): Promise<SubmitResult> {
+    const tx = new Transaction().add(this.ix.draw(borrower.publicKey, { lender, operatorKey }, lamports));
     const signature = await sendAndConfirmTransaction(this.connection, tx, [borrower], { commitment: "confirmed" });
     return { signature, computeUnits: await this.computeUnits(signature) };
+  }
+
+  /** The lender (this payer) takes undrawn funds back. */
+  async withdraw(operatorKey: Uint8Array, lamports: bigint): Promise<string> {
+    return this.send(this.ix.withdraw(this.payer.publicKey, operatorKey, lamports));
   }
 
   async config(): Promise<ConfigState | null> {
@@ -138,8 +148,8 @@ export class OracleClient {
     return info ? decodeConfig(info.data) : null;
   }
 
-  async loan(operatorKey: Uint8Array): Promise<LoanState | null> {
-    const info = await this.connection.getAccountInfo(this.ix.pdas.loan(operatorKey), "confirmed");
+  async loan(operatorKey: Uint8Array, lender: PublicKey = this.payer.publicKey): Promise<LoanState | null> {
+    const info = await this.connection.getAccountInfo(this.ix.pdas.loan(lender, operatorKey), "confirmed");
     return info ? decodeLoan(info.data) : null;
   }
 

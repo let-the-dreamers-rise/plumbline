@@ -28,24 +28,36 @@ export const VAST_HOST_PAYOUT: RevenueSourceSpec = {
 };
 
 /**
- * The latest Stripe payout. Works in test mode with a restricted key that can read payouts; use a
- * weekly payout schedule so each week has one payout. limit=1 keeps every match on the same
- * payout, dated by when it was created (arrival can be in the future). The bank account it paid
- * out to is the account id. A live deployment would also pin "livemode": true.
+ * The latest Stripe payout. limit=1 keeps every match on the same payout, dated by when it was
+ * created. The bank account it paid out to is the account id. Only `paid` payouts count.
+ *
+ * Every rule is anchored to the payout's own fields by Stripe's pretty-printing: they sit on lines
+ * indented by exactly six spaces, while operator-set `metadata` keys sit deeper and JSON strings
+ * cannot hold raw newlines. Without that, a metadata key such as "status": "paid" on a pending
+ * payout would satisfy the status rule (keys after `metadata` sort later). `livemode` is pinned, so
+ * test-mode payouts (free to fake) and live ones are different sources.
  */
-export const STRIPE_PAYOUT: RevenueSourceSpec = {
-  name: "stripe-payout",
-  provider: 11,
-  url: "https://api.stripe.com/v1/payouts?limit=1",
-  matches: [
-    '"id":\\s*"(?<item>po_[A-Za-z0-9]+)"',
-    '"amount":\\s*(?<amount_cents>[0-9]+)',
-    '"created":\\s*(?<at>[0-9]+)',
-    '"status":\\s*"(?:paid|in_transit)"',
-  ],
-  accountRule: '"destination":\\s*"(?<account>(?:ba|card)_[A-Za-z0-9]+)"',
-  auth: "bearer",
-};
+function stripePayout(live: boolean): RevenueSourceSpec {
+  const field = (rule: string) => `\\n {6}${rule}`;
+  return {
+    name: live ? "stripe-payout" : "stripe-payout-test",
+    provider: 11,
+    url: "https://api.stripe.com/v1/payouts?limit=1",
+    matches: [
+      field('"id":\\s*"(?<item>po_[A-Za-z0-9]+)"'),
+      field('"amount":\\s*(?<amount_cents>[0-9]+)'),
+      field('"created":\\s*(?<at>[0-9]+)'),
+      field('"currency":\\s*"(?<currency>[a-z]{3})"'),
+      field(`"livemode":\\s*${live}`),
+      field('"status":\\s*"paid"'),
+    ],
+    accountRule: field('"destination":\\s*"(?<account>(?:ba|card)_[A-Za-z0-9]+)"'),
+    auth: "bearer",
+  };
+}
+
+export const STRIPE_PAYOUT = stripePayout(true);
+export const STRIPE_PAYOUT_TEST = stripePayout(false);
 
 /**
  * The latest Razorpay payment (India; test mode works right after sign-up with test keys).
@@ -70,7 +82,7 @@ export const RAZORPAY_PAYMENT: RevenueSourceSpec = {
   auth: "basic",
 };
 
-export const REVENUE_SOURCES: readonly RevenueSourceSpec[] = [VAST_HOST_PAYOUT, STRIPE_PAYOUT, RAZORPAY_PAYMENT];
+export const REVENUE_SOURCES: readonly RevenueSourceSpec[] = [VAST_HOST_PAYOUT, STRIPE_PAYOUT, STRIPE_PAYOUT_TEST, RAZORPAY_PAYMENT];
 
 const rules = (spec: RevenueSourceSpec): string[] => [...spec.matches, ...(spec.accountRule ? [spec.accountRule] : [])];
 
@@ -96,11 +108,50 @@ export function buildRevenueRequest(spec: RevenueSourceSpec, authHeader: string)
   };
 }
 
-/** Throws unless a proof's parameters are for this spec's URL and enforce every one of its rules. */
+/**
+ * Throws unless a proof's parameters are exactly this spec's request: same URL and method, an
+ * empty body, every spec rule enforced as a plain (non-inverted) regex and no other rule, and
+ * redactions that reveal only the rules' spans (the account span OPRF-hashed). A source registered
+ * from such parameters cannot be loosened by whoever made the proof file.
+ */
 export function assertRevenueProofMatches(parameters: string, spec: RevenueSourceSpec): void {
-  const p = JSON.parse(parameters) as { url?: string; responseMatches?: { type: string; value: string }[] };
-  if (p.url !== spec.url) throw new Error(`proof is for ${p.url}, not ${spec.url}`);
-  const enforced = new Set((p.responseMatches ?? []).filter((m) => m.type === "regex").map((m) => m.value));
-  const missing = rules(spec).filter((r) => !enforced.has(r));
-  if (missing.length > 0) throw new Error(`proof does not enforce: ${missing.join(", ")}`);
+  const p = JSON.parse(parameters) as Record<string, unknown>;
+  const fail = (why: string): never => {
+    throw new Error(`proof parameters do not match ${spec.name}: ${why}`);
+  };
+  // Keys zkFetch may add that do not change what is checked.
+  const benign: Record<string, (v: unknown) => boolean> = {
+    url: (v) => v === spec.url,
+    method: (v) => v === "GET",
+    body: (v) => v === "" || v === undefined,
+    geoLocation: (v) => v === "" || v === undefined,
+    headers: (v) => v === undefined || (typeof v === "object" && v !== null && Object.keys(v).length === 0),
+    paramValues: (v) => v === undefined || (typeof v === "object" && v !== null && Object.keys(v).length === 0),
+    responseMatches: () => true,
+    responseRedactions: () => true,
+  };
+  for (const [k, v] of Object.entries(p)) {
+    const ok = benign[k];
+    if (!ok) fail(`unexpected parameter "${k}"`);
+    else if (!ok(v)) fail(`unexpected value for "${k}"`);
+  }
+  if (p.url !== spec.url) fail(`url is ${String(p.url)}`);
+
+  const want = rules(spec);
+  const matches = (p.responseMatches ?? []) as Record<string, unknown>[];
+  for (const m of matches) {
+    const extra = Object.keys(m).filter((k) => k !== "type" && k !== "value" && !(k === "invert" && m.invert === false));
+    if (m.type !== "regex" || extra.length > 0) fail(`match ${JSON.stringify(m)} is not a plain regex`);
+  }
+  const got = matches.map((m) => m.value as string).sort();
+  if (JSON.stringify(got) !== JSON.stringify([...want].sort())) fail("responseMatches differ from the spec's rules");
+
+  const redactions = (p.responseRedactions ?? []) as Record<string, unknown>[];
+  for (const r of redactions) {
+    const isAccount = r.regex === spec.accountRule;
+    const keys = Object.keys(r).sort().join(",");
+    const ok = isAccount ? keys === "hash,regex" && r.hash === "oprf-raw" : keys === "regex" && spec.matches.includes(r.regex as string);
+    if (!ok) fail(`redaction ${JSON.stringify(r)} is not one of the spec's`);
+  }
+  if (redactions.length !== want.length) fail("responseRedactions differ from the spec's rules");
 }

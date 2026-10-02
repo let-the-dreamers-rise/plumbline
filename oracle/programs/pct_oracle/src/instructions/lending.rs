@@ -18,6 +18,7 @@ pub struct LoanTerms {
     pub debt_service_micro: u64,
     pub min_coverage_bps: u16,
     pub currency: [u8; 3],
+    pub covenant_periods: u8,
 }
 
 #[derive(Accounts)]
@@ -25,7 +26,15 @@ pub struct LoanTerms {
 pub struct OpenLoan<'info> {
     #[account(mut)]
     pub lender: Signer<'info>,
-    #[account(init, payer = lender, space = 8 + Loan::INIT_SPACE, seeds = [LOAN_SEED, terms.operator_key.as_ref()], bump)]
+    /// Keyed by lender too: nobody can squat another lender's loan for an operator, and an operator
+    /// can have loans from several lenders.
+    #[account(
+        init,
+        payer = lender,
+        space = 8 + Loan::INIT_SPACE,
+        seeds = [LOAN_SEED, lender.key().as_ref(), terms.operator_key.as_ref()],
+        bump
+    )]
     pub loan: Account<'info, Loan>,
     pub system_program: Program<'info, System>,
 }
@@ -38,7 +47,10 @@ pub fn handle_open_loan(ctx: Context<OpenLoan>, terms: LoanTerms) -> Result<()> 
             && terms.fleet_gpus > 0
             && terms.period_s >= 3_600
             && terms.debt_service_micro > 0
-            && terms.currency.iter().all(u8::is_ascii_uppercase),
+            && terms.currency.iter().all(u8::is_ascii_uppercase)
+            && !NON_CENT_CURRENCIES.contains(&&terms.currency)
+            && terms.covenant_periods >= 1
+            && terms.covenant_periods as usize <= LOAN_HISTORY,
         OracleError::BadLoanTerms
     );
     ctx.accounts.loan.set_inner(Loan {
@@ -51,6 +63,7 @@ pub fn handle_open_loan(ctx: Context<OpenLoan>, terms: LoanTerms) -> Result<()> 
         debt_service_micro: terms.debt_service_micro,
         min_coverage_bps: terms.min_coverage_bps,
         currency: terms.currency,
+        covenant_periods: terms.covenant_periods,
         drawn_lamports: 0,
         history: [PeriodRevenue::default(); LOAN_HISTORY],
         updated_at: 0,
@@ -63,7 +76,7 @@ pub fn handle_open_loan(ctx: Context<OpenLoan>, terms: LoanTerms) -> Result<()> 
 pub struct FundLoan<'info> {
     #[account(mut)]
     pub lender: Signer<'info>,
-    #[account(mut, seeds = [LOAN_SEED, loan.operator_key.as_ref()], bump = loan.bump, has_one = lender @ OracleError::Unauthorized)]
+    #[account(mut, seeds = [LOAN_SEED, loan.lender.as_ref(), loan.operator_key.as_ref()], bump = loan.bump, has_one = lender @ OracleError::NotLender)]
     pub loan: Account<'info, Loan>,
     pub system_program: Program<'info, System>,
 }
@@ -86,7 +99,7 @@ pub struct SubmitRevenue<'info> {
         constraint = source.kind == KIND_REVENUE @ OracleError::BadSourceShape
     )]
     pub source: Account<'info, PriceSource>,
-    #[account(mut, seeds = [LOAN_SEED, loan.operator_key.as_ref()], bump = loan.bump)]
+    #[account(mut, seeds = [LOAN_SEED, loan.lender.as_ref(), loan.operator_key.as_ref()], bump = loan.bump)]
     pub loan: Box<Account<'info, Loan>>,
     /// The paid price tape for the loan's SKU: realized rent from proofs with hours lands here.
     #[account(
@@ -103,12 +116,14 @@ pub struct SubmitRevenue<'info> {
         close = submitter
     )]
     pub buffer: Box<Account<'info, ClaimBuffer>>,
-    /// Nullifier: one per payout (`item`) or, for sources without item ids, one per loan period.
+    /// Nullifier: one per payout (`item`) or, for sources without item ids, one per operator and
+    /// period. Scoped by provider (not source) and loan, so registering a second source shape for
+    /// the same provider cannot count the same payout twice.
     #[account(
         init,
         payer = submitter,
         space = 8 + Receipt::INIT_SPACE,
-        seeds = [RECEIPT_SEED, source.key().as_ref(), receipt_key.as_ref()],
+        seeds = [RECEIPT_SEED, &source.provider_id.to_le_bytes(), loan.key().as_ref(), receipt_key.as_ref()],
         bump
     )]
     pub receipt: Account<'info, Receipt>,
@@ -160,7 +175,7 @@ pub struct RevenueProven {
     pub rent_micro: u64,
     /// This period's proven revenue over debt service so far.
     pub period_coverage_bps: u64,
-    /// The covenant figure: trailing-quarter revenue over debt service, as of the latest period.
+    /// The covenant figure: trailing-window revenue over debt service, as of the latest period.
     pub trailing_coverage_bps: u64,
     pub observed_at: i64,
     pub identifier: [u8; 32],
@@ -185,8 +200,13 @@ pub fn handle_submit_revenue(ctx: Context<SubmitRevenue>, sig: ClaimSig, receipt
     };
     let loan = &mut ctx.accounts.loan;
     require!(reclaim::keccak(account) == loan.operator_key, OracleError::OperatorMismatch);
-    let currency = reclaim::extract_param(context, "currency").unwrap_or(b"USD");
-    require!(currency == loan.currency.as_slice(), OracleError::CurrencyMismatch);
+    // Minor-unit amounts must say their currency; major-unit `amount` without one is USD.
+    let currency = match reclaim::extract_param(context, "currency") {
+        Ok(c) => c,
+        Err(_) if reclaim::extract_param(context, "amount_cents").is_ok() => return err!(OracleError::CurrencyMismatch),
+        Err(_) => b"USD",
+    };
+    require!(currency.eq_ignore_ascii_case(&loan.currency), OracleError::CurrencyMismatch);
 
     let revenue = revenue_micro(context).map_err(OracleError::from)?;
     require!(revenue > 0, OracleError::BadNumber);
@@ -214,15 +234,22 @@ pub fn handle_submit_revenue(ctx: Context<SubmitRevenue>, sig: ClaimSig, receipt
         Err(_) => revenue_receipt_key(&loan.operator_key, period),
     };
     require!(receipt_key == expected, OracleError::ReceiptMismatch);
+    let first_hours_in_period = !loan.history.iter().any(|p| p.proofs > 0 && p.period == period && p.gpu_hours_micro > 0);
     loan.record(period, revenue, hours);
     loan.updated_at = observed_at;
     let this_period = loan.history.iter().find(|p| p.proofs > 0 && p.period == period).copied().unwrap_or_default();
     let period_coverage_bps = loan.coverage_bps(&this_period);
     let trailing_coverage_bps = loan.latest().map(|l| loan.trailing_coverage_bps(l.period)).unwrap_or(0);
 
-    // GPU-hours are already per GPU, so realized rent is amount / hours.
+    // GPU-hours are already per GPU, so realized rent is amount / hours. It feeds the public USD
+    // price tape only from loans the oracle authority itself underwrote (open_loan is
+    // permissionless), at most once per loan and period, so nobody can flood or skew the book.
     let rent = if hours > 0 { reclaim::div_round(revenue as u128 * 1_000_000, hours as u128) } else { 0 };
-    if rent > 0 {
+    let feeds_tape = rent > 0
+        && first_hours_in_period
+        && loan.currency == *b"USD"
+        && loan.lender == ctx.accounts.config.authority;
+    if feeds_tape {
         ctx.accounts.book.push(Slot { provider_id: source.provider_id, price_micro: rent, observed_at, weight: 1 });
     }
     ctx.accounts.receipt.set_inner(Receipt { source: source.key(), observed_at });
@@ -246,7 +273,7 @@ pub fn handle_submit_revenue(ctx: Context<SubmitRevenue>, sig: ClaimSig, receipt
 pub struct Draw<'info> {
     #[account(mut)]
     pub borrower: Signer<'info>,
-    #[account(mut, seeds = [LOAN_SEED, loan.operator_key.as_ref()], bump = loan.bump, has_one = borrower @ OracleError::NotBorrower)]
+    #[account(mut, seeds = [LOAN_SEED, loan.lender.as_ref(), loan.operator_key.as_ref()], bump = loan.bump, has_one = borrower @ OracleError::NotBorrower)]
     pub loan: Account<'info, Loan>,
 }
 
@@ -279,5 +306,23 @@ pub fn handle_draw(ctx: Context<Draw>, lamports: u64) -> Result<()> {
     let loan = &mut ctx.accounts.loan;
     loan.drawn_lamports = loan.drawn_lamports.saturating_add(lamports);
     emit!(DrawApproved { loan: loan.key(), lamports, coverage_bps });
+    Ok(())
+}
+
+#[derive(Accounts)]
+pub struct Withdraw<'info> {
+    #[account(mut)]
+    pub lender: Signer<'info>,
+    #[account(mut, seeds = [LOAN_SEED, loan.lender.as_ref(), loan.operator_key.as_ref()], bump = loan.bump, has_one = lender @ OracleError::NotLender)]
+    pub loan: Account<'info, Loan>,
+}
+
+/// The lender takes undrawn funds back (for example after a breach). Rent stays in the account.
+pub fn handle_withdraw(ctx: Context<Withdraw>, lamports: u64) -> Result<()> {
+    let loan_info = ctx.accounts.loan.to_account_info();
+    let rent_floor = Rent::get()?.minimum_balance(loan_info.data_len());
+    require!(lamports <= loan_info.lamports().saturating_sub(rent_floor), OracleError::InsufficientFunds);
+    **loan_info.try_borrow_mut_lamports()? -= lamports;
+    **ctx.accounts.lender.to_account_info().try_borrow_mut_lamports()? += lamports;
     Ok(())
 }

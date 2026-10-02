@@ -22,6 +22,7 @@
     "loan:open": "tsx packages/oracle/src/cli/loan.ts open",
     "loan:submit": "tsx packages/oracle/src/cli/loan.ts submit",
     "loan:draw": "tsx packages/oracle/src/cli/loan.ts draw",
+    "loan:withdraw": "tsx packages/oracle/src/cli/loan.ts withdraw",
     "loan:show": "tsx packages/oracle/src/cli/loan.ts show",
     "hl:deploy": "tsx packages/relayer/src/cli/deploy-market.ts",
     "hl:relay": "tsx packages/relayer/src/cli/relay.ts",

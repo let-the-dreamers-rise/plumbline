@@ -82,10 +82,10 @@ describe("instructions", () => {
     const me = Keypair.generate().publicKey;
     const sourceId = keccakBytes("x");
     const s = toSubmission(fixtureProof(fx.claims[0]!, fx.attestor), true);
-    const built = ix.submitObservation(me, { sourceId, sku: 0, kind: 0 }, s.sig, s.receiptKey);
+    const built = ix.submitObservation(me, { sourceId, providerId: 1, sku: 0, kind: 0 }, s.sig, s.receiptKey);
     const source = ix.pdas.source(sourceId);
     expect(built.keys.map((k) => k.pubkey.toBase58())).toEqual(
-      [me, ix.pdas.config(), source, ix.pdas.book(0, 0), ix.pdas.buffer(me), ix.pdas.receipt(source, s.receiptKey)]
+      [me, ix.pdas.config(), source, ix.pdas.book(0, 0), ix.pdas.buffer(me), ix.pdas.receipt(1, 0, s.receiptKey)]
         .map((k) => k.toBase58())
         .concat("11111111111111111111111111111111"),
     );

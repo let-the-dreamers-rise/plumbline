@@ -4,7 +4,7 @@ import type { ReclaimProof } from "./claim.js";
 import { KIND_IDS, VALUE_MODE_AMOUNT_HOURS, type SourceArgs } from "./program.js";
 import { buildRevenueRequest, type RevenueSourceSpec } from "@pct/prover";
 
-export { RAZORPAY_PAYMENT, REVENUE_SOURCES, STRIPE_PAYOUT, VAST_HOST_PAYOUT, type RevenueSourceSpec } from "@pct/prover";
+export { RAZORPAY_PAYMENT, REVENUE_SOURCES, STRIPE_PAYOUT, STRIPE_PAYOUT_TEST, VAST_HOST_PAYOUT, type RevenueSourceSpec } from "@pct/prover";
 
 /**
  * A claim parameters string for this source in zkFetch's shape, used for test fixtures. Register

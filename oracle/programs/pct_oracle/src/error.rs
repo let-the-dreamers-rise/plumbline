@@ -50,6 +50,8 @@ pub enum OracleError {
     RevenueTooOld,
     #[msg("Proof's currency differs from the loan's")]
     CurrencyMismatch,
+    #[msg("Only the loan's lender can do this")]
+    NotLender,
 }
 
 impl From<crate::reclaim::ClaimError> for OracleError {

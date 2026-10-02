@@ -161,6 +161,9 @@ pub struct Loan {
     pub min_coverage_bps: u16,
     /// ISO 4217 code the revenue and debt service are in (b"USD", b"INR"). Amounts are micro-units.
     pub currency: [u8; 3],
+    /// Covenant window in periods (e.g. 13 weekly periods = a quarter). Always the full length:
+    /// periods without a proof count as zero, so one large payout cannot carry a short window.
+    pub covenant_periods: u8,
     pub drawn_lamports: u64,
     pub history: [PeriodRevenue; LOAN_HISTORY],
     pub updated_at: i64,
@@ -203,21 +206,18 @@ impl Loan {
         ((p.revenue_micro as u128 * 10_000) / self.debt_service_micro as u128).min(u64::MAX as u128) as u64
     }
 
-    /// Trailing coverage in basis points: revenue proven over the window ending at `latest`
-    /// (capped at one quarter and at the loan's first proven period) divided by debt service for
-    /// every period in that window. Periods without a proof count as zero revenue.
+    /// Trailing coverage in basis points: revenue proven in the `covenant_periods` periods ending at
+    /// `latest`, over debt service for all of them. Periods without a proof count as zero revenue.
     pub fn trailing_coverage_bps(&self, latest: u32) -> u64 {
-        let first = self.history.iter().filter(|p| p.proofs > 0).map(|p| p.period).min().unwrap_or(latest);
-        let max_periods = (COVENANT_WINDOW_S.div_ceil(self.period_s)).clamp(1, LOAN_HISTORY as u32);
-        let start = latest.saturating_sub(max_periods - 1).max(first);
-        let periods = (latest - start + 1) as u128;
+        let window = (self.covenant_periods as u32).clamp(1, LOAN_HISTORY as u32);
+        let start = latest.saturating_sub(window - 1);
         let revenue: u128 = self
             .history
             .iter()
             .filter(|p| p.proofs > 0 && p.period >= start && p.period <= latest)
             .map(|p| p.revenue_micro as u128)
             .sum();
-        ((revenue * 10_000) / (periods * self.debt_service_micro as u128)).min(u64::MAX as u128) as u64
+        ((revenue * 10_000) / (window as u128 * self.debt_service_micro as u128)).min(u64::MAX as u128) as u64
     }
 
     /// Covenant: the latest proven period must be the current or previous one, and trailing
@@ -256,6 +256,7 @@ mod loan_tests {
             debt_service_micro: 1_500_000_000,
             min_coverage_bps: 13_500,
             currency: *b"USD",
+            covenant_periods: 13,
             drawn_lamports: 0,
             history: [PeriodRevenue::default(); LOAN_HISTORY],
             updated_at: 0,
@@ -276,15 +277,28 @@ mod loan_tests {
     #[test]
     fn covenant_needs_recent_and_sufficient_revenue() {
         let mut l = loan();
+        l.covenant_periods = 2;
         let week = 604_800i64;
         assert_eq!(l.covenant(10 * week), Err(CovenantFailure::NoRecentRevenue));
         l.record(10, 2_580_480_000, 0);
+        // The window is always two periods: one good week alone is 2580.48 / 3000.
+        assert_eq!(l.covenant(10 * week + 5), Err(CovenantFailure::Breached(8_601)));
+        l.record(9, 2_580_480_000, 0);
         assert_eq!(l.covenant(10 * week + 5), Ok(17_203));
         assert_eq!(l.covenant(11 * week + 5), Ok(17_203), "previous period still counts");
         assert_eq!(l.covenant(12 * week + 5), Err(CovenantFailure::NoRecentRevenue));
         l.record(12, 1_440_000_000, 0);
-        // Trailing: (2580.48 + 0 + 1440) / (3 x 1500) = 0.89x; the unproven week 11 counts as zero.
-        assert_eq!(l.covenant(12 * week + 5), Err(CovenantFailure::Breached(8_934)));
+        // (0 for the unproven week 11 + 1440) / 3000.
+        assert_eq!(l.covenant(12 * week + 5), Err(CovenantFailure::Breached(4_800)));
+    }
+
+    #[test]
+    fn quarter_window_needs_a_quarter_of_revenue() {
+        let mut l = loan();
+        // One huge week cannot stand in for 13: 13 x 1500 x 1.35 = 26,325 needed.
+        l.record(20, 20_000_000_000, 0);
+        assert_eq!(l.trailing_coverage_bps(20), 10_256);
+        assert!(l.covenant(20 * 604_800).is_err());
     }
 
     #[test]

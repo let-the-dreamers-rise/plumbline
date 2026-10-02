@@ -81,7 +81,7 @@ fn submit(h: &mut Harness, c: &Value, context_override: Option<&str>) -> Result<
             source,
             book: pda(&[b"book", &[0], &[kind]]),
             buffer,
-            receipt: pda(&[b"receipt", source.as_ref(), &receipt_key]),
+            receipt: pda(&[b"receipt", &(c["provider"].as_u64().unwrap() as u16).to_le_bytes(), &[kind], &receipt_key]),
             system_program: system_program::ID,
         },
     )]);

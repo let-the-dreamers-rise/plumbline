@@ -48,12 +48,12 @@ function view(address: PublicKey, b: BookState): BookView {
   };
 }
 
-async function proofsFor(connection: Connection, book: PublicKey, limit: number): Promise<Proven[]> {
+async function proofsFor(connection: Connection, programId: PublicKey, book: PublicKey, limit: number): Promise<Proven[]> {
   const sigs = await connection.getSignaturesForAddress(book, { limit }, "confirmed");
   const ok = sigs.filter((s) => s.err === null);
   const txs = await Promise.all(ok.map((s) => connection.getTransaction(s.signature, { commitment: "confirmed", maxSupportedTransactionVersion: 0 })));
   return txs.flatMap((tx, i) =>
-    parseObservations(tx?.meta?.logMessages ?? []).map((o) => ({ ...o, provider: providerName(o.providerId), signature: ok[i]!.signature, slot: ok[i]!.slot })),
+    parseObservations(tx?.meta?.logMessages ?? [], programId.toBase58()).map((o) => ({ ...o, provider: providerName(o.providerId), signature: ok[i]!.signature, slot: ok[i]!.slot })),
   );
 }
 
@@ -88,7 +88,7 @@ export async function loadState(connection: Connection, programId: PublicKey = D
   const config = configInfo ? decodeConfig(configInfo.data) : null;
   const paid = paidInfo ? view(paidKey, decodeBook(paidInfo.data)) : null;
   const list = listInfo ? view(listKey, decodeBook(listInfo.data)) : null;
-  const proofs = (await Promise.all([proofsFor(connection, paidKey, 40), proofsFor(connection, listKey, 20)])).flat().sort((a, b) => b.slot - a.slot);
+  const proofs = (await Promise.all([proofsFor(connection, programId, paidKey, 40), proofsFor(connection, programId, listKey, 20)])).flat().sort((a, b) => b.slot - a.slot);
   return {
     rpc: connection.rpcEndpoint,
     programId: programId.toBase58(),

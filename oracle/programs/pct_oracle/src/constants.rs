@@ -14,8 +14,12 @@ pub const RECEIPT_SEED: &[u8] = b"receipt";
 pub const LOAN_SEED: &[u8] = b"loan";
 
 pub const LOAN_HISTORY: usize = 13;
-/// Covenant window: trailing revenue over this span (one quarter, as in USD.AI's 1.15x test).
-pub const COVENANT_WINDOW_S: u32 = 91 * 86_400;
+/// Currencies whose minor unit is not 1/100 (zero- or three-decimal); `amount_cents` would be
+/// misread for them, so loans in these currencies are refused.
+pub const NON_CENT_CURRENCIES: [&[u8; 3]; 21] = [
+    b"BIF", b"CLP", b"DJF", b"GNF", b"ISK", b"JPY", b"KMF", b"KRW", b"MGA", b"PYG", b"RWF", b"UGX", b"VND", b"VUV", b"XAF", b"XOF",
+    b"BHD", b"JOD", b"KWD", b"OMR", b"TND",
+];
 
 pub const MAX_ATTESTORS: usize = 8;
 pub const BOOK_CAPACITY: usize = 32;
