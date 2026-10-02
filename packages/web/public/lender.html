@@ -217,7 +217,7 @@ async function load() {
   }
 }
 load();
-setInterval(load, 5000);
+setInterval(load, Number(new URLSearchParams(location.search).get("refresh") ?? 5000));
 </script>
 </body>
 </html>

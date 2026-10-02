@@ -16,20 +16,21 @@ const pages: Record<string, URL> = {
 const port = Number(process.env.PORT ?? 8787);
 
 createServer(async (req, res) => {
+  const path = new URL(req.url ?? "/", "http://localhost").pathname;
   try {
-    if (req.url === "/api/state") {
+    if (path === "/api/state") {
       const state = await loadState(connection, programId);
       res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" });
       res.end(JSON.stringify(state));
       return;
     }
-    if (req.url === "/api/loans") {
+    if (path === "/api/loans") {
       const loans = await loadLoans(connection, programId);
       res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" });
       res.end(JSON.stringify({ rpc: connection.rpcEndpoint, programId: programId.toBase58(), fetchedAt: Math.floor(Date.now() / 1000), loans }));
       return;
     }
-    const page = pages[req.url ?? ""];
+    const page = pages[path];
     if (page) {
       res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
       res.end(readFileSync(page));

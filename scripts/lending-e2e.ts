@@ -16,6 +16,9 @@ for (const k of [lender, borrower]) {
   await connection.confirmTransaction(await connection.requestAirdrop(k.publicKey, 20 * LAMPORTS_PER_SOL), "confirmed");
 }
 const client = new OracleClient(connection, lender);
+// DEMO_PAUSE_MS spaces out the steps so a dashboard recording shows each one land.
+const pauseMs = Number(process.env.DEMO_PAUSE_MS ?? 0);
+const pause = () => new Promise((r) => setTimeout(r, pauseMs));
 
 const PERIOD_S = 604_800;
 const now = Math.floor(Date.now() / 1000) - 30;
@@ -36,6 +39,7 @@ await client.openLoan(
 console.log(`loan ${client.ix.pdas.loan(op).toBase58()}: 8x H100, $1,500/week debt service, 1.15x covenant, funded 10 SOL`);
 
 const tryDraw = async (label: string, sol: number) => {
+  await pause();
   try {
     const r = await client.draw(borrower, op, BigInt(sol * LAMPORTS_PER_SOL));
     console.log(`draw ${sol} SOL ${label}: approved (${r.computeUnits} CU)`);
@@ -46,6 +50,7 @@ const tryDraw = async (label: string, sol: number) => {
   }
 };
 const submit = async (label: string, proof: Awaited<ReturnType<typeof signTestRevenueClaim>>, source = VAST_HOST_PAYOUT) => {
+  await pause();
   const r = await client.submitRevenue(proof, revenueSourceArgs(source).sourceId, op);
   const loan = (await client.loan(op))!;
   const latest = loan.history.at(-1)!;
