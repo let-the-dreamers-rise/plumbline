@@ -51,7 +51,7 @@ export class Writer {
 }
 
 /** Anchor's default 8-byte discriminator: sha256("<namespace>:<name>")[..8]. */
-export function discriminator(namespace: "global" | "account", name: string): Uint8Array {
+export function discriminator(namespace: "global" | "account" | "event", name: string): Uint8Array {
   return getBytes(sha256(toUtf8Bytes(`${namespace}:${name}`))).slice(0, 8);
 }
 

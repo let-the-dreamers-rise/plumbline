@@ -18,7 +18,8 @@
     "oracle:crank": "tsx packages/oracle/src/cli/crank.ts",
     "oracle:e2e": "tsx scripts/oracle-e2e.ts",
     "hl:deploy": "tsx packages/relayer/src/cli/deploy-market.ts",
-    "hl:relay": "tsx packages/relayer/src/cli/relay.ts"
+    "hl:relay": "tsx packages/relayer/src/cli/relay.ts",
+    "web": "tsx packages/web/src/server.ts"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

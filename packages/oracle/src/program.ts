@@ -210,3 +210,26 @@ export function decodeBook(data: Uint8Array): BookState {
   const status = STATUS[r.u8()] ?? "never";
   return { sku, kind, len, slots: slots.slice(0, len), valueMicro, status, used: r.u8(), rejected: r.u8(), updatedAt: r.i64() };
 }
+
+export interface ConfigState {
+  authority: PublicKey;
+  attestors: string[];
+  params: IndexParams;
+}
+
+export function decodeConfig(data: Uint8Array): ConfigState {
+  const r = new Reader(data);
+  if (!Buffer.from(r.take(8)).equals(Buffer.from(discriminator("account", "Config")))) throw new Error("not a Config account");
+  const authority = new PublicKey(r.take(32));
+  const n = r.u32();
+  const attestors = Array.from({ length: n }, () => "0x" + Buffer.from(r.take(20)).toString("hex"));
+  const params: IndexParams = {
+    maxStalenessS: Number(r.i64()),
+    maxFutureSkewS: Number(r.i64()),
+    minProviders: r.u8(),
+    providerCapBps: r.u16(),
+    madKMilli: r.u32(),
+    madFloorBps: r.u16(),
+  };
+  return { authority, attestors, params };
+}

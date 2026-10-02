@@ -19,12 +19,23 @@ The flow tests load `target/deploy/pct_oracle.so`, so build first.
 ## End to end on a local validator
 
 ```bash
-solana-test-validator --reset --bpf-program 2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz target/deploy/pct_oracle.so
+solana-test-validator --reset --limit-ledger-size 50000000 --bpf-program 2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz target/deploy/pct_oracle.so
 npm run oracle:e2e   # from the repo root, in another terminal
 ```
 
 This registers the five fixture sources, submits the fixture claims, checks that a reused
 invoice is rejected, cranks both H100 books and expects a live paid index of $2.49.
+(`--limit-ledger-size` keeps transaction history, which the dashboard reads.)
+
+## Dashboard
+
+```bash
+SOLANA_RPC_URL=http://127.0.0.1:8899 npm run web   # http://localhost:8787
+```
+
+Shows the paid index against the proven list price, every accepted proof with its transaction,
+a per-proof "Verify" walkthrough, and an off-chain recompute of the index (TypeScript reference
+math with the onchain config) that must match the onchain value.
 
 ## Deploy to devnet
 
