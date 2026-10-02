@@ -39,6 +39,7 @@ export const PROVIDER_IDS: Readonly<Record<string, number>> = {
   nebius: 9,
   together: 10,
   stripe: 11,
+  razorpay: 12,
 };
 
 export function providerId(provider: string): number {
@@ -105,6 +106,11 @@ export const operatorKey = (accountId: string): Uint8Array => keccakBytes(accoun
 export function extractedOf(proof: ReclaimProof): Record<string, string> {
   const ctx = JSON.parse(proof.claimData.context) as { extractedParameters?: Record<string, string> };
   return ctx.extractedParameters ?? {};
+}
+
+/** The operator a revenue proof is for: its extracted account, else the claim owner (see lending.rs). */
+export function accountOf(proof: ReclaimProof): string {
+  return extractedOf(proof).account ?? proof.claimData.owner.toLowerCase();
 }
 
 /** The loan period a revenue proof counts toward: its extracted `at` when present, else proof time. */

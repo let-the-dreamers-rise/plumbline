@@ -3,7 +3,7 @@ import { join } from "node:path";
 import { LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { getBytes, hexlify, keccak256, toUtf8Bytes } from "ethers";
 import { REVENUE_SOURCES, assertRevenueProofMatches, type RevenueSourceSpec } from "@pct/prover";
-import { attestorsOf, extractedOf, operatorKey, type ReclaimProof } from "../claim.js";
+import { accountOf, attestorsOf, extractedOf, operatorKey, type ReclaimProof } from "../claim.js";
 import { programError } from "../client.js";
 import { clientFromEnv } from "../env.js";
 import { DEFAULT_INDEX_PARAMS, trailingCoverageBps, type LoanState } from "../program.js";
@@ -14,8 +14,9 @@ import { revenueSourceArgs } from "../revenue.js";
 //   npm run loan:submit proofs/revenue/<proof>.json   count a revenue proof toward the loan
 //   npm run loan:draw   1                             borrower draws 1 SOL (refused if the covenant fails)
 //   npm run loan:show
-// Terms come from env: LOAN_DEBT_SERVICE_USD (1500 per week), LOAN_MIN_COVERAGE (1.15), LOAN_FLEET_GPUS (8),
-// LOAN_FUND_SOL (1), LOAN_BORROWER (defaults to this wallet, so one wallet can demo both sides).
+// Terms come from env: LOAN_DEBT_SERVICE (per week, in the proof's currency; 1500), LOAN_MIN_COVERAGE (1.15),
+// LOAN_FLEET_GPUS (8), LOAN_FUND_SOL (1), LOAN_BORROWER (defaults to this wallet, so one wallet can demo
+// both sides). The loan's currency is the first proof's (Razorpay: INR).
 const STATE = join("proofs", "revenue", "loan.json");
 const client = clientFromEnv();
 const [cmd, arg] = process.argv.slice(2);
@@ -27,9 +28,7 @@ function readProof(file: string | undefined): { proof: ReclaimProof; spec: Reven
   const spec = REVENUE_SOURCES.find((s) => s.url === url);
   if (!spec) throw new Error(`${file} is not a proof of a known revenue source (${url})`);
   assertRevenueProofMatches(proof.claimData.parameters, spec);
-  const account = extractedOf(proof).account;
-  if (!account) throw new Error(`${file} has no account in its extracted values`);
-  return { proof, spec, account };
+  return { proof, spec, account: accountOf(proof) };
 }
 
 function savedLoan(): { operatorKey: Uint8Array; account: string } {
@@ -40,10 +39,10 @@ function savedLoan(): { operatorKey: Uint8Array; account: string } {
 
 function describe(loan: LoanState): string {
   const latest = loan.history.at(-1);
-  const lines = loan.history.map((p) => `  period ${p.period}: $${Number(p.revenueMicro) / 1e6} from ${p.proofs} proof(s), ${Number(p.gpuHoursMicro) / 1e6} GPU-h`);
+  const lines = loan.history.map((p) => `  period ${p.period}: ${Number(p.revenueMicro) / 1e6} ${loan.currency} from ${p.proofs} proof(s), ${Number(p.gpuHoursMicro) / 1e6} GPU-h`);
   const cov = latest ? Number(trailingCoverageBps(loan, latest.period)) / 10_000 : 0;
   return [
-    `debt service $${Number(loan.debtServiceMicro) / 1e6}/period, covenant ${loan.minCoverageBps / 10_000}x, drawn ${Number(loan.drawnLamports) / LAMPORTS_PER_SOL} SOL`,
+    `debt service ${Number(loan.debtServiceMicro) / 1e6} ${loan.currency}/period, covenant ${loan.minCoverageBps / 10_000}x, drawn ${Number(loan.drawnLamports) / LAMPORTS_PER_SOL} SOL`,
     ...lines,
     `trailing coverage ${cov.toFixed(2)}x`,
   ].join("\n");
@@ -74,8 +73,9 @@ async function open(): Promise<void> {
     sku: 0,
     fleetGpus: env("LOAN_FLEET_GPUS", 8),
     periodS: 604_800,
-    debtServiceMicro: BigInt(Math.round(env("LOAN_DEBT_SERVICE_USD", 1500) * 1e6)),
+    debtServiceMicro: BigInt(Math.round(env("LOAN_DEBT_SERVICE", 1500) * 1e6)),
     minCoverageBps: Math.round(env("LOAN_MIN_COVERAGE", 1.15) * 10_000),
+    currency: extractedOf(proof).currency ?? "USD",
   };
   await client.openLoan(terms, BigInt(Math.round(env("LOAN_FUND_SOL", 1) * LAMPORTS_PER_SOL)));
   mkdirSync(join("proofs", "revenue"), { recursive: true });

@@ -33,7 +33,7 @@ for (const s of REVENUE_SOURCES) await client.ensureSource(revenueSourceArgs(s))
 const account = hexlify(randomBytes(32));
 const op = operatorKey(account);
 await client.openLoan(
-  { operatorKey: op, borrower: borrower.publicKey, sku: 0, fleetGpus: 8, periodS: PERIOD_S, debtServiceMicro: 1_500_000_000n, minCoverageBps: 11_500 },
+  { operatorKey: op, borrower: borrower.publicKey, sku: 0, fleetGpus: 8, periodS: PERIOD_S, debtServiceMicro: 1_500_000_000n, minCoverageBps: 11_500, currency: "USD" },
   BigInt(10 * LAMPORTS_PER_SOL),
 );
 console.log(`loan ${client.ix.pdas.loan(op).toBase58()}: 8x H100, $1,500/week debt service, 1.15x covenant, funded 10 SOL`);

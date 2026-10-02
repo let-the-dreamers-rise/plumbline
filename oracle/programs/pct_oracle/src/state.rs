@@ -159,6 +159,8 @@ pub struct Loan {
     pub period_s: u32,
     pub debt_service_micro: u64,
     pub min_coverage_bps: u16,
+    /// ISO 4217 code the revenue and debt service are in (b"USD", b"INR"). Amounts are micro-units.
+    pub currency: [u8; 3],
     pub drawn_lamports: u64,
     pub history: [PeriodRevenue; LOAN_HISTORY],
     pub updated_at: i64,
@@ -253,6 +255,7 @@ mod loan_tests {
             period_s: 604_800,
             debt_service_micro: 1_500_000_000,
             min_coverage_bps: 13_500,
+            currency: *b"USD",
             drawn_lamports: 0,
             history: [PeriodRevenue::default(); LOAN_HISTORY],
             updated_at: 0,

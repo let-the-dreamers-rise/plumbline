@@ -3,7 +3,8 @@
   "periodS": 604800,
   "operators": {
     "op1": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
-    "op2": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+    "op2": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+    "rzp": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd"
   },
   "sources": [
     {
@@ -15,6 +16,7 @@
         "\"gpu_hours\":(?<hours>[0-9.]+)"
       ],
       "accountRule": "\"host_id\":\"(?<account>[^\"]+)\"",
+      "auth": "bearer",
       "paramsHash": "0x7dc2395f093c6fe2edbd3e4b66eeacdb4fb5fbd5767653ca47176bd857c51729"
     },
     {
@@ -28,7 +30,23 @@
         "\"status\":\\s*\"(?:paid|in_transit)\""
       ],
       "accountRule": "\"destination\":\\s*\"(?<account>(?:ba|card)_[A-Za-z0-9]+)\"",
+      "auth": "bearer",
       "paramsHash": "0xf02951d24e0b3ea55c17919dab506bf6fc07057eae46fe7d289dd0961341f484"
+    },
+    {
+      "name": "razorpay-payment",
+      "provider": 12,
+      "url": "https://api.razorpay.com/v1/payments?count=1",
+      "matches": [
+        "\"id\":\\s*\"(?<item>pay_[A-Za-z0-9]+)\"",
+        "\"amount\":\\s*(?<amount_cents>[0-9]+)",
+        "\"currency\":\\s*\"(?<currency>[A-Z]{3})\"",
+        "\"status\":\\s*\"captured\"",
+        "\"amount_refunded\":\\s*0[,}]",
+        "\"created_at\":\\s*(?<at>[0-9]+)"
+      ],
+      "auth": "basic",
+      "paramsHash": "0x4d9f33e6c80e0b0c45cf2d31d2ef8e1307fa74e7583b232451ea2e77b671a136"
     }
   ],
   "claims": [
@@ -123,6 +141,63 @@
       "epoch": 1,
       "identifier": "0x26ee659cd0711a056fffdaff3ed75d3b20704a7f592f2ca148e5825d8ff7501c",
       "signature": "0x4c3d139580ba967ed47fd3ccf988e7a8c0504f8f13759fd5626d980f6c542ec21a30206be53b446c7529f4ef1cce008a5cf5b5df3d21535772e9a7e570eec8491c"
+    },
+    {
+      "name": "rzp-w0",
+      "source": "razorpay-payment",
+      "at": 1790820000,
+      "extracted": {
+        "item": "pay_TestW0",
+        "amount_cents": "25000000",
+        "currency": "INR",
+        "at": "1790816400"
+      },
+      "claimProvider": "http",
+      "parameters": "{\"body\":\"\",\"method\":\"GET\",\"responseMatches\":[{\"type\":\"regex\",\"value\":\"\\\"id\\\":\\\\s*\\\"(?<item>pay_[A-Za-z0-9]+)\\\"\"},{\"type\":\"regex\",\"value\":\"\\\"amount\\\":\\\\s*(?<amount_cents>[0-9]+)\"},{\"type\":\"regex\",\"value\":\"\\\"currency\\\":\\\\s*\\\"(?<currency>[A-Z]{3})\\\"\"},{\"type\":\"regex\",\"value\":\"\\\"status\\\":\\\\s*\\\"captured\\\"\"},{\"type\":\"regex\",\"value\":\"\\\"amount_refunded\\\":\\\\s*0[,}]\"},{\"type\":\"regex\",\"value\":\"\\\"created_at\\\":\\\\s*(?<at>[0-9]+)\"}],\"responseRedactions\":[{\"regex\":\"\\\"id\\\":\\\\s*\\\"(?<item>pay_[A-Za-z0-9]+)\\\"\"},{\"regex\":\"\\\"amount\\\":\\\\s*(?<amount_cents>[0-9]+)\"},{\"regex\":\"\\\"currency\\\":\\\\s*\\\"(?<currency>[A-Z]{3})\\\"\"},{\"regex\":\"\\\"status\\\":\\\\s*\\\"captured\\\"\"},{\"regex\":\"\\\"amount_refunded\\\":\\\\s*0[,}]\"},{\"regex\":\"\\\"created_at\\\":\\\\s*(?<at>[0-9]+)\"}],\"url\":\"https://api.razorpay.com/v1/payments?count=1\"}",
+      "context": "{\"contextAddress\":\"0x0000000000000000000000000000000000000000\",\"contextMessage\":\"\",\"extractedParameters\":{\"amount_cents\":\"25000000\",\"at\":\"1790816400\",\"currency\":\"INR\",\"item\":\"pay_TestW0\"},\"providerHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
+      "owner": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+      "timestampS": 1790820000,
+      "epoch": 1,
+      "identifier": "0x608f44448d368c80aea485b658dee76cfb52de80f5596ab65d19a33f5ed01306",
+      "signature": "0x6ea42c528da0fba739b00eac2da8080efe090934aea5f7b578c786bbac41c0a17bf59b1864eacb83dd648727c7e6afa980bbaa268ef3cf3c58dc8beca68171551b"
+    },
+    {
+      "name": "rzp-w0-other-owner",
+      "source": "razorpay-payment",
+      "at": 1790820100,
+      "extracted": {
+        "item": "pay_TestW0b",
+        "amount_cents": "25000000",
+        "currency": "INR",
+        "at": "1790816400"
+      },
+      "claimProvider": "http",
+      "parameters": "{\"body\":\"\",\"method\":\"GET\",\"responseMatches\":[{\"type\":\"regex\",\"value\":\"\\\"id\\\":\\\\s*\\\"(?<item>pay_[A-Za-z0-9]+)\\\"\"},{\"type\":\"regex\",\"value\":\"\\\"amount\\\":\\\\s*(?<amount_cents>[0-9]+)\"},{\"type\":\"regex\",\"value\":\"\\\"currency\\\":\\\\s*\\\"(?<currency>[A-Z]{3})\\\"\"},{\"type\":\"regex\",\"value\":\"\\\"status\\\":\\\\s*\\\"captured\\\"\"},{\"type\":\"regex\",\"value\":\"\\\"amount_refunded\\\":\\\\s*0[,}]\"},{\"type\":\"regex\",\"value\":\"\\\"created_at\\\":\\\\s*(?<at>[0-9]+)\"}],\"responseRedactions\":[{\"regex\":\"\\\"id\\\":\\\\s*\\\"(?<item>pay_[A-Za-z0-9]+)\\\"\"},{\"regex\":\"\\\"amount\\\":\\\\s*(?<amount_cents>[0-9]+)\"},{\"regex\":\"\\\"currency\\\":\\\\s*\\\"(?<currency>[A-Z]{3})\\\"\"},{\"regex\":\"\\\"status\\\":\\\\s*\\\"captured\\\"\"},{\"regex\":\"\\\"amount_refunded\\\":\\\\s*0[,}]\"},{\"regex\":\"\\\"created_at\\\":\\\\s*(?<at>[0-9]+)\"}],\"url\":\"https://api.razorpay.com/v1/payments?count=1\"}",
+      "context": "{\"contextAddress\":\"0x0000000000000000000000000000000000000000\",\"contextMessage\":\"\",\"extractedParameters\":{\"amount_cents\":\"25000000\",\"at\":\"1790816400\",\"currency\":\"INR\",\"item\":\"pay_TestW0b\"},\"providerHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
+      "owner": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "timestampS": 1790820100,
+      "epoch": 1,
+      "identifier": "0x1f3dbfb85f280eef44e4fd9949d8c0de219fd5de72d6565497da0117cf4365d6",
+      "signature": "0x0bc0c7b5fbb389c7d1254cbb4e69dcb451e2cb13ffd61299e3a30297e4fe56a843c455470fdbcf69058272cc8375cff8046c56368a67da5ea483275d129a68b11c"
+    },
+    {
+      "name": "rzp-w0-usd",
+      "source": "razorpay-payment",
+      "at": 1790820200,
+      "extracted": {
+        "item": "pay_TestW0c",
+        "amount_cents": "100000",
+        "currency": "USD",
+        "at": "1790816400"
+      },
+      "claimProvider": "http",
+      "parameters": "{\"body\":\"\",\"method\":\"GET\",\"responseMatches\":[{\"type\":\"regex\",\"value\":\"\\\"id\\\":\\\\s*\\\"(?<item>pay_[A-Za-z0-9]+)\\\"\"},{\"type\":\"regex\",\"value\":\"\\\"amount\\\":\\\\s*(?<amount_cents>[0-9]+)\"},{\"type\":\"regex\",\"value\":\"\\\"currency\\\":\\\\s*\\\"(?<currency>[A-Z]{3})\\\"\"},{\"type\":\"regex\",\"value\":\"\\\"status\\\":\\\\s*\\\"captured\\\"\"},{\"type\":\"regex\",\"value\":\"\\\"amount_refunded\\\":\\\\s*0[,}]\"},{\"type\":\"regex\",\"value\":\"\\\"created_at\\\":\\\\s*(?<at>[0-9]+)\"}],\"responseRedactions\":[{\"regex\":\"\\\"id\\\":\\\\s*\\\"(?<item>pay_[A-Za-z0-9]+)\\\"\"},{\"regex\":\"\\\"amount\\\":\\\\s*(?<amount_cents>[0-9]+)\"},{\"regex\":\"\\\"currency\\\":\\\\s*\\\"(?<currency>[A-Z]{3})\\\"\"},{\"regex\":\"\\\"status\\\":\\\\s*\\\"captured\\\"\"},{\"regex\":\"\\\"amount_refunded\\\":\\\\s*0[,}]\"},{\"regex\":\"\\\"created_at\\\":\\\\s*(?<at>[0-9]+)\"}],\"url\":\"https://api.razorpay.com/v1/payments?count=1\"}",
+      "context": "{\"contextAddress\":\"0x0000000000000000000000000000000000000000\",\"contextMessage\":\"\",\"extractedParameters\":{\"amount_cents\":\"100000\",\"at\":\"1790816400\",\"currency\":\"USD\",\"item\":\"pay_TestW0c\"},\"providerHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
+      "owner": "0xcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcdcd",
+      "timestampS": 1790820200,
+      "epoch": 1,
+      "identifier": "0xf7fcef1e97977a9735a06e3931e09ea157dbc4aaf31d21f4cb1a09facbd1ecc7",
+      "signature": "0xbd3e276550733c0296348ff1c34fbd54ae065e06e67f6b869f86e7ca7da1bd641dd516a62d5e2527ddaf494c8d8eab6ca60db992115465a166d81108a1b2d5881c"
     }
   ]
 }

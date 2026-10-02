@@ -46,7 +46,7 @@ math with the onchain config) that must match the onchain value.
 `dist/pct_oracle.so` is a prebuilt copy of the program for id `2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz`
 (Agave 3.1.14, platform-tools v1.52), so a machine with only the Solana CLI can deploy it without
 compiling. Rebuild and recopy it whenever the program changes. sha256:
-`d0ce2176295c15d70a192d9131d79ce62ab883fabe520f4e4e0520490d8b026c`.
+`8fd7a6ad9a41c3d42d0460e80d570ac8dc5039eea1e8f79c4f0fdffa43a33352`.
 
 The program id is fixed by `declare_id!` in `src/lib.rs`, so deploying needs the keypair whose
 public key is `2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz` (Anchor created it where the program
@@ -77,7 +77,7 @@ so later proofs of that source must use the same URL and match rules (otherwise 
 
 ## Operator revenue proofs for GPU lenders
 
-GPU operators prove their own rental revenue (Stripe payouts, Vast host earnings) through the same
+GPU operators prove their own rental revenue (Razorpay payments, Stripe payouts, Vast host earnings) through the same
 zkTLS pipeline, and a lender reads a per-borrower feed and gates draws on it.
 
 - **`open_loan(terms)`** creates a `Loan` PDA at `["loan", keccak(account id)]`: lender, borrower
@@ -86,7 +86,12 @@ zkTLS pipeline, and a lender reads a per-borrower feed and gates draws on it.
 - **`submit_revenue(sig, receipt_key)`** takes a claim from a `kind = 2` (revenue) source. It runs
   the same attestor, source-pin and freshness checks as `submit_observation`, then requires
   `keccak(extracted "account") == loan.operator_key` (the account is OPRF-hashed in real proofs).
-  - Amount: `amount` in dollars or `amount_cents` (Stripe). Optional `hours` gives utilization and
+  Sources whose responses carry no account id (Razorpay payments) bind to the claim owner instead:
+  the operator's own Reclaim app, the only holder of the merchant key it proves with. A lender that
+  wants a hard binding routes settlements to an escrow it controls (Razorpay Route, a virtual account).
+  - Currency: a loan has an ISO code (`USD`, `INR`); an extracted `currency` must match it, and
+    proofs without one count as USD.
+  - Amount: `amount` in major units or `amount_cents` in minor units (Stripe cents, Razorpay paise). Optional `hours` gives utilization and
     realized rent, which is also pushed into the paid H100 book, so revenue proofs feed the tape.
   - Dating: an extracted `at` (Stripe payout `created`) picks the period, else the proof time.
   - Nullifier: an extracted `item` (payout id) makes each payout count once, whenever it is
@@ -102,16 +107,21 @@ zkTLS pipeline, and a lender reads a per-borrower feed and gates draws on it.
 
 CU on a local validator: `submit_revenue` 108k-123k, `draw` 8.8k.
 
-### Real proof from a Stripe test account (laptop)
+### Real proof from a Razorpay test account (laptop, works from India)
 
-1. Create a free Stripe account and stay in **test mode**. Make a test payment with card
-   `4000 0000 0000 0077` (funds become available at once), then Balance > **Pay out**. If it asks
-   for a bank account, use test routing `110000000` and account `000123456789`.
-2. Developers > API keys > **Create restricted key** with Payouts: Read. Put it in `.env` as
-   `STRIPE_KEY=rk_test_...` next to the Reclaim keys.
-3. `npm run prove:revenue` proves the latest payout and saves `proofs/revenue/stripe-payout-*.json`.
-   It reveals only the payout id, amount, creation time and an OPRF hash of the bank account.
-4. With `SOLANA_RPC_URL` and `SOLANA_KEYPAIR` set for devnet:
-   `npm run loan:open <proof file>` (registers the source, adds the attestor, opens and funds a
-   loan with your wallet as borrower), `npm run loan:submit <proof file>`, `npm run loan:draw 0.5`,
-   `npm run loan:show`. Terms come from `LOAN_*` env vars (see `packages/oracle/src/cli/loan.ts`).
+1. Sign up at https://dashboard.razorpay.com (test mode is on from the start, no KYC needed).
+   Account & Settings > API Keys > **Generate Test Key**. Put both values in `.env` as
+   `RAZORPAY_KEY_ID=rzp_test_...` and `RAZORPAY_KEY_SECRET=...` next to the Reclaim keys.
+2. Make a test payment: Payment Links > **Create Payment Link** (for example ₹1,50,000), open the
+   link and pay with UPI id `success@razorpay` or card `4111 1111 1111 1111` (any future expiry,
+   any CVV). Payment links capture automatically.
+3. `npm run prove:revenue` proves the latest payment and saves
+   `proofs/revenue/razorpay-payment-*.json`. It reveals only the payment id, amount, currency and
+   time.
+4. With `SOLANA_RPC_URL` and `SOLANA_KEYPAIR` set for devnet, and `LOAN_DEBT_SERVICE=120000`
+   (₹ per week): `npm run loan:open <proof file>` (registers the source, adds the attestor, opens
+   an INR loan bound to your Reclaim app and funds it), `npm run loan:submit <proof file>`,
+   `npm run loan:draw 0.5`, `npm run loan:show`. Each new payment is one more proof.
+
+Stripe works the same way where it is available: `npm run prove:revenue stripe` with
+`STRIPE_KEY=rk_test_...` (a restricted key with Payouts: Read) proves the latest payout.

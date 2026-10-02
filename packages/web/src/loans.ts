@@ -25,6 +25,7 @@ export interface LoanView {
   periodS: number;
   debtServiceMicro: number;
   minCoverageBps: number;
+  currency: string;
   drawnSol: number;
   availableSol: number;
   updatedAt: number;
@@ -85,6 +86,7 @@ export async function loadLoans(connection: Connection, programId: PublicKey = D
         periodS: loan.periodS,
         debtServiceMicro: Number(loan.debtServiceMicro),
         minCoverageBps: loan.minCoverageBps,
+        currency: loan.currency,
         drawnSol: Number(loan.drawnLamports) / LAMPORTS_PER_SOL,
         availableSol: Math.max(0, a.account.lamports - rentFloor) / LAMPORTS_PER_SOL,
         updatedAt: Number(loan.updatedAt),

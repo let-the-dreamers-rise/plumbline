@@ -3,9 +3,9 @@ import { describe, expect, it } from "vitest";
 import { Keypair } from "@solana/web3.js";
 import { getBytes, keccak256, toUtf8Bytes } from "ethers";
 import { Writer, discriminator } from "./borsh.js";
-import { operatorKey, revenuePeriod, revenueReceiptKeyFor } from "./claim.js";
+import { accountOf, operatorKey, revenuePeriod, revenueReceiptKeyFor } from "./claim.js";
 import { LOAN_HISTORY, OracleInstructions, decodeLoan, revenueItemKey, revenueReceiptKey, trailingCoverageBps } from "./program.js";
-import { REVENUE_SOURCES, revenueParameters, signTestRevenueClaim, STRIPE_PAYOUT, VAST_HOST_PAYOUT } from "./revenue.js";
+import { RAZORPAY_PAYMENT, REVENUE_SOURCES, revenueParameters, signTestRevenueClaim, STRIPE_PAYOUT, VAST_HOST_PAYOUT } from "./revenue.js";
 
 interface RevenueFixtures {
   periodS: number;
@@ -19,7 +19,7 @@ const WEEK = 604_800;
 const loanAccount = (history: [number, bigint, bigint, number][]): Buffer => {
   const w = new Writer().raw(discriminator("account", "Loan"));
   w.raw(new Uint8Array(32).fill(1)).raw(new Uint8Array(32).fill(2)).raw(new Uint8Array(32).fill(3));
-  w.u8(0).u16(8).u32(WEEK).u64(1_500_000_000n).u16(11_500).u64(5n);
+  w.u8(0).u16(8).u32(WEEK).u64(1_500_000_000n).u16(11_500).raw(Buffer.from("INR")).u64(5n);
   for (let i = 0; i < LOAN_HISTORY; i++) {
     const [period, rev, hours, proofs] = history[i] ?? [0, 0n, 0n, 0];
     w.u32(period).u64(rev).u64(hours).u8(proofs);
@@ -36,7 +36,7 @@ describe("loans", () => {
       ]),
     );
     expect(loan.history.map((p) => p.period)).toEqual([10, 12]);
-    expect([loan.fleetGpus, loan.periodS, loan.minCoverageBps, loan.drawnLamports, loan.updatedAt]).toEqual([8, WEEK, 11_500, 5n, 42n]);
+    expect([loan.fleetGpus, loan.periodS, loan.minCoverageBps, loan.currency, loan.drawnLamports, loan.updatedAt]).toEqual([8, WEEK, 11_500, "INR", 5n, 42n]);
   });
 
   it("computes trailing coverage like Loan::trailing_coverage_bps", () => {
@@ -63,6 +63,21 @@ describe("loans", () => {
     expect(revenueReceiptKeyFor(payout, op, WEEK)).toEqual(revenueItemKey(op, "po_1"));
     const vast = await signTestRevenueClaim(VAST_HOST_PAYOUT, { account: "x", amount: "1", hours: "1" }, 4 * WEEK + 9);
     expect(revenueReceiptKeyFor(vast, op, WEEK)).toEqual(revenueReceiptKey(op, 4));
+  });
+
+  it("binds owner-only sources to the claim owner", async () => {
+    const proof = await signTestRevenueClaim(RAZORPAY_PAYMENT, { item: "pay_1", amount_cents: "100", currency: "INR", at: "5" }, 10, "0x" + "CD".repeat(20));
+    expect(accountOf(proof)).toBe("0x" + "cd".repeat(20));
+    const vast = await signTestRevenueClaim(VAST_HOST_PAYOUT, { account: "host-1", amount: "1", hours: "1" }, 10);
+    expect(accountOf(vast)).toBe("host-1");
+  });
+
+  it("encodes the loan currency and rejects bad codes", () => {
+    const ix = new OracleInstructions();
+    const terms = { operatorKey: new Uint8Array(32), borrower: Keypair.generate().publicKey, sku: 0, fleetGpus: 8, periodS: WEEK, debtServiceMicro: 1n, minCoverageBps: 11_500 };
+    const built = ix.openLoan(Keypair.generate().publicKey, { ...terms, currency: "INR" });
+    expect(built.data.subarray(built.data.length - 3).toString("ascii")).toBe("INR");
+    expect(() => ix.openLoan(Keypair.generate().publicKey, { ...terms, currency: "inr" })).toThrow();
   });
 
   it("builds submit_revenue with the receipt PDA for that key", () => {

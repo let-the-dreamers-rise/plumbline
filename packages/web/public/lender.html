@@ -89,6 +89,8 @@ dialog code { font: 12px var(--mono); background: var(--sunken); padding: 1px 4p
 
 <script>
 const $ = (id) => document.getElementById(id);
+const SYMBOL = { USD: "$", INR: "₹", EUR: "€", GBP: "£" };
+let sym = "$";
 const usd = (micro, d = 2) => (micro / 1e6).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
 const x = (bps) => `${(bps / 10000).toFixed(2)}x`;
 const pct = (f) => `${Math.round(f * 100)}%`;
@@ -112,6 +114,7 @@ const link = (kind, id, text) => el("a", { href: explorer(kind, id), target: "_b
 const stat = (label, value) => el("div", { class: "stat" }, el("span", { class: "k" }, label), el("b", {}, value));
 
 function loanSection(loan, li) {
+  sym = SYMBOL[loan.currency] ?? `${loan.currency} `;
   const latest = loan.periods.at(-1);
   const required = (loan.debtServiceMicro * loan.minCoverageBps) / 10000;
   const rent = loan.proofs.find((p) => p.rentMicro > 0);
@@ -126,17 +129,17 @@ function loanSection(loan, li) {
     ),
     el("div", { class: "card" },
       el("div", { class: "k" }, `Latest ${per}${latest ? " · " + week(latest.startS) : ""}`),
-      el("div", { class: "big" }, latest ? `$${usd(latest.revenueMicro, 0)}` : "–"),
+      el("div", { class: "big" }, latest ? `${sym}${usd(latest.revenueMicro, 0)}` : "–"),
       el("div", { class: "stats" },
         stat("Utilization", latest && latest.utilization !== null ? pct(latest.utilization) : "–"),
-        stat("Realized $/GPU-hr", rent ? `$${usd(rent.rentMicro)}` : "–"),
+        stat("Realized $/GPU-hr", rent ? `${sym}${usd(rent.rentMicro)}` : "–"),
         stat("Proofs", latest ? String(latest.proofs) : "0"),
       ),
     ),
     el("div", { class: "card" },
       el("div", { class: "k" }, "Facility"),
       el("div", { class: "stats" },
-        stat("Debt service", `$${usd(loan.debtServiceMicro, 0)}/${loan.periodS === 604800 ? "wk" : "period"}`),
+        stat("Debt service", `${sym}${usd(loan.debtServiceMicro, 0)}/${loan.periodS === 604800 ? "wk" : "period"}`),
         stat("Fleet", `${loan.fleetGpus}x H100`),
         stat("Drawn", `${loan.drawnSol} SOL`),
         stat("Available", `${loan.availableSol.toFixed(2)} SOL`),
@@ -150,17 +153,17 @@ function loanSection(loan, li) {
     const req = el("div", { class: "req", title: `${x(loan.minCoverageBps)} of debt service` }); req.style.left = `${(required / max) * 100}%`;
     const util = p.utilization === null ? "" : ` · ${pct(p.utilization)} util`;
     return el("div", { class: `bar ${p.revenueMicro >= required ? "above" : "below"}` },
-      el("span", {}, `Wk of ${week(p.startS)}`), el("div", { class: "track" }, fill, req), el("span", { class: "v" }, `$${usd(p.revenueMicro, 0)}`),
+      el("span", {}, `Wk of ${week(p.startS)}`), el("div", { class: "track" }, fill, req), el("span", { class: "v" }, `${sym}${usd(p.revenueMicro, 0)}`),
     );
   }) : [el("span", { class: "sub" }, "No revenue proven yet.")]));
-  const legend = el("div", { class: "legend" }, `Black line: ${x(loan.minCoverageBps)} x $${usd(loan.debtServiceMicro, 0)} debt service = $${usd(required, 0)} per ${per}. Missing weeks count as zero.`);
+  const legend = el("div", { class: "legend" }, `Black line: ${x(loan.minCoverageBps)} x ${sym}${usd(loan.debtServiceMicro, 0)} debt service = ${sym}${usd(required, 0)} per ${per}. Missing weeks count as zero.`);
 
   const rows = loan.proofs.length ? loan.proofs.map((p, i) => el("tr", {},
     el("td", {}, week(p.period * loan.periodS)),
     el("td", {}, p.provider),
-    el("td", { class: "num" }, `$${usd(p.revenueMicro)}`),
+    el("td", { class: "num" }, `${sym}${usd(p.revenueMicro)}`),
     el("td", { class: "num" }, p.gpuHoursMicro ? usd(p.gpuHoursMicro, 1) : "–"),
-    el("td", { class: "num" }, p.rentMicro ? `$${usd(p.rentMicro)}` : "–"),
+    el("td", { class: "num" }, p.rentMicro ? `${sym}${usd(p.rentMicro)}` : "–"),
     el("td", { class: "num" }, x(p.trailingCoverageBps)),
     el("td", { class: "mono" }, link("tx", p.signature)),
     el("td", {}, (() => { const b = el("button", { type: "button" }, "Verify"); b.onclick = () => openVerify(li, i); return b; })()),
@@ -191,14 +194,14 @@ function render() {
 function openVerify(li, i) {
   const loan = state.loans[li];
   const p = loan.proofs[i];
-  $("v-title").textContent = `${p.provider} · $${usd(p.revenueMicro)} · week of ${week(p.period * loan.periodS)}`;
+  $("v-title").textContent = `${p.provider} · ${sym}${usd(p.revenueMicro)} · week of ${week(p.period * loan.periodS)}`;
   const step = (html) => { const li = el("li"); li.innerHTML = html; return li; };
   $("v-steps").replaceChildren(
-    step(`The operator fetched their ${p.provider} ${p.provider === "stripe" ? "payout" : "earnings statement"} over zkTLS. A Reclaim attestor signed claim <code>${p.identifier}</code>. Only the amount, hours, date and a hashed account id were revealed.`),
+    step(`The operator fetched their ${p.provider} ${{ stripe: "payout", razorpay: "payment" }[p.provider] ?? "earnings statement"} over zkTLS. A Reclaim attestor signed claim <code>${p.identifier}</code>. Only the amount, hours, date and a payment id or hashed account id were revealed.`),
     step(`Transaction <a href="${explorer("tx", p.signature)}" target="_blank" rel="noopener"><code>${short(p.signature)}</code></a> re-hashed the claim onchain and recovered the attestor's signature.`),
     step(`It checked the request matches registered source <a href="${explorer("address", p.source)}" target="_blank" rel="noopener"><code>${short(p.source)}</code></a> (same URL and match rules) and that the hashed account equals this loan's operator key <code>${short(loan.operatorKey)}</code>. Another operator's revenue cannot count here.`),
-    step(`A receipt keyed by the ${p.provider === "stripe" ? "payout id" : "operator and week"} makes sure the same revenue never counts twice.`),
-    step(`Trailing coverage after this proof: ${x(p.trailingCoverageBps)} against ${x(loan.minCoverageBps)} required.${p.rentMicro ? ` Realized rent $${usd(p.rentMicro)}/GPU-hr also went to the public price tape.` : ""}`),
+    step(`A receipt keyed by the ${["stripe", "razorpay"].includes(p.provider) ? "payment id" : "operator and week"} makes sure the same revenue never counts twice.`),
+    step(`Trailing coverage after this proof: ${x(p.trailingCoverageBps)} against ${x(loan.minCoverageBps)} required.${p.rentMicro ? ` Realized rent ${sym}${usd(p.rentMicro)}/GPU-hr also went to the public price tape.` : ""}`),
   );
   $("verify").showModal();
 }

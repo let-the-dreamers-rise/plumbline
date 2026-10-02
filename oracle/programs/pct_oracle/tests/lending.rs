@@ -83,6 +83,7 @@ fn setup() -> Setup {
         period_s: fx["periodS"].as_u64().unwrap() as u32,
         debt_service_micro: 1_500_000_000, // $1,500 per week
         min_coverage_bps: 11_500, // 1.15x, USD.AI's debt-service threshold
+        currency: *b"USD",
     };
     h.send(&[
         Harness::ix(
@@ -240,4 +241,83 @@ fn stale_revenue_blocks_draws() {
     let t = claim(&s.fx, "op1-vast-w0")["timestampS"].as_i64().unwrap();
     s.h.set_time(t + 2 * 604_800);
     assert!(draw(&mut s, SOL).unwrap_err().contains("NoRecentRevenue"));
+}
+
+/// Opens a second, INR loan bound to `operator` (the Razorpay claim owner) with the setup's lender.
+fn open_inr_loan(s: &mut Setup, operator: &str) -> ([u8; 32], Pubkey) {
+    let operator_key = keccak(operator.as_bytes());
+    let loan = pda(&[b"loan", &operator_key]);
+    let terms = LoanTerms {
+        operator_key,
+        borrower: s.borrower.pubkey(),
+        sku: 0,
+        fleet_gpus: 8,
+        period_s: s.fx["periodS"].as_u64().unwrap() as u32,
+        debt_service_micro: 120_000_000_000, // ₹120,000 per week
+        min_coverage_bps: 11_500,
+        currency: *b"INR",
+    };
+    let lender = s.h.payer.pubkey();
+    s.h.send(&[Harness::ix(
+        pct_oracle::instruction::OpenLoan { terms },
+        pct_oracle::accounts::OpenLoan { lender, loan, system_program: system_program::ID },
+    )])
+    .unwrap();
+    (operator_key, loan)
+}
+
+#[test]
+fn razorpay_payments_bind_to_the_claim_owner_and_the_loan_currency() {
+    let mut s = setup();
+    let owner = s.fx["operators"]["rzp"].as_str().unwrap().to_string();
+    let (op, loan) = open_inr_loan(&mut s, &owner);
+
+    submit(&mut s, "rzp-w0", loan, op).expect("captured INR payment from the operator's own app");
+    let l: Loan = s.h.account(&loan);
+    assert_eq!(l.latest().unwrap().revenue_micro, 250_000_000_000, "25,000,000 paise = ₹250,000");
+    assert_eq!(l.trailing_coverage_bps(l.latest().unwrap().period), 20_833, "250k / 120k");
+
+    let err = submit(&mut s, "rzp-w0-other-owner", loan, op).unwrap_err();
+    assert!(err.contains("OperatorMismatch"), "{err}");
+    let err = submit(&mut s, "rzp-w0-usd", loan, op).unwrap_err();
+    assert!(err.contains("CurrencyMismatch"), "{err}");
+
+    // A USD loan refuses INR revenue even from the right operator key.
+    let (usd_loan, usd_op) = (s.loan, s.operator_key);
+    let err = submit(&mut s, "rzp-w0", usd_loan, usd_op).unwrap_err();
+    assert!(err.contains("OperatorMismatch") || err.contains("CurrencyMismatch"), "{err}");
+}
+
+#[test]
+fn rejects_malformed_loan_terms() {
+    let mut s = setup();
+    let lender = s.h.payer.pubkey();
+    let operator_key = keccak(b"someone");
+    let loan = pda(&[b"loan", &operator_key]);
+    let base = LoanTerms {
+        operator_key,
+        borrower: s.borrower.pubkey(),
+        sku: 0,
+        fleet_gpus: 8,
+        period_s: 604_800,
+        debt_service_micro: 1,
+        min_coverage_bps: 11_500,
+        currency: *b"USD",
+    };
+    for bad in [
+        LoanTerms { currency: *b"usd", ..base },
+        LoanTerms { sku: 9, ..base },
+        LoanTerms { fleet_gpus: 0, ..base },
+        LoanTerms { period_s: 60, ..base },
+        LoanTerms { debt_service_micro: 0, ..base },
+    ] {
+        let err = s
+            .h
+            .send(&[Harness::ix(
+                pct_oracle::instruction::OpenLoan { terms: bad },
+                pct_oracle::accounts::OpenLoan { lender, loan, system_program: system_program::ID },
+            )])
+            .unwrap_err();
+        assert!(err.contains("BadLoanTerms"), "{err}");
+    }
 }

@@ -87,6 +87,8 @@ export interface LoanTerms {
   periodS: number;
   debtServiceMicro: bigint;
   minCoverageBps: number;
+  /** ISO 4217 code, e.g. "USD" or "INR"; proofs carrying another currency are refused. */
+  currency: string;
 }
 
 const signer = (pubkey: PublicKey, isWritable = true): AccountMeta => ({ pubkey, isSigner: true, isWritable });
@@ -193,7 +195,8 @@ export class OracleInstructions {
       .u16(t.fleetGpus)
       .u32(t.periodS)
       .u64(t.debtServiceMicro)
-      .u16(t.minCoverageBps);
+      .u16(t.minCoverageBps)
+      .fixed(currencyBytes(t.currency), 3);
     return this.ix("open_loan", [signer(lender), writable(this.pdas.loan(t.operatorKey)), system], args);
   }
 
@@ -231,6 +234,11 @@ export class OracleInstructions {
   crankIndex(sku: number, kind: number): TransactionInstruction {
     return this.ix("crank_index", [readonly(this.pdas.config()), writable(this.pdas.book(sku, kind))]);
   }
+}
+
+export function currencyBytes(code: string): Uint8Array {
+  if (!/^[A-Z]{3}$/.test(code)) throw new Error(`currency must be a 3-letter ISO code, got "${code}"`);
+  return Buffer.from(code, "ascii");
 }
 
 /** Same as revenue_receipt_key in lending.rs: keccak(operator_key || period as u32 LE). */
@@ -324,6 +332,7 @@ export interface LoanState {
   periodS: number;
   debtServiceMicro: bigint;
   minCoverageBps: number;
+  currency: string;
   drawnLamports: bigint;
   /** Proven periods only, oldest first. */
   history: PeriodRevenue[];
@@ -341,6 +350,7 @@ export function decodeLoan(data: Uint8Array): LoanState {
   const periodS = r.u32();
   const debtServiceMicro = r.u64();
   const minCoverageBps = r.u16();
+  const currency = Buffer.from(r.take(3)).toString("ascii");
   const drawnLamports = r.u64();
   const history: PeriodRevenue[] = [];
   for (let i = 0; i < LOAN_HISTORY; i++) {
@@ -355,6 +365,7 @@ export function decodeLoan(data: Uint8Array): LoanState {
     periodS,
     debtServiceMicro,
     minCoverageBps,
+    currency,
     drawnLamports,
     history: history.filter((p) => p.proofs > 0).sort((a, b) => a.period - b.period),
     updatedAt: r.i64(),

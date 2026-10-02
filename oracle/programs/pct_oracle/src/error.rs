@@ -48,6 +48,8 @@ pub enum OracleError {
     NotBorrower,
     #[msg("Revenue is dated before the loan's revenue history window")]
     RevenueTooOld,
+    #[msg("Proof's currency differs from the loan's")]
+    CurrencyMismatch,
 }
 
 impl From<crate::reclaim::ClaimError> for OracleError {

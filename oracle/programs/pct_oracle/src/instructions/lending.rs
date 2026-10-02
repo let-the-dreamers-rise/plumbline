@@ -17,6 +17,7 @@ pub struct LoanTerms {
     pub period_s: u32,
     pub debt_service_micro: u64,
     pub min_coverage_bps: u16,
+    pub currency: [u8; 3],
 }
 
 #[derive(Accounts)]
@@ -33,7 +34,11 @@ pub struct OpenLoan<'info> {
 /// account id that operator's revenue proofs will reveal.
 pub fn handle_open_loan(ctx: Context<OpenLoan>, terms: LoanTerms) -> Result<()> {
     require!(
-        terms.sku < SKU_COUNT && terms.fleet_gpus > 0 && terms.period_s >= 3_600 && terms.debt_service_micro > 0,
+        terms.sku < SKU_COUNT
+            && terms.fleet_gpus > 0
+            && terms.period_s >= 3_600
+            && terms.debt_service_micro > 0
+            && terms.currency.iter().all(u8::is_ascii_uppercase),
         OracleError::BadLoanTerms
     );
     ctx.accounts.loan.set_inner(Loan {
@@ -45,6 +50,7 @@ pub fn handle_open_loan(ctx: Context<OpenLoan>, terms: LoanTerms) -> Result<()> 
         period_s: terms.period_s,
         debt_service_micro: terms.debt_service_micro,
         min_coverage_bps: terms.min_coverage_bps,
+        currency: terms.currency,
         drawn_lamports: 0,
         history: [PeriodRevenue::default(); LOAN_HISTORY],
         updated_at: 0,
@@ -127,7 +133,8 @@ pub fn revenue_item_key(operator_key: &[u8; 32], item: &[u8]) -> [u8; 32] {
     reclaim::keccak(&bytes)
 }
 
-/// `amount` in dollars, or `amount_cents` as an integer (Stripe), in micro-USD.
+/// `amount` in major units, or `amount_cents` as an integer in minor units (Stripe cents, Razorpay
+/// paise), in micro-units of the loan's currency.
 fn revenue_micro(context: &[u8]) -> core::result::Result<u64, reclaim::ClaimError> {
     match reclaim::extract_param(context, "amount") {
         Ok(raw) => reclaim::parse_micro(raw),
@@ -169,9 +176,17 @@ pub fn handle_submit_revenue(ctx: Context<SubmitRevenue>, sig: ClaimSig, receipt
     let (provider, parameters, context) = ctx.accounts.buffer.parts().ok_or(OracleError::BadBuffer)?;
     let identifier = verify_claim(&ctx.accounts.config, source, provider, parameters, context, &sig)?;
 
-    let account = reclaim::extract_param(context, "account").map_err(OracleError::from)?;
+    // The operator is the account id the response reveals (OPRF-hashed) or, for sources whose
+    // responses carry no account id (Razorpay payments), the claim owner: the Reclaim app that
+    // holds the merchant's API secret.
+    let account = match reclaim::extract_param(context, "account") {
+        Ok(account) => account,
+        Err(_) => sig.owner.as_bytes(),
+    };
     let loan = &mut ctx.accounts.loan;
     require!(reclaim::keccak(account) == loan.operator_key, OracleError::OperatorMismatch);
+    let currency = reclaim::extract_param(context, "currency").unwrap_or(b"USD");
+    require!(currency == loan.currency.as_slice(), OracleError::CurrencyMismatch);
 
     let revenue = revenue_micro(context).map_err(OracleError::from)?;
     require!(revenue > 0, OracleError::BadNumber);
