@@ -12,7 +12,11 @@
     "prove:list": "tsx packages/prover/src/cli/prove-list-azure.ts",
     "probe": "tsx packages/prover/src/cli/probe-invoice.ts",
     "prove:invoice": "tsx packages/prover/src/cli/prove-invoice.ts",
-    "verify": "tsx packages/prover/src/cli/verify.ts"
+    "verify": "tsx packages/prover/src/cli/verify.ts",
+    "oracle:init": "tsx packages/oracle/src/cli/init.ts",
+    "oracle:submit": "tsx packages/oracle/src/cli/submit.ts",
+    "oracle:crank": "tsx packages/oracle/src/cli/crank.ts",
+    "oracle:e2e": "tsx scripts/oracle-e2e.ts"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
