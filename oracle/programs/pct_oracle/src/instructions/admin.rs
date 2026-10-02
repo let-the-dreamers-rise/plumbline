@@ -64,13 +64,18 @@ pub struct RegisterSource<'info> {
 pub fn handle_register_source(ctx: Context<RegisterSource>, args: SourceArgs) -> Result<()> {
     require!(
         args.sku < SKU_COUNT
-            && (args.kind == KIND_PAID || args.kind == KIND_LIST)
+            && (args.kind == KIND_PAID || args.kind == KIND_LIST || args.kind == KIND_REVENUE)
             && (args.value_mode == VALUE_MODE_RATE || args.value_mode == VALUE_MODE_AMOUNT_HOURS)
             && args.gpu_count >= 1,
         OracleError::BadSourceShape
     );
     // Paid sources must be single-use per invoice; list prices are public and need no nullifier.
     require!(args.kind != KIND_PAID || args.requires_nullifier, OracleError::BadSourceShape);
+    // Revenue sources identify the operator by its hashed account id and report amount (+ hours).
+    require!(
+        args.kind != KIND_REVENUE || (args.requires_nullifier && args.value_mode == VALUE_MODE_AMOUNT_HOURS),
+        OracleError::BadSourceShape
+    );
     ctx.accounts.source.set_inner(PriceSource {
         source_id: args.source_id,
         params_hash: args.params_hash,

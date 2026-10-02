@@ -58,4 +58,20 @@ pub mod pct_oracle {
     pub fn crank_index(ctx: Context<CrankIndex>) -> Result<()> {
         instructions::crank::handle_crank_index(ctx)
     }
+
+    pub fn open_loan(ctx: Context<OpenLoan>, terms: LoanTerms) -> Result<()> {
+        instructions::lending::handle_open_loan(ctx, terms)
+    }
+
+    pub fn fund_loan(ctx: Context<FundLoan>, lamports: u64) -> Result<()> {
+        instructions::lending::handle_fund_loan(ctx, lamports)
+    }
+
+    pub fn submit_revenue(ctx: Context<SubmitRevenue>, sig: ClaimSig) -> Result<()> {
+        instructions::lending::handle_submit_revenue(ctx, sig)
+    }
+
+    pub fn draw(ctx: Context<Draw>, lamports: u64) -> Result<()> {
+        instructions::lending::handle_draw(ctx, lamports)
+    }
 }

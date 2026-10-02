@@ -34,6 +34,18 @@ pub enum OracleError {
     MissingParam,
     #[msg("Extracted value is not a valid decimal")]
     BadNumber,
+    #[msg("Loan terms are out of range")]
+    BadLoanTerms,
+    #[msg("Proof is for a different operator than this loan")]
+    OperatorMismatch,
+    #[msg("No proven revenue for the current or previous period")]
+    NoRecentRevenue,
+    #[msg("Proven revenue does not cover debt service at the required ratio")]
+    CovenantBreached,
+    #[msg("Not enough funds in the loan")]
+    InsufficientFunds,
+    #[msg("Only the loan's borrower can draw")]
+    NotBorrower,
 }
 
 impl From<crate::reclaim::ClaimError> for OracleError {

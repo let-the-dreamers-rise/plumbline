@@ -75,23 +75,31 @@ pub fn expected_receipt_key(source: &PriceSource, identifier: &[u8; 32], context
     }
 }
 
-pub fn handle_submit_observation(ctx: Context<SubmitObservation>, sig: ClaimSig, receipt_key: [u8; 32]) -> Result<()> {
-    let source = &ctx.accounts.source;
-    let params = ctx.accounts.config.params;
+/// Checks everything a claim must satisfy before any source-specific use: active source, pinned
+/// parameters, attestor signature and freshness. Returns the claim identifier.
+pub fn verify_claim(config: &Config, source: &PriceSource, provider: &[u8], parameters: &[u8], context: &[u8], sig: &ClaimSig) -> Result<[u8; 32]> {
+    let params = config.params;
     require!(source.active, OracleError::SourceInactive);
-
-    let (provider, parameters, context) = ctx.accounts.buffer.parts().ok_or(OracleError::BadBuffer)?;
     require!(reclaim::keccak(parameters) == source.params_hash, OracleError::ParamsMismatch);
 
     let identifier = reclaim::claim_identifier(provider, parameters, context);
     let message = reclaim::sign_message(&identifier, &sig.owner, sig.timestamp_s, sig.epoch).map_err(OracleError::from)?;
     let signer = reclaim::recover_eth_signer(&reclaim::eth_message_hash(&message), &sig.signature).map_err(OracleError::from)?;
-    require!(ctx.accounts.config.attestors.contains(&signer), OracleError::UnknownAttestor);
+    require!(config.attestors.contains(&signer), OracleError::UnknownAttestor);
 
     let now = Clock::get()?.unix_timestamp;
     let observed_at = sig.timestamp_s as i64;
     require!(observed_at <= now + params.max_future_skew_s, OracleError::FutureClaim);
     require!(now - observed_at <= params.max_staleness_s, OracleError::StaleClaim);
+    Ok(identifier)
+}
+
+pub fn handle_submit_observation(ctx: Context<SubmitObservation>, sig: ClaimSig, receipt_key: [u8; 32]) -> Result<()> {
+    let source = &ctx.accounts.source;
+    require!(source.kind != KIND_REVENUE, OracleError::BadSourceShape);
+    let (provider, parameters, context) = ctx.accounts.buffer.parts().ok_or(OracleError::BadBuffer)?;
+    let identifier = verify_claim(&ctx.accounts.config, source, provider, parameters, context, &sig)?;
+    let observed_at = sig.timestamp_s as i64;
     require!(
         receipt_key == expected_receipt_key(source, &identifier, context, sig.timestamp_s)?,
         OracleError::ReceiptMismatch

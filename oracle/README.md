@@ -42,7 +42,7 @@ math with the onchain config) that must match the onchain value.
 `dist/pct_oracle.so` is a prebuilt copy of the program for id `2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz`
 (Agave 3.1.14, platform-tools v1.52), so a machine with only the Solana CLI can deploy it without
 compiling. Rebuild and recopy it whenever the program changes. sha256:
-`82714ac89ebd691ff5a32c908dfcf20ed85b7d27db58791344f56ea568539f37`.
+`df63dddc8cf9998f9d098cb5bdd9f6b2648adfd5905f4134423bd21e044ec9f3`.
 
 The program id is fixed by `declare_id!` in `src/lib.rs`, so deploying needs the keypair whose
 public key is `2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz` (Anchor created it where the program
@@ -71,23 +71,24 @@ The CLIs read `SOLANA_RPC_URL` (default devnet), `SOLANA_KEYPAIR` (default
 A source is pinned to the exact claim parameters of the first proof `oracle:init` sees for it,
 so later proofs of that source must use the same URL and match rules (otherwise `ParamsMismatch`).
 
-## Operator revenue proofs (possible pivot): what already fits and what doesn't
+## Operator revenue proofs for GPU lenders
 
-An operator proving rental revenue from their own billing system goes through the same zkTLS ->
-`submit_observation` path as a renter's invoice, with these differences:
+GPU operators prove their own rental revenue (Stripe balance, Vast host payouts) through the same
+zkTLS pipeline, and a lender reads a per-borrower feed and gates draws on it.
 
-- **Fits as is.** Source registration (URL + match rules pinned by `params_hash`), attestor
-  signature checks, and parsing `amount` + `hours` into $/GPU-hr (`VALUE_MODE_AMOUNT_HOURS`) work
-  for a provider-side billing export unchanged. The TS client, CLIs and dashboard read the same
-  accounts.
-- **Breaks: receipts.** A paid source's receipt key is `keccak(account)`, so one account can be
-  submitted only once. An operator reporting every period would be refused after the first
-  report. Fix: key on `keccak(account || period)` with a `period` field captured from the response
-  (or the claim timestamp bucketed to a period).
-- **Missing: per-operator history.** Observations fold into one `Book` per (SKU, kind), a ring of
-  32 prices. Lenders want a feed per borrower (revenue, utilization, $/GPU-hr over time). That
-  needs a per-operator account keyed by the hashed account id, plus a third `kind` (operator
-  revenue) so it never mixes into the renter price index.
-- **Different trust edge.** A renter's invoice is adverse to the provider; an operator's own
-  revenue export is self-reported by the borrower, so the source pin must point at a third-party
-  system of record (Stripe, the marketplace payout API), not the operator's own server.
+- **`open_loan(terms)`** creates a `Loan` PDA at `["loan", keccak(account id)]`: lender, borrower
+  wallet, SKU, fleet size, period length, debt service per period, minimum coverage (11500 bps =
+  USD.AI's 1.15x). It keeps the last 13 periods of proven revenue and GPU-hours.
+- **`submit_revenue(sig)`** takes a claim from a `kind = 2` (revenue) source. It runs the same
+  attestor, source-pin and freshness checks as `submit_observation`, then requires
+  `keccak(extracted "account") == loan.operator_key`. The receipt is keyed on
+  `keccak(operator_key || period)`, so each source counts once per operator per period. When the
+  claim carries `hours`, realized rent (amount / hours) is also pushed into the paid H100 book, so
+  every revenue proof feeds the price tape. Emits `RevenueProven` with period and trailing coverage.
+- **`fund_loan` / `draw`** is a toy vault: the borrower can draw only while the latest proof is for
+  the current or previous period and trailing-quarter revenue (missing periods count as zero) is
+  at least the minimum coverage of debt service.
+- Trust edge: an operator's own export is self-reported, so revenue sources must be pinned to a
+  third-party system of record (Stripe, the marketplace payout API), never the operator's server.
+
+CU: `submit_revenue` 84k-88k, `draw` 8.8k. Fixtures: `npx tsx scripts/make-revenue-fixtures.ts`.

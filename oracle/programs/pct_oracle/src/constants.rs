@@ -10,6 +10,12 @@ pub const BOOK_SEED: &[u8] = b"book";
 pub const BUFFER_SEED: &[u8] = b"buffer";
 #[constant]
 pub const RECEIPT_SEED: &[u8] = b"receipt";
+#[constant]
+pub const LOAN_SEED: &[u8] = b"loan";
+
+pub const LOAN_HISTORY: usize = 13;
+/// Covenant window: trailing revenue over this span (one quarter, as in USD.AI's 1.15x test).
+pub const COVENANT_WINDOW_S: u32 = 91 * 86_400;
 
 pub const MAX_ATTESTORS: usize = 8;
 pub const BOOK_CAPACITY: usize = 32;
@@ -18,5 +24,7 @@ pub const MAX_CLAIM_BYTES: usize = 4096;
 pub const SKU_COUNT: u8 = 3; // 0 H100, 1 H200, 2 B200
 pub const KIND_PAID: u8 = 0;
 pub const KIND_LIST: u8 = 1;
+/// Operator-proven rental revenue for a loan. Never stored in a price book directly.
+pub const KIND_REVENUE: u8 = 2;
 pub const VALUE_MODE_RATE: u8 = 0;
 pub const VALUE_MODE_AMOUNT_HOURS: u8 = 1;

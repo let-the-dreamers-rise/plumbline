@@ -1,0 +1,104 @@
+{
+  "attestor": "0x26d8c0938bd96ddfd4140dfa620a796235458c27",
+  "periodS": 604800,
+  "operators": {
+    "op1": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+    "op2": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2"
+  },
+  "sources": [
+    {
+      "name": "vast-host-payout",
+      "provider": 3,
+      "url": "https://console.vast.ai/api/v0/users/me/host-earnings",
+      "matches": [
+        "\"earnings\":(?<amount>[0-9.]+)",
+        "\"gpu_hours\":(?<hours>[0-9.]+)",
+        "\"host_id\":\"(?<account>[^\"]+)\""
+      ],
+      "paramsHash": "0xe85ae15c7091640b9fbac24f80e7b32b7b39daaed470a9468c9b2559038222ee"
+    },
+    {
+      "name": "stripe-balance",
+      "provider": 11,
+      "url": "https://api.stripe.com/v1/balance_transactions",
+      "matches": [
+        "\"net_total\":(?<amount>[0-9.]+)",
+        "\"account\":\"(?<account>[^\"]+)\""
+      ],
+      "paramsHash": "0x325f353b9d5203916ff3c1500ca0b90d0b7b30f303ecb3f0e95605c1f3abe434"
+    }
+  ],
+  "claims": [
+    {
+      "name": "op1-vast-w0",
+      "source": "vast-host-payout",
+      "at": 1790816400,
+      "extracted": {
+        "account": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "amount": "2580.48",
+        "hours": "1075.2"
+      },
+      "claimProvider": "http",
+      "parameters": "{\"body\":\"\",\"method\":\"GET\",\"responseMatches\":[{\"type\":\"regex\",\"value\":\"\\\"earnings\\\":(?<amount>[0-9.]+)\"},{\"type\":\"regex\",\"value\":\"\\\"gpu_hours\\\":(?<hours>[0-9.]+)\"},{\"type\":\"regex\",\"value\":\"\\\"host_id\\\":\\\"(?<account>[^\\\"]+)\\\"\"}],\"responseRedactions\":[{\"regex\":\"\\\"earnings\\\":(?<amount>[0-9.]+)\"},{\"regex\":\"\\\"gpu_hours\\\":(?<hours>[0-9.]+)\"},{\"regex\":\"\\\"host_id\\\":\\\"(?<account>[^\\\"]+)\\\"\"}],\"url\":\"https://console.vast.ai/api/v0/users/me/host-earnings\"}",
+      "context": "{\"contextAddress\":\"0x0000000000000000000000000000000000000000\",\"contextMessage\":\"\",\"extractedParameters\":{\"account\":\"0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"amount\":\"2580.48\",\"hours\":\"1075.2\"},\"providerHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
+      "owner": "0xabababababababababababababababababababab",
+      "timestampS": 1790816400,
+      "epoch": 1,
+      "identifier": "0x868f4bacd4f4b097ea021499942228249ff36914f83a14c52cf273aaf8a4e1a7",
+      "signature": "0xa7ebc41d16804acebac91620a288b5a79b186aeb91c8827d0c88d15c21cf2a660c784eeb443d28bcbe6aa9cf6ac34a9c5c9a5e7f8be6dd3349e5affec951aadb1b"
+    },
+    {
+      "name": "op1-stripe-w0",
+      "source": "stripe-balance",
+      "at": 1790820000,
+      "extracted": {
+        "account": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "amount": "400"
+      },
+      "claimProvider": "http",
+      "parameters": "{\"body\":\"\",\"method\":\"GET\",\"responseMatches\":[{\"type\":\"regex\",\"value\":\"\\\"net_total\\\":(?<amount>[0-9.]+)\"},{\"type\":\"regex\",\"value\":\"\\\"account\\\":\\\"(?<account>[^\\\"]+)\\\"\"}],\"responseRedactions\":[{\"regex\":\"\\\"net_total\\\":(?<amount>[0-9.]+)\"},{\"regex\":\"\\\"account\\\":\\\"(?<account>[^\\\"]+)\\\"\"}],\"url\":\"https://api.stripe.com/v1/balance_transactions\"}",
+      "context": "{\"contextAddress\":\"0x0000000000000000000000000000000000000000\",\"contextMessage\":\"\",\"extractedParameters\":{\"account\":\"0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"amount\":\"400\"},\"providerHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
+      "owner": "0xabababababababababababababababababababab",
+      "timestampS": 1790820000,
+      "epoch": 1,
+      "identifier": "0x67dcfc5e750e9d47deaebf2662f0f3027414206bf949773e4f353d0df1250a60",
+      "signature": "0x4a15bb8c0be2641a517587fa71409d21ea6d14262c25b5199721240636cb626874a46fa3a1629fb43f7af95e343bd0a169ad1b1ce03447b27545b2937fc13c551c"
+    },
+    {
+      "name": "op1-vast-w1",
+      "source": "vast-host-payout",
+      "at": 1791421200,
+      "extracted": {
+        "account": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "amount": "360",
+        "hours": "150"
+      },
+      "claimProvider": "http",
+      "parameters": "{\"body\":\"\",\"method\":\"GET\",\"responseMatches\":[{\"type\":\"regex\",\"value\":\"\\\"earnings\\\":(?<amount>[0-9.]+)\"},{\"type\":\"regex\",\"value\":\"\\\"gpu_hours\\\":(?<hours>[0-9.]+)\"},{\"type\":\"regex\",\"value\":\"\\\"host_id\\\":\\\"(?<account>[^\\\"]+)\\\"\"}],\"responseRedactions\":[{\"regex\":\"\\\"earnings\\\":(?<amount>[0-9.]+)\"},{\"regex\":\"\\\"gpu_hours\\\":(?<hours>[0-9.]+)\"},{\"regex\":\"\\\"host_id\\\":\\\"(?<account>[^\\\"]+)\\\"\"}],\"url\":\"https://console.vast.ai/api/v0/users/me/host-earnings\"}",
+      "context": "{\"contextAddress\":\"0x0000000000000000000000000000000000000000\",\"contextMessage\":\"\",\"extractedParameters\":{\"account\":\"0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"amount\":\"360\",\"hours\":\"150\"},\"providerHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
+      "owner": "0xabababababababababababababababababababab",
+      "timestampS": 1791421200,
+      "epoch": 1,
+      "identifier": "0x895409dc4aefbad822ccbc88baa09ee33e2c69da33988fe1242b472013706adb",
+      "signature": "0x06eb8c70f4de54913092df7948e7915f7904c72c64413ac8a194d583ad1168cb72db93541fb0a3464679b2cfd9468a99dc817af03e3b7ee196bfacc6389e31581c"
+    },
+    {
+      "name": "op2-vast-w0",
+      "source": "vast-host-payout",
+      "at": 1790816400,
+      "extracted": {
+        "account": "0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2",
+        "amount": "999",
+        "hours": "400"
+      },
+      "claimProvider": "http",
+      "parameters": "{\"body\":\"\",\"method\":\"GET\",\"responseMatches\":[{\"type\":\"regex\",\"value\":\"\\\"earnings\\\":(?<amount>[0-9.]+)\"},{\"type\":\"regex\",\"value\":\"\\\"gpu_hours\\\":(?<hours>[0-9.]+)\"},{\"type\":\"regex\",\"value\":\"\\\"host_id\\\":\\\"(?<account>[^\\\"]+)\\\"\"}],\"responseRedactions\":[{\"regex\":\"\\\"earnings\\\":(?<amount>[0-9.]+)\"},{\"regex\":\"\\\"gpu_hours\\\":(?<hours>[0-9.]+)\"},{\"regex\":\"\\\"host_id\\\":\\\"(?<account>[^\\\"]+)\\\"\"}],\"url\":\"https://console.vast.ai/api/v0/users/me/host-earnings\"}",
+      "context": "{\"contextAddress\":\"0x0000000000000000000000000000000000000000\",\"contextMessage\":\"\",\"extractedParameters\":{\"account\":\"0xb2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2b2\",\"amount\":\"999\",\"hours\":\"400\"},\"providerHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
+      "owner": "0xabababababababababababababababababababab",
+      "timestampS": 1790816400,
+      "epoch": 1,
+      "identifier": "0x212ed055370d4c1004759e9b20b1c6530ac6d8b4a63a3b53e1cf947291e3dfed",
+      "signature": "0xb5d62d34496e8e8d7a7ab62f8cb402f5d941fb096c6530111fa3ba8829628c3a44e914e578184d28425862de403a8ddd178113689a3cb0aa8f6c42b9fc32acfe1b"
+    }
+  ]
+}
