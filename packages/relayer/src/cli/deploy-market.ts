@@ -12,6 +12,8 @@ const initial = process.env.HL_INITIAL_PX?.trim() || (book?.status === "live" ? 
 if (!initial) throw new Error("index is not live; set HL_INITIAL_PX (e.g. 2.71)");
 
 const existing = (await info.perpDexs()).filter((d) => d?.name === relayerConfig.dex);
+const owner = existing[0]?.deployer?.toLowerCase();
+if (owner && owner !== address.toLowerCase()) throw new Error(`dex "${relayerConfig.dex}" belongs to ${owner}; set HL_DEX to an unused name`);
 console.log(`deployer ${address}; dex ${relayerConfig.dex} ${existing.length ? "exists" : "is new"}; initial px ${initial}`);
 
 const result = await client.perpDeploy({
@@ -21,7 +23,7 @@ const result = await client.perpDeploy({
       coin: relayerConfig.coin,
       szDecimals: relayerConfig.szDecimals,
       oraclePx: initial,
-      marginTableId: Number(process.env.HL_MARGIN_TABLE_ID ?? 3),
+      marginTableId: Number(process.env.HL_MARGIN_TABLE_ID ?? 5),
       marginMode: (process.env.HL_MARGIN_MODE as "strictIsolated" | "noCross" | "normal" | undefined) ?? "strictIsolated",
     },
     dex: relayerConfig.dex,

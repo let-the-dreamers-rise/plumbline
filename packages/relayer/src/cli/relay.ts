@@ -14,7 +14,8 @@ const send = dryRun
 const relayer = new Relayer(relayerConfig, () => readBook(connection, relayerConfig.sku, relayerConfig.kind, programId), send);
 
 console.log(`relaying ${relayerConfig.coin} on ${testnet ? "testnet" : "MAINNET"} from ${solanaRpc}${dryRun ? " (dry run)" : ""}`);
-const once = process.argv.includes("--once");
+// RELAY_ONCE also works where the shell eats `--` (PowerShell drops it from `npm run x -- --once`).
+const once = process.argv.includes("--once") || process.env.RELAY_ONCE === "true";
 for (;;) {
   const started = Date.now();
   try {
