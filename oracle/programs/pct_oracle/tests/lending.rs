@@ -7,7 +7,7 @@ use {
     anchor_lang::{prelude::Pubkey, solana_program::system_program},
     common::{boot, default_params, hex, keccak, pda, Harness},
     pct_oracle::{
-        instructions::{revenue_receipt_key, ClaimSig, LoanTerms},
+        instructions::{revenue_item_key, revenue_receipt_key, ClaimSig, LoanTerms},
         state::{Book, Loan},
         SourceArgs,
     },
@@ -103,8 +103,14 @@ fn submit(s: &mut Setup, name: &str, loan: Pubkey, receipt_operator: [u8; 32]) -
     let buffer = s.h.upload(b"http", c["parameters"].as_str().unwrap().as_bytes(), c["context"].as_str().unwrap().as_bytes())?;
     let source = pda(&[b"source", &source_id(c["source"].as_str().unwrap())]);
     let timestamp_s = c["timestampS"].as_u64().unwrap() as u32;
-    let period = timestamp_s / s.fx["periodS"].as_u64().unwrap() as u32;
-    let receipt_key = revenue_receipt_key(&receipt_operator, period);
+    let extracted = &c["extracted"];
+    let receipt_key = match extracted["item"].as_str() {
+        Some(item) => revenue_item_key(&receipt_operator, item.as_bytes()),
+        None => {
+            let earned_at = extracted["at"].as_str().map_or(timestamp_s as u64, |a| a.parse().unwrap());
+            revenue_receipt_key(&receipt_operator, (earned_at / s.fx["periodS"].as_u64().unwrap()) as u32)
+        }
+    };
     let sig = ClaimSig {
         owner: c["owner"].as_str().unwrap().to_string(),
         timestamp_s,
@@ -113,7 +119,7 @@ fn submit(s: &mut Setup, name: &str, loan: Pubkey, receipt_operator: [u8; 32]) -
     };
     let payer = s.h.payer.pubkey();
     let result = s.h.send(&[Harness::ix(
-        pct_oracle::instruction::SubmitRevenue { sig },
+        pct_oracle::instruction::SubmitRevenue { sig, receipt_key },
         pct_oracle::accounts::SubmitRevenue {
             submitter: payer,
             config: pda(&[b"config"]),
@@ -185,6 +191,20 @@ fn one_proof_per_source_and_period() {
     submit(&mut s, "op1-vast-w0", loan, op).unwrap();
     let err = submit(&mut s, "op1-vast-w0", loan, op).unwrap_err();
     assert!(err.contains("already in use"), "{err}");
+}
+
+#[test]
+fn a_payout_counts_once_and_in_the_period_it_arrived() {
+    let mut s = setup();
+    let (loan, op) = (s.loan, s.operator_key);
+    submit(&mut s, "op1-vast-w0", loan, op).unwrap();
+    submit(&mut s, "op1-stripe-w0", loan, op).unwrap();
+    // Proven again a week later: same payout id, so the receipt already exists.
+    let err = submit(&mut s, "op1-stripe-w0-again", loan, op).unwrap_err();
+    assert!(err.contains("already in use"), "{err}");
+
+    let l: Loan = s.h.account(&loan);
+    assert_eq!(l.latest().unwrap().revenue_micro, 2_980_480_000, "$400.00 payout from 40000 cents, counted once");
 }
 
 #[test]

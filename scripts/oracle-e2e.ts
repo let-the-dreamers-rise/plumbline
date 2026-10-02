@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
-import { Connection, Keypair, LAMPORTS_PER_SOL } from "@solana/web3.js";
+import { Connection, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { DEFAULT_INDEX_PARAMS, OracleClient, programError } from "../packages/oracle/src/index.js";
-import { fixtureProof, fixtureSource, type Fixtures } from "../packages/oracle/src/fixtures.js";
+import { fixtureProof, fixtureSource, localE2eAuthority, type Fixtures } from "../packages/oracle/src/fixtures.js";
 import { getBytes } from "ethers";
 
 // End to end against a running validator with pct_oracle loaded (see oracle/README.md):
@@ -9,7 +9,7 @@ import { getBytes } from "ethers";
 const rpc = process.env.SOLANA_RPC_URL ?? "http://127.0.0.1:8899";
 const fx = JSON.parse(readFileSync("oracle/programs/pct_oracle/tests/fixtures/claims.json", "utf8")) as Fixtures;
 const connection = new Connection(rpc, "confirmed");
-const payer = Keypair.generate();
+const payer = localE2eAuthority();
 await connection.confirmTransaction(await connection.requestAirdrop(payer.publicKey, 10 * LAMPORTS_PER_SOL), "confirmed");
 const client = new OracleClient(connection, payer);
 

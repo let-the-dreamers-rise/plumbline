@@ -7,13 +7,16 @@ import {
   sendAndConfirmTransaction,
   type TransactionInstruction,
 } from "@solana/web3.js";
-import { toSubmission, type ReclaimProof } from "./claim.js";
+import { revenueReceiptKeyFor, toSubmission, type ReclaimProof, type Submission } from "./claim.js";
 import {
   DEFAULT_PROGRAM_ID,
   OracleInstructions,
   WRITE_CHUNK,
   decodeBook,
+  decodeLoan,
   type BookState,
+  type LoanState,
+  type LoanTerms,
   type IndexParams,
   type SourceArgs,
 } from "./program.js";
@@ -62,13 +65,11 @@ export class OracleClient {
   }
 
   /**
-   * Uploads the claim into this payer's buffer and submits it. The program closes the buffer on
+   * Uploads the claim into this payer's buffer and runs `submit`. The program closes the buffer on
    * success; on failure we close it so the next submission can reopen it.
    */
-  async submitProof(proof: ReclaimProof, source: SourceArgs): Promise<SubmitResult> {
+  private async uploadAndSubmit(s: Submission, receipt: PublicKey, submit: TransactionInstruction): Promise<SubmitResult> {
     const me = this.payer.publicKey;
-    const s = toSubmission(proof, source.requiresNullifier);
-    const receipt = this.ix.pdas.receipt(this.ix.pdas.source(source.sourceId), s.receiptKey);
     if (await this.exists(receipt)) throw new AlreadySubmittedError(receipt);
     if (await this.exists(this.ix.pdas.buffer(me))) await this.send(this.ix.closeBuffer(me));
     await this.send(this.ix.openBuffer(me, s.provider.length, s.parameters.length, s.context.length));
@@ -77,15 +78,49 @@ export class OracleClient {
       for (let off = 0; off < data.length; off += WRITE_CHUNK) {
         await this.send(this.ix.writeBuffer(me, off, data.subarray(off, off + WRITE_CHUNK)));
       }
-      const signature = await this.send(
-        ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 }),
-        this.ix.submitObservation(me, source, s.sig, s.receiptKey),
-      );
+      const signature = await this.send(ComputeBudgetProgram.setComputeUnitLimit({ units: 400_000 }), submit);
       return { signature, computeUnits: await this.computeUnits(signature) };
     } catch (err) {
       if (await this.exists(this.ix.pdas.buffer(me))) await this.send(this.ix.closeBuffer(me)).catch(() => undefined);
       throw err;
     }
+  }
+
+  async submitProof(proof: ReclaimProof, source: SourceArgs): Promise<SubmitResult> {
+    const s = toSubmission(proof, source.requiresNullifier);
+    const receipt = this.ix.pdas.receipt(this.ix.pdas.source(source.sourceId), s.receiptKey);
+    return this.uploadAndSubmit(s, receipt, this.ix.submitObservation(this.payer.publicKey, source, s.sig, s.receiptKey));
+  }
+
+  /** Opens a loan with this payer as lender, and funds it when `lamports` > 0. Skips the open if it exists. */
+  async openLoan(terms: LoanTerms, lamports: bigint = 0n): Promise<string | null> {
+    const me = this.payer.publicKey;
+    const ixs: TransactionInstruction[] = [];
+    if (!(await this.exists(this.ix.pdas.loan(terms.operatorKey)))) ixs.push(this.ix.openLoan(me, terms));
+    if (lamports > 0n) ixs.push(this.ix.fundLoan(me, terms.operatorKey, lamports));
+    return ixs.length > 0 ? this.send(...ixs) : null;
+  }
+
+  /** Submits an operator revenue proof against the loan keyed by `operatorKey`. */
+  async submitRevenue(proof: ReclaimProof, sourceId: Uint8Array, operatorKey: Uint8Array): Promise<SubmitResult> {
+    const loan = await this.loan(operatorKey);
+    if (!loan) throw new Error("no loan for this operator");
+    const s = toSubmission(proof, false);
+    const receiptKey = revenueReceiptKeyFor(proof, operatorKey, loan.periodS);
+    const receipt = this.ix.pdas.receipt(this.ix.pdas.source(sourceId), receiptKey);
+    return this.uploadAndSubmit(s, receipt, this.ix.submitRevenue(this.payer.publicKey, sourceId, loan, s.sig, receiptKey));
+  }
+
+  /** The borrower draws from the loan; the program refuses unless the covenant holds. */
+  async draw(borrower: Keypair, operatorKey: Uint8Array, lamports: bigint): Promise<SubmitResult> {
+    const tx = new Transaction().add(this.ix.draw(borrower.publicKey, operatorKey, lamports));
+    const signature = await sendAndConfirmTransaction(this.connection, tx, [borrower], { commitment: "confirmed" });
+    return { signature, computeUnits: await this.computeUnits(signature) };
+  }
+
+  async loan(operatorKey: Uint8Array): Promise<LoanState | null> {
+    const info = await this.connection.getAccountInfo(this.ix.pdas.loan(operatorKey), "confirmed");
+    return info ? decodeLoan(info.data) : null;
   }
 
   async crank(sku: number, kind: number): Promise<SubmitResult> {
@@ -104,7 +139,7 @@ export class OracleClient {
   }
 }
 
-/** The receipt for this invoice (or list-price proof) already exists onchain. */
+/** The receipt for this invoice, list-price proof or revenue item/period already exists onchain. */
 export class AlreadySubmittedError extends Error {
   constructor(readonly receipt: PublicKey) {
     super(`already submitted (receipt ${receipt.toBase58()} exists)`);

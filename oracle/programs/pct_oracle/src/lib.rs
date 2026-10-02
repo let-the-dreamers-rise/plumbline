@@ -67,8 +67,8 @@ pub mod pct_oracle {
         instructions::lending::handle_fund_loan(ctx, lamports)
     }
 
-    pub fn submit_revenue(ctx: Context<SubmitRevenue>, sig: ClaimSig) -> Result<()> {
-        instructions::lending::handle_submit_revenue(ctx, sig)
+    pub fn submit_revenue(ctx: Context<SubmitRevenue>, sig: ClaimSig, receipt_key: [u8; 32]) -> Result<()> {
+        instructions::lending::handle_submit_revenue(ctx, sig, receipt_key)
     }
 
     pub fn draw(ctx: Context<Draw>, lamports: u64) -> Result<()> {

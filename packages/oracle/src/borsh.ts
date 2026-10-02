@@ -18,6 +18,14 @@ export class Writer {
     new DataView(b.buffer).setBigInt64(0, BigInt(v), true);
     return this.raw(b);
   }
+  u64(v: number | bigint): this {
+    const b = new Uint8Array(8);
+    new DataView(b.buffer).setBigUint64(0, BigInt(v), true);
+    return this.raw(b);
+  }
+  pubkey(key: { toBytes(): Uint8Array }): this {
+    return this.fixed(key.toBytes(), 32);
+  }
   bool(v: boolean): this {
     return this.u8(v ? 1 : 0);
   }

@@ -18,14 +18,17 @@
       "paramsHash": "0xe85ae15c7091640b9fbac24f80e7b32b7b39daaed470a9468c9b2559038222ee"
     },
     {
-      "name": "stripe-balance",
+      "name": "stripe-payout",
       "provider": 11,
-      "url": "https://api.stripe.com/v1/balance_transactions",
+      "url": "https://api.stripe.com/v1/payouts?limit=1",
       "matches": [
-        "\"net_total\":(?<amount>[0-9.]+)",
-        "\"account\":\"(?<account>[^\"]+)\""
+        "\"id\":\\s*\"(?<item>po_[A-Za-z0-9]+)\"",
+        "\"amount\":\\s*(?<amount_cents>[0-9]+)",
+        "\"arrival_date\":\\s*(?<at>[0-9]+)",
+        "\"destination\":\\s*\"(?<account>ba_[A-Za-z0-9]+)\"",
+        "\"status\":\\s*\"(?:paid|in_transit)\""
       ],
-      "paramsHash": "0x325f353b9d5203916ff3c1500ca0b90d0b7b30f303ecb3f0e95605c1f3abe434"
+      "paramsHash": "0x5896c2e10fe7d4b9c7c88b13c4e680c34a0cc999ff16fb963f859bccf8983b14"
     }
   ],
   "claims": [
@@ -49,20 +52,41 @@
     },
     {
       "name": "op1-stripe-w0",
-      "source": "stripe-balance",
+      "source": "stripe-payout",
       "at": 1790820000,
       "extracted": {
         "account": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
-        "amount": "400"
+        "amount_cents": "40000",
+        "at": "1790816400",
+        "item": "po_test_w0"
       },
       "claimProvider": "http",
-      "parameters": "{\"body\":\"\",\"method\":\"GET\",\"responseMatches\":[{\"type\":\"regex\",\"value\":\"\\\"net_total\\\":(?<amount>[0-9.]+)\"},{\"type\":\"regex\",\"value\":\"\\\"account\\\":\\\"(?<account>[^\\\"]+)\\\"\"}],\"responseRedactions\":[{\"regex\":\"\\\"net_total\\\":(?<amount>[0-9.]+)\"},{\"regex\":\"\\\"account\\\":\\\"(?<account>[^\\\"]+)\\\"\"}],\"url\":\"https://api.stripe.com/v1/balance_transactions\"}",
-      "context": "{\"contextAddress\":\"0x0000000000000000000000000000000000000000\",\"contextMessage\":\"\",\"extractedParameters\":{\"account\":\"0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"amount\":\"400\"},\"providerHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
+      "parameters": "{\"body\":\"\",\"method\":\"GET\",\"responseMatches\":[{\"type\":\"regex\",\"value\":\"\\\"id\\\":\\\\s*\\\"(?<item>po_[A-Za-z0-9]+)\\\"\"},{\"type\":\"regex\",\"value\":\"\\\"amount\\\":\\\\s*(?<amount_cents>[0-9]+)\"},{\"type\":\"regex\",\"value\":\"\\\"arrival_date\\\":\\\\s*(?<at>[0-9]+)\"},{\"type\":\"regex\",\"value\":\"\\\"destination\\\":\\\\s*\\\"(?<account>ba_[A-Za-z0-9]+)\\\"\"},{\"type\":\"regex\",\"value\":\"\\\"status\\\":\\\\s*\\\"(?:paid|in_transit)\\\"\"}],\"responseRedactions\":[{\"regex\":\"\\\"id\\\":\\\\s*\\\"(?<item>po_[A-Za-z0-9]+)\\\"\"},{\"regex\":\"\\\"amount\\\":\\\\s*(?<amount_cents>[0-9]+)\"},{\"regex\":\"\\\"arrival_date\\\":\\\\s*(?<at>[0-9]+)\"},{\"regex\":\"\\\"destination\\\":\\\\s*\\\"(?<account>ba_[A-Za-z0-9]+)\\\"\"},{\"regex\":\"\\\"status\\\":\\\\s*\\\"(?:paid|in_transit)\\\"\"}],\"url\":\"https://api.stripe.com/v1/payouts?limit=1\"}",
+      "context": "{\"contextAddress\":\"0x0000000000000000000000000000000000000000\",\"contextMessage\":\"\",\"extractedParameters\":{\"account\":\"0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"amount_cents\":\"40000\",\"at\":\"1790816400\",\"item\":\"po_test_w0\"},\"providerHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
       "owner": "0xabababababababababababababababababababab",
       "timestampS": 1790820000,
       "epoch": 1,
-      "identifier": "0x67dcfc5e750e9d47deaebf2662f0f3027414206bf949773e4f353d0df1250a60",
-      "signature": "0x4a15bb8c0be2641a517587fa71409d21ea6d14262c25b5199721240636cb626874a46fa3a1629fb43f7af95e343bd0a169ad1b1ce03447b27545b2937fc13c551c"
+      "identifier": "0x5fc9b3662b5ad9a7a687d9288fe610270018aae84a78bea1d9dce3adfe9fbceb",
+      "signature": "0x257c06f4b592ea0783303253ea7556e3b79f12df8ffce8b1dbe19862d40551e8659708bd7cdad24fb1b74a278400081c9a8fb1ef8816c61715b9bd33f62465551b"
+    },
+    {
+      "name": "op1-stripe-w0-again",
+      "source": "stripe-payout",
+      "at": 1791424800,
+      "extracted": {
+        "account": "0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1",
+        "amount_cents": "40000",
+        "at": "1790816400",
+        "item": "po_test_w0"
+      },
+      "claimProvider": "http",
+      "parameters": "{\"body\":\"\",\"method\":\"GET\",\"responseMatches\":[{\"type\":\"regex\",\"value\":\"\\\"id\\\":\\\\s*\\\"(?<item>po_[A-Za-z0-9]+)\\\"\"},{\"type\":\"regex\",\"value\":\"\\\"amount\\\":\\\\s*(?<amount_cents>[0-9]+)\"},{\"type\":\"regex\",\"value\":\"\\\"arrival_date\\\":\\\\s*(?<at>[0-9]+)\"},{\"type\":\"regex\",\"value\":\"\\\"destination\\\":\\\\s*\\\"(?<account>ba_[A-Za-z0-9]+)\\\"\"},{\"type\":\"regex\",\"value\":\"\\\"status\\\":\\\\s*\\\"(?:paid|in_transit)\\\"\"}],\"responseRedactions\":[{\"regex\":\"\\\"id\\\":\\\\s*\\\"(?<item>po_[A-Za-z0-9]+)\\\"\"},{\"regex\":\"\\\"amount\\\":\\\\s*(?<amount_cents>[0-9]+)\"},{\"regex\":\"\\\"arrival_date\\\":\\\\s*(?<at>[0-9]+)\"},{\"regex\":\"\\\"destination\\\":\\\\s*\\\"(?<account>ba_[A-Za-z0-9]+)\\\"\"},{\"regex\":\"\\\"status\\\":\\\\s*\\\"(?:paid|in_transit)\\\"\"}],\"url\":\"https://api.stripe.com/v1/payouts?limit=1\"}",
+      "context": "{\"contextAddress\":\"0x0000000000000000000000000000000000000000\",\"contextMessage\":\"\",\"extractedParameters\":{\"account\":\"0xa1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1a1\",\"amount_cents\":\"40000\",\"at\":\"1790816400\",\"item\":\"po_test_w0\"},\"providerHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
+      "owner": "0xabababababababababababababababababababab",
+      "timestampS": 1791424800,
+      "epoch": 1,
+      "identifier": "0x5fc9b3662b5ad9a7a687d9288fe610270018aae84a78bea1d9dce3adfe9fbceb",
+      "signature": "0x1177c53dba862797a72fe95790d26cd53b1e2cff8a6f38bfdc8e93e7304ee73f61c45be48bf365e7ff3089b1c42b0919847c6f524d19b137d4a0a816333c4f0d1c"
     },
     {
       "name": "op1-vast-w1",

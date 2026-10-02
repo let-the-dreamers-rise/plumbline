@@ -1,6 +1,15 @@
 import { groupNames, type SourceSpec } from "@pct/prover";
 import { getBytes, keccak256, toUtf8Bytes } from "ethers";
-import { KIND_IDS, SKU_IDS, VALUE_MODE_AMOUNT_HOURS, VALUE_MODE_RATE, type ClaimSig, type SourceArgs } from "./program.js";
+import {
+  KIND_IDS,
+  SKU_IDS,
+  VALUE_MODE_AMOUNT_HOURS,
+  VALUE_MODE_RATE,
+  revenueItemKey,
+  revenueReceiptKey,
+  type ClaimSig,
+  type SourceArgs,
+} from "./program.js";
 
 /** The fields of a Reclaim proof (zkFetch output) the oracle program needs. */
 export interface ReclaimProof {
@@ -29,6 +38,7 @@ export const PROVIDER_IDS: Readonly<Record<string, number>> = {
   coreweave: 8,
   nebius: 9,
   together: 10,
+  stripe: 11,
 };
 
 export function providerId(provider: string): number {
@@ -87,6 +97,26 @@ export function receiptKey(proof: ReclaimProof, requiresNullifier: boolean): Uin
   const ts = new Uint8Array(4);
   new DataView(ts.buffer).setUint32(0, proof.claimData.timestampS, true);
   return keccakBytes(new Uint8Array([...getBytes(proof.identifier), ...ts]));
+}
+
+/** A loan's operator key: keccak of the account id its revenue proofs reveal (OPRF-hashed in production). */
+export const operatorKey = (accountId: string): Uint8Array => keccakBytes(accountId);
+
+export function extractedOf(proof: ReclaimProof): Record<string, string> {
+  const ctx = JSON.parse(proof.claimData.context) as { extractedParameters?: Record<string, string> };
+  return ctx.extractedParameters ?? {};
+}
+
+/** The loan period a revenue proof counts toward: its extracted `at` when present, else proof time. */
+export function revenuePeriod(proof: ReclaimProof, periodS: number): number {
+  const at = extractedOf(proof).at;
+  return Math.floor((at !== undefined ? Number(at) : proof.claimData.timestampS) / periodS);
+}
+
+/** Same rule as handle_submit_revenue: one receipt per payout `item`, else one per loan period. */
+export function revenueReceiptKeyFor(proof: ReclaimProof, opKey: Uint8Array, periodS: number): Uint8Array {
+  const item = extractedOf(proof).item;
+  return item !== undefined ? revenueItemKey(opKey, item) : revenueReceiptKey(opKey, revenuePeriod(proof, periodS));
 }
 
 export function toSubmission(proof: ReclaimProof, requiresNullifier: boolean): Submission {

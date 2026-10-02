@@ -46,6 +46,8 @@ pub enum OracleError {
     InsufficientFunds,
     #[msg("Only the loan's borrower can draw")]
     NotBorrower,
+    #[msg("Revenue is dated before the loan's revenue history window")]
+    RevenueTooOld,
 }
 
 impl From<crate::reclaim::ClaimError> for OracleError {

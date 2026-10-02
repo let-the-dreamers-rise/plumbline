@@ -1,5 +1,6 @@
 import { keccakBytes, type ReclaimProof } from "./claim.js";
-import { getBytes } from "ethers";
+import { Keypair } from "@solana/web3.js";
+import { getBytes, sha256, toUtf8Bytes } from "ethers";
 import type { SourceArgs } from "./program.js";
 
 /** One entry of oracle/programs/pct_oracle/tests/fixtures/claims.json (scripts/make-oracle-fixtures.ts). */
@@ -49,3 +50,9 @@ export function fixtureSource(c: FixtureClaim): SourceArgs {
     requiresNullifier: c.requiresNullifier,
   };
 }
+
+/**
+ * Well-known config authority for local-validator e2e scripts, so each run (and each script) can
+ * update the same config. Public seed: never use it on devnet or mainnet.
+ */
+export const localE2eAuthority = (): Keypair => Keypair.fromSeed(getBytes(sha256(toUtf8Bytes("pct-local-e2e-authority"))));

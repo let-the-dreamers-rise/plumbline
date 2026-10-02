@@ -68,7 +68,7 @@ pub fn handle_fund_loan(ctx: Context<FundLoan>, lamports: u64) -> Result<()> {
 }
 
 #[derive(Accounts)]
-#[instruction(sig: ClaimSig)]
+#[instruction(sig: ClaimSig, receipt_key: [u8; 32])]
 pub struct SubmitRevenue<'info> {
     #[account(mut)]
     pub submitter: Signer<'info>,
@@ -97,23 +97,48 @@ pub struct SubmitRevenue<'info> {
         close = submitter
     )]
     pub buffer: Box<Account<'info, ClaimBuffer>>,
-    /// One proof per source, operator and loan period.
+    /// Nullifier: one per payout (`item`) or, for sources without item ids, one per loan period.
     #[account(
         init,
         payer = submitter,
         space = 8 + Receipt::INIT_SPACE,
-        seeds = [RECEIPT_SEED, source.key().as_ref(), &revenue_receipt_key(&loan.operator_key, loan.period_of(sig.timestamp_s as i64))],
+        seeds = [RECEIPT_SEED, source.key().as_ref(), receipt_key.as_ref()],
         bump
     )]
     pub receipt: Account<'info, Receipt>,
     pub system_program: Program<'info, System>,
 }
 
+/// Receipt key for sources that report one statement per period (no `item` id).
 pub fn revenue_receipt_key(operator_key: &[u8; 32], period: u32) -> [u8; 32] {
     let mut bytes = [0u8; 36];
     bytes[..32].copy_from_slice(operator_key);
     bytes[32..].copy_from_slice(&period.to_le_bytes());
     reclaim::keccak(&bytes)
+}
+
+/// Receipt key for itemized sources (a Stripe payout id): the same payout counts once, whenever
+/// it is proven.
+pub fn revenue_item_key(operator_key: &[u8; 32], item: &[u8]) -> [u8; 32] {
+    let mut bytes = Vec::with_capacity(5 + 32 + item.len());
+    bytes.extend_from_slice(b"item:");
+    bytes.extend_from_slice(operator_key);
+    bytes.extend_from_slice(item);
+    reclaim::keccak(&bytes)
+}
+
+/// `amount` in dollars, or `amount_cents` as an integer (Stripe), in micro-USD.
+fn revenue_micro(context: &[u8]) -> core::result::Result<u64, reclaim::ClaimError> {
+    match reclaim::extract_param(context, "amount") {
+        Ok(raw) => reclaim::parse_micro(raw),
+        Err(_) => {
+            let cents = reclaim::parse_micro(reclaim::extract_param(context, "amount_cents")?)?;
+            if cents % 1_000_000 != 0 {
+                return Err(reclaim::ClaimError::BadNumber);
+            }
+            Ok(cents / 100)
+        }
+    }
 }
 
 #[event]
@@ -136,7 +161,10 @@ pub struct RevenueProven {
 
 /// Anyone may submit an operator's revenue proof: it is self-authenticating and only counts
 /// toward the loan whose operator_key matches the proof's hashed account id.
-pub fn handle_submit_revenue(ctx: Context<SubmitRevenue>, sig: ClaimSig) -> Result<()> {
+///
+/// The revenue is dated by an extracted `at` (unix seconds, e.g. a payout's arrival date) when the
+/// source has one, else by the proof's timestamp.
+pub fn handle_submit_revenue(ctx: Context<SubmitRevenue>, sig: ClaimSig, receipt_key: [u8; 32]) -> Result<()> {
     let source = &ctx.accounts.source;
     let (provider, parameters, context) = ctx.accounts.buffer.parts().ok_or(OracleError::BadBuffer)?;
     let identifier = verify_claim(&ctx.accounts.config, source, provider, parameters, context, &sig)?;
@@ -145,7 +173,7 @@ pub fn handle_submit_revenue(ctx: Context<SubmitRevenue>, sig: ClaimSig) -> Resu
     let loan = &mut ctx.accounts.loan;
     require!(reclaim::keccak(account) == loan.operator_key, OracleError::OperatorMismatch);
 
-    let revenue = reclaim::parse_micro(reclaim::extract_param(context, "amount").map_err(OracleError::from)?).map_err(OracleError::from)?;
+    let revenue = revenue_micro(context).map_err(OracleError::from)?;
     require!(revenue > 0, OracleError::BadNumber);
     let hours = match reclaim::extract_param(context, "hours") {
         Ok(raw) => reclaim::parse_micro(raw).map_err(OracleError::from)?,
@@ -153,7 +181,24 @@ pub fn handle_submit_revenue(ctx: Context<SubmitRevenue>, sig: ClaimSig) -> Resu
     };
 
     let observed_at = sig.timestamp_s as i64;
-    let period = loan.period_of(observed_at);
+    let earned_at = match reclaim::extract_param(context, "at") {
+        Ok(raw) => {
+            let micro = reclaim::parse_micro(raw).map_err(OracleError::from)?;
+            require!(micro % 1_000_000 == 0, OracleError::BadNumber);
+            (micro / 1_000_000) as i64
+        }
+        Err(_) => observed_at,
+    };
+    require!(earned_at <= observed_at, OracleError::FutureClaim);
+    let period = loan.period_of(earned_at);
+    if let Some(latest) = loan.latest() {
+        require!(period + LOAN_HISTORY as u32 > latest.period, OracleError::RevenueTooOld);
+    }
+    let expected = match reclaim::extract_param(context, "item") {
+        Ok(item) => revenue_item_key(&loan.operator_key, item),
+        Err(_) => revenue_receipt_key(&loan.operator_key, period),
+    };
+    require!(receipt_key == expected, OracleError::ReceiptMismatch);
     loan.record(period, revenue, hours);
     loan.updated_at = observed_at;
     let this_period = loan.history.iter().find(|p| p.proofs > 0 && p.period == period).copied().unwrap_or_default();
