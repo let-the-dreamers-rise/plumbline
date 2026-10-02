@@ -2,13 +2,17 @@ import { readFileSync } from "node:fs";
 import { createServer } from "node:http";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { DEFAULT_PROGRAM_ID } from "@pct/oracle";
+import { loadLoans } from "./loans.js";
 import { loadState } from "./state.js";
 
-// Posted-vs-paid dashboard. Reads the oracle straight from Solana; no database.
+// Lender view (/) and posted-vs-paid price tape (/tape). Reads the oracle straight from Solana; no database.
 const rpc = process.env.SOLANA_RPC_URL?.trim() || "https://api.devnet.solana.com";
 const programId = process.env.PCT_PROGRAM_ID?.trim() ? new PublicKey(process.env.PCT_PROGRAM_ID.trim()) : DEFAULT_PROGRAM_ID;
 const connection = new Connection(rpc, "confirmed");
-const page = new URL("../public/index.html", import.meta.url);
+const pages: Record<string, URL> = {
+  "/": new URL("../public/lender.html", import.meta.url),
+  "/tape": new URL("../public/index.html", import.meta.url),
+};
 const port = Number(process.env.PORT ?? 8787);
 
 createServer(async (req, res) => {
@@ -19,7 +23,14 @@ createServer(async (req, res) => {
       res.end(JSON.stringify(state));
       return;
     }
-    if (req.url === "/" || req.url === "/index.html") {
+    if (req.url === "/api/loans") {
+      const loans = await loadLoans(connection, programId);
+      res.writeHead(200, { "content-type": "application/json", "cache-control": "no-store" });
+      res.end(JSON.stringify({ rpc: connection.rpcEndpoint, programId: programId.toBase58(), fetchedAt: Math.floor(Date.now() / 1000), loans }));
+      return;
+    }
+    const page = pages[req.url ?? ""];
+    if (page) {
       res.writeHead(200, { "content-type": "text/html; charset=utf-8" });
       res.end(readFileSync(page));
       return;

@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lender View</title>
+<style>
+:root {
+  --bg: #f4f2ec; --surface: #fffdf8; --sunken: #ebe8df; --ink: #1b1d20; --muted: #63666b; --rule: #d8d4c8;
+  --paid: #a35a00; --posted: #6f7c88; --good: #24733f; --warn: #8a6500; --bad: #b0322a; --focus: #1f5fbf;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #111417; --surface: #181c20; --sunken: #0c0f11; --ink: #e6e8e4; --muted: #9aa1a7; --rule: #2b3238;
+    --paid: #eca447; --posted: #8a98a4; --good: #5cc283; --warn: #d8b54c; --bad: #ee6a5f; --focus: #7fb0ff; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); }
+.wrap { max-width: 72rem; margin: 0 auto; padding: 24px 16px 64px; }
+a { color: var(--paid); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; border-bottom: 2px solid var(--ink); padding-bottom: 12px; }
+h1 { margin: 0; font-size: 1.1rem; letter-spacing: .08em; text-transform: uppercase; }
+.meta { font: 12px var(--mono); color: var(--muted); }
+.hero { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); margin-top: 20px; }
+.card { background: var(--surface); border: 1px solid var(--rule); padding: 16px; min-width: 0; }
+.k { font: 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.big { font: 700 3rem/1.05 var(--mono); font-variant-numeric: tabular-nums; margin-top: 6px; }
+.big small { font-size: .9rem; font-weight: 400; color: var(--muted); }
+.paid .big { color: var(--paid); }
+.posted .big { color: var(--posted); }
+.chip { display: inline-block; font: 600 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: 2px 6px; border: 1px solid currentColor; margin-top: 8px; }
+.live { color: var(--good); } .frozen { color: var(--warn); } .never { color: var(--muted); }
+.sub { font-size: .88rem; color: var(--muted); margin-top: 6px; }
+.check { display: flex; gap: 8px; align-items: baseline; margin-top: 8px; font-size: .92rem; }
+.ok { color: var(--good); font-weight: 700; } .no { color: var(--bad); font-weight: 700; }
+h2 { font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; margin: 32px 0 8px; }
+.bars { display: grid; gap: 10px; }
+.bar { display: grid; grid-template-columns: 9rem minmax(0, 1fr) 5rem; gap: 10px; align-items: center; font-size: .9rem; }
+.bar .track { height: 14px; background: var(--sunken); position: relative; }
+.bar .fill { position: absolute; inset: 0 auto 0 0; background: var(--posted); }
+.bar.is-paid .fill { background: var(--paid); }
+.bar.is-index span:first-child, .bar.is-index .v { font-weight: 700; color: var(--paid); }
+.bar .v { font: 600 .9rem var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+.tbl { overflow-x: auto; background: var(--surface); border: 1px solid var(--rule); }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; min-width: 44rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th { font: 600 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--sunken); }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+td.mono { font-family: var(--mono); font-size: .82rem; }
+button { font: 600 12px var(--mono); background: transparent; color: var(--ink); border: 1px solid var(--rule); padding: 4px 10px; cursor: pointer; }
+button:hover { border-color: var(--paid); color: var(--paid); }
+dialog { max-width: 40rem; width: calc(100% - 32px); border: 1px solid var(--rule); background: var(--surface); color: var(--ink); padding: 20px; }
+dialog::backdrop { background: rgb(0 0 0 / .45); }
+dialog h3 { margin: 0 0 8px; }
+dialog ol { padding-left: 1.2rem; display: grid; gap: 10px; }
+dialog code { font: 12px var(--mono); background: var(--sunken); padding: 1px 4px; word-break: break-all; }
+.bar .req { position: absolute; top: -3px; bottom: -3px; width: 2px; background: var(--ink); }
+.bar.below .fill { background: var(--bad); }
+.bar.above .fill { background: var(--good); }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr)); gap: 8px 16px; margin-top: 10px; }
+.stat b { display: block; font: 600 1.1rem var(--mono); font-variant-numeric: tabular-nums; }
+.chip.ok { color: var(--good); } .chip.breached { color: var(--bad); } .chip.no-recent-revenue { color: var(--warn); }
+.loan + .loan { margin-top: 48px; padding-top: 24px; border-top: 2px solid var(--rule); }
+.terms { font-size: .9rem; color: var(--muted); margin-top: 16px; }
+.terms code { font: 12px var(--mono); }
+.legend { font-size: .82rem; color: var(--muted); margin-top: 8px; }
+.err { color: var(--bad); font-family: var(--mono); margin-top: 16px; }
+@media (max-width: 40rem) { .bar { grid-template-columns: 6rem minmax(0, 1fr) 4.5rem; } .big { font-size: 2.4rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>Paid Compute Tape · Lender view</h1>
+    <nav class="meta"><strong>Lender view</strong> · <a href="/tape">Price tape</a></nav>
+  </header>
+  <p class="meta" id="meta">loading…</p>
+  <div id="loans"></div>
+  <div class="err" id="err" hidden></div>
+</div>
+
+<dialog id="verify">
+  <h3 id="v-title"></h3>
+  <ol id="v-steps"></ol>
+  <form method="dialog"><button>Close</button></form>
+</dialog>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const usd = (micro, d = 2) => (micro / 1e6).toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d });
+const x = (bps) => `${(bps / 10000).toFixed(2)}x`;
+const pct = (f) => `${Math.round(f * 100)}%`;
+const short = (s) => `${s.slice(0, 6)}…${s.slice(-4)}`;
+const week = (s) => new Date(s * 1000).toLocaleDateString("en-US", { month: "short", day: "numeric", timeZone: "UTC" });
+const STATUS = { ok: "Covenant met", breached: "Covenant breached", "no-recent-revenue": "No recent revenue" };
+let state = null;
+
+function explorer(kind, id) {
+  const rpc = state.rpc;
+  const cluster = rpc.includes("devnet") ? "?cluster=devnet" : rpc.includes("mainnet") ? "" : `?cluster=custom&customUrl=${encodeURIComponent(rpc)}`;
+  return `https://explorer.solana.com/${kind}/${id}${cluster}`;
+}
+function el(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) k === "class" ? (e.className = v) : e.setAttribute(k, v);
+  for (const kid of kids) e.append(kid);
+  return e;
+}
+const link = (kind, id, text) => el("a", { href: explorer(kind, id), target: "_blank", rel: "noopener" }, text ?? short(id));
+const stat = (label, value) => el("div", { class: "stat" }, el("span", { class: "k" }, label), el("b", {}, value));
+
+function loanSection(loan, li) {
+  const latest = loan.periods.at(-1);
+  const required = (loan.debtServiceMicro * loan.minCoverageBps) / 10000;
+  const rent = loan.proofs.find((p) => p.rentMicro > 0);
+  const per = loan.periodS === 604800 ? "week" : `${loan.periodS / 3600}h period`;
+
+  const hero = el("section", { class: "hero" },
+    el("div", { class: "card" },
+      el("div", { class: "k" }, "Trailing coverage (quarter)"),
+      el("div", { class: "big" }, loan.periods.length ? x(loan.trailingCoverageBps) : "–", el("small", {}, ` / ${x(loan.minCoverageBps)} required`)),
+      el("span", { class: `chip ${loan.status}` }, STATUS[loan.status]),
+      el("div", { class: "sub" }, "Proven revenue over debt service. The vault refuses draws below the line."),
+    ),
+    el("div", { class: "card" },
+      el("div", { class: "k" }, `Latest ${per}${latest ? " · " + week(latest.startS) : ""}`),
+      el("div", { class: "big" }, latest ? `$${usd(latest.revenueMicro, 0)}` : "–"),
+      el("div", { class: "stats" },
+        stat("Utilization", latest && latest.utilization !== null ? pct(latest.utilization) : "–"),
+        stat("Realized $/GPU-hr", rent ? `$${usd(rent.rentMicro)}` : "–"),
+        stat("Proofs", latest ? String(latest.proofs) : "0"),
+      ),
+    ),
+    el("div", { class: "card" },
+      el("div", { class: "k" }, "Facility"),
+      el("div", { class: "stats" },
+        stat("Debt service", `$${usd(loan.debtServiceMicro, 0)}/${loan.periodS === 604800 ? "wk" : "period"}`),
+        stat("Fleet", `${loan.fleetGpus}x H100`),
+        stat("Drawn", `${loan.drawnSol} SOL`),
+        stat("Available", `${loan.availableSol.toFixed(2)} SOL`),
+      ),
+    ),
+  );
+
+  const max = Math.max(required * 1.2, ...loan.periods.map((p) => p.revenueMicro));
+  const bars = el("div", { class: "card bars" }, ...(loan.periods.length ? loan.periods.slice().reverse().map((p) => {
+    const fill = el("div", { class: "fill" }); fill.style.width = `${(p.revenueMicro / max) * 100}%`;
+    const req = el("div", { class: "req", title: `${x(loan.minCoverageBps)} of debt service` }); req.style.left = `${(required / max) * 100}%`;
+    const util = p.utilization === null ? "" : ` · ${pct(p.utilization)} util`;
+    return el("div", { class: `bar ${p.revenueMicro >= required ? "above" : "below"}` },
+      el("span", {}, `Wk of ${week(p.startS)}`), el("div", { class: "track" }, fill, req), el("span", { class: "v" }, `$${usd(p.revenueMicro, 0)}`),
+    );
+  }) : [el("span", { class: "sub" }, "No revenue proven yet.")]));
+  const legend = el("div", { class: "legend" }, `Black line: ${x(loan.minCoverageBps)} x $${usd(loan.debtServiceMicro, 0)} debt service = $${usd(required, 0)} per ${per}. Missing weeks count as zero.`);
+
+  const rows = loan.proofs.length ? loan.proofs.map((p, i) => el("tr", {},
+    el("td", {}, week(p.period * loan.periodS)),
+    el("td", {}, p.provider),
+    el("td", { class: "num" }, `$${usd(p.revenueMicro)}`),
+    el("td", { class: "num" }, p.gpuHoursMicro ? usd(p.gpuHoursMicro, 1) : "–"),
+    el("td", { class: "num" }, p.rentMicro ? `$${usd(p.rentMicro)}` : "–"),
+    el("td", { class: "num" }, x(p.trailingCoverageBps)),
+    el("td", { class: "mono" }, link("tx", p.signature)),
+    el("td", {}, (() => { const b = el("button", { type: "button" }, "Verify"); b.onclick = () => openVerify(li, i); return b; })()),
+  )) : [el("tr", {}, el("td", { colspan: "8" }, "No proofs yet."))];
+  const table = el("div", { class: "tbl" }, el("table", {},
+    el("thead", {}, el("tr", {}, ...["Week", "Source", "Revenue", "GPU-hrs", "$/GPU-hr", "Coverage after", "Transaction", ""].map((h) => el("th", {}, h)))),
+    el("tbody", {}, ...rows),
+  ));
+
+  const draws = loan.draws.length
+    ? el("ul", {}, ...loan.draws.map((d) => el("li", {}, `${d.lamports / 1e9} SOL drawn at ${x(d.coverageBps)} coverage · `, link("tx", d.signature))))
+    : el("p", { class: "sub" }, "No draws yet.");
+
+  return el("article", { class: "loan" },
+    el("p", { class: "terms" }, "Loan ", link("address", loan.address), " · borrower ", link("address", loan.borrower), " · operator key ", el("code", {}, short(loan.operatorKey))),
+    hero,
+    el("h2", {}, "Proven revenue by week"), bars, legend,
+    el("h2", {}, "Revenue proofs onchain"), table,
+    el("h2", {}, "Draws"), draws,
+  );
+}
+
+function render() {
+  $("meta").textContent = `program ${short(state.programId)} · ${state.rpc.replace(/^https?:\/\//, "")} · updated ${new Date(state.fetchedAt * 1000).toLocaleTimeString()}`;
+  $("loans").replaceChildren(...(state.loans.length ? state.loans.map(loanSection) : [el("p", { class: "sub" }, "No loans on this cluster yet. Run npm run lending:e2e against a local validator.")]));
+}
+
+function openVerify(li, i) {
+  const loan = state.loans[li];
+  const p = loan.proofs[i];
+  $("v-title").textContent = `${p.provider} · $${usd(p.revenueMicro)} · week of ${week(p.period * loan.periodS)}`;
+  const step = (html) => { const li = el("li"); li.innerHTML = html; return li; };
+  $("v-steps").replaceChildren(
+    step(`The operator fetched their ${p.provider} ${p.provider === "stripe" ? "payout" : "earnings statement"} over zkTLS. A Reclaim attestor signed claim <code>${p.identifier}</code>. Only the amount, hours, date and a hashed account id were revealed.`),
+    step(`Transaction <a href="${explorer("tx", p.signature)}" target="_blank" rel="noopener"><code>${short(p.signature)}</code></a> re-hashed the claim onchain and recovered the attestor's signature.`),
+    step(`It checked the request matches registered source <a href="${explorer("address", p.source)}" target="_blank" rel="noopener"><code>${short(p.source)}</code></a> (same URL and match rules) and that the hashed account equals this loan's operator key <code>${short(loan.operatorKey)}</code>. Another operator's revenue cannot count here.`),
+    step(`A receipt keyed by the ${p.provider === "stripe" ? "payout id" : "operator and week"} makes sure the same revenue never counts twice.`),
+    step(`Trailing coverage after this proof: ${x(p.trailingCoverageBps)} against ${x(loan.minCoverageBps)} required.${p.rentMicro ? ` Realized rent $${usd(p.rentMicro)}/GPU-hr also went to the public price tape.` : ""}`),
+  );
+  $("verify").showModal();
+}
+
+async function load() {
+  try {
+    const r = await fetch("/api/loans");
+    const body = await r.json();
+    if (!r.ok) throw new Error(body.error || r.statusText);
+    state = body;
+    $("err").hidden = true;
+    render();
+  } catch (e) {
+    $("err").hidden = false;
+    $("err").textContent = `Could not read the oracle: ${e.message}`;
+  }
+}
+load();
+setInterval(load, 5000);
+</script>
+</body>
+</html>
