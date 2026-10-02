@@ -70,3 +70,24 @@ The CLIs read `SOLANA_RPC_URL` (default devnet), `SOLANA_KEYPAIR` (default
 
 A source is pinned to the exact claim parameters of the first proof `oracle:init` sees for it,
 so later proofs of that source must use the same URL and match rules (otherwise `ParamsMismatch`).
+
+## Operator revenue proofs (possible pivot): what already fits and what doesn't
+
+An operator proving rental revenue from their own billing system goes through the same zkTLS ->
+`submit_observation` path as a renter's invoice, with these differences:
+
+- **Fits as is.** Source registration (URL + match rules pinned by `params_hash`), attestor
+  signature checks, and parsing `amount` + `hours` into $/GPU-hr (`VALUE_MODE_AMOUNT_HOURS`) work
+  for a provider-side billing export unchanged. The TS client, CLIs and dashboard read the same
+  accounts.
+- **Breaks: receipts.** A paid source's receipt key is `keccak(account)`, so one account can be
+  submitted only once. An operator reporting every period would be refused after the first
+  report. Fix: key on `keccak(account || period)` with a `period` field captured from the response
+  (or the claim timestamp bucketed to a period).
+- **Missing: per-operator history.** Observations fold into one `Book` per (SKU, kind), a ring of
+  32 prices. Lenders want a feed per borrower (revenue, utilization, $/GPU-hr over time). That
+  needs a per-operator account keyed by the hashed account id, plus a third `kind` (operator
+  revenue) so it never mixes into the renter price index.
+- **Different trust edge.** A renter's invoice is adverse to the provider; an operator's own
+  revenue export is self-reported by the borrower, so the source pin must point at a third-party
+  system of record (Stripe, the marketplace payout API), not the operator's own server.
