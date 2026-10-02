@@ -28,6 +28,11 @@ invoice is rejected, cranks both H100 books and expects a live paid index of $2.
 
 ## Deploy to devnet
 
+`dist/pct_oracle.so` is a prebuilt copy of the program for id `2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz`
+(Agave 3.1.14, platform-tools v1.52), so a machine with only the Solana CLI can deploy it without
+compiling. Rebuild and recopy it whenever the program changes. sha256:
+`82714ac89ebd691ff5a32c908dfcf20ed85b7d27db58791344f56ea568539f37`.
+
 The program id is fixed by `declare_id!` in `src/lib.rs`, so deploying needs the keypair whose
 public key is `2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz` (Anchor created it where the program
 was first built, usually `target/deploy/pct_oracle-keypair.json` under that build's target dir).
@@ -37,7 +42,7 @@ and set `PCT_PROGRAM_ID` for the CLIs.
 ```bash
 solana config set --url devnet
 solana airdrop 2   # repeat or use https://faucet.solana.com; the program needs about 2.4 SOL of rent
-solana program deploy target/deploy/pct_oracle.so --program-id <path/to/pct_oracle-keypair.json>
+solana program deploy dist/pct_oracle.so --program-id target/deploy/pct_oracle-keypair.json
 ```
 
 ## Feed it real proofs (from the repo root)
