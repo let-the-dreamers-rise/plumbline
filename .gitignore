@@ -1,0 +1,7 @@
+node_modules/
+coverage/
+.env
+proofs/
+target/
+.anchor/
+test-ledger/

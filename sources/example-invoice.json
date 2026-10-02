@@ -1,0 +1,12 @@
+{
+  "id": "example-provider-invoice",
+  "provider": "example",
+  "sku": "H100",
+  "gpuCount": 1,
+  "url": "https://cloud.example.com/api/billing/invoices?limit=1",
+  "headers": { "accept": "application/json" },
+  "matches": [
+    { "regex": "\"description\":\"[^\"]*H100[^\"]*\",\"amount\":\"(?<amount>[0-9.]+)\",\"hours\":(?<hours>[0-9.]+)" }
+  ],
+  "nullifierRule": { "regex": "\"invoice_id\":\"(?<account>[^\"]+)\"" }
+}

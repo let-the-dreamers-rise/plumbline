@@ -1,0 +1,22 @@
+{
+  "name": "paid-compute-tape",
+  "private": true,
+  "type": "module",
+  "workspaces": ["packages/*"],
+  "scripts": {
+    "test": "vitest run",
+    "test:cov": "vitest run --coverage",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "prove:list": "tsx packages/prover/src/cli/prove-list-azure.ts",
+    "probe": "tsx packages/prover/src/cli/probe-invoice.ts",
+    "prove:invoice": "tsx packages/prover/src/cli/prove-invoice.ts",
+    "verify": "tsx packages/prover/src/cli/verify.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@vitest/coverage-v8": "^3.2.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "vitest": "^3.2.0"
+  }
+}

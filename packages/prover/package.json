@@ -1,0 +1,12 @@
+{
+  "name": "@pct/prover",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@pct/core": "*",
+    "@reclaimprotocol/js-sdk": "^5.8.2",
+    "@reclaimprotocol/zk-fetch": "^1.1.0"
+  }
+}
