@@ -220,7 +220,8 @@ fn reused_invoice_is_rejected() {
     let (mut h, fx) = setup();
     let c = &fx["claims"][0];
     submit(&mut h, c, None).unwrap();
-    assert!(submit(&mut h, c, None).is_err(), "same nullifier twice");
+    let err = submit(&mut h, c, None).unwrap_err();
+    assert!(err.contains("already in use"), "same nullifier twice: {err}");
 }
 
 #[test]
@@ -228,6 +229,7 @@ fn tampered_price_fails_signature() {
     let (mut h, fx) = setup();
     let c = &fx["claims"][1];
     let forged = c["context"].as_str().unwrap().replace("\"rate\":\"2.69\"", "\"rate\":\"0.69\"");
+    assert_ne!(forged, c["context"].as_str().unwrap(), "fixture rate changed");
     let err = submit(&mut h, c, Some(&forged)).unwrap_err();
     assert!(err.contains("UnknownAttestor"), "{err}");
 }
