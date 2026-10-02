@@ -13,8 +13,10 @@ import {
   OracleInstructions,
   WRITE_CHUNK,
   decodeBook,
+  decodeConfig,
   decodeLoan,
   type BookState,
+  type ConfigState,
   type LoanState,
   type LoanTerms,
   type IndexParams,
@@ -38,8 +40,21 @@ export class OracleClient {
     this.ix = new OracleInstructions(programId);
   }
 
+  /**
+   * Sends and confirms. Buffer writes repeat byte for byte across proofs (same provider and
+   * parameters), so a write can be identical to an earlier one under the same blockhash; the
+   * cluster then drops it as already processed although it never touched the current buffer.
+   * Retry those on a fresh blockhash.
+   */
   async send(...ixs: TransactionInstruction[]): Promise<string> {
-    return sendAndConfirmTransaction(this.connection, new Transaction().add(...ixs), [this.payer], { commitment: "confirmed" });
+    for (let attempt = 0; ; attempt++) {
+      try {
+        return await sendAndConfirmTransaction(this.connection, new Transaction().add(...ixs), [this.payer], { commitment: "confirmed" });
+      } catch (err) {
+        if (attempt >= 4 || !String((err as Error).message).includes("already been processed")) throw err;
+        await new Promise((r) => setTimeout(r, 500));
+      }
+    }
   }
 
   async exists(address: PublicKey): Promise<boolean> {
@@ -116,6 +131,11 @@ export class OracleClient {
     const tx = new Transaction().add(this.ix.draw(borrower.publicKey, operatorKey, lamports));
     const signature = await sendAndConfirmTransaction(this.connection, tx, [borrower], { commitment: "confirmed" });
     return { signature, computeUnits: await this.computeUnits(signature) };
+  }
+
+  async config(): Promise<ConfigState | null> {
+    const info = await this.connection.getAccountInfo(this.ix.pdas.config(), "confirmed");
+    return info ? decodeConfig(info.data) : null;
   }
 
   async loan(operatorKey: Uint8Array): Promise<LoanState | null> {

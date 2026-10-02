@@ -1,8 +1,14 @@
 # Paid Compute Tape
 
-An open GPU rental price index (H100, H200, B200) built from proofs of what renters actually paid,
-not what clouds advertise. Renters prove invoices with zkTLS (Reclaim zkFetch), a Solana oracle
-program aggregates them, and the index feeds a compute-price perp (Hyperliquid HIP-3 testnet).
+Verified revenue for GPU-backed lending. GPU operators prove their rental revenue straight from a
+third-party system of record (Stripe payouts, marketplace host earnings) with zkTLS (Reclaim
+zkFetch). A Solana program checks each proof, keeps a per-loan revenue and utilization history,
+and gates draws on a covenant (trailing-quarter revenue at least 1.15x debt service). Lenders read
+a live feed instead of trusting PDF statements. Every proof with GPU-hours also adds realized
+$/GPU-hr to an open H100 price tape, which can feed a compute-price perp (Hyperliquid HIP-3 testnet).
+
+Lender flow: `npm run lending:e2e` and the dashboard (`npm run web`) on a local validator; real
+Stripe test-mode proofs with `npm run prove:revenue` and `npm run loan:*` (see `oracle/README.md`).
 
 Entry for the Colosseum Crypto World's Fair hackathon (submissions due Oct 12, 2026).
 
@@ -13,6 +19,10 @@ Entry for the Colosseum Crypto World's Fair hackathon (submissions due Oct 12, 2
 | `packages/core` | Index math: validation, staleness, nullifier dedupe, MAD outlier rejection, 25% per-provider cap, weighted median. Reference for the onchain program. |
 | `packages/prover` | zkFetch source specs, request builder (secrets stay private, only price spans revealed, account id OPRF-hashed), proof-to-observation checks, CLIs. |
 | `sources/` | One JSON spec per provable paid-price source. `example-invoice.json` shows the format. |
+| `packages/oracle` | TS client for the Solana program: price proofs, loans, revenue proofs, draws; CLIs `oracle:*` and `loan:*`. |
+| `packages/web` | Dashboard: lender view (`/`) and price tape (`/tape`), read straight from Solana. |
+| `packages/relayer` | Pushes the onchain index to a Hyperliquid HIP-3 market (`hl:deploy`, `hl:relay`). |
+| `oracle/` | Anchor program `pct_oracle` and its LiteSVM tests; prebuilt `dist/pct_oracle.so`. |
 | `proofs/` | Generated proofs (git-ignored). |
 
 ## Setup

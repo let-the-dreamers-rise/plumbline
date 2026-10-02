@@ -26,8 +26,10 @@ fn claim<'a>(fx: &'a Value, name: &str) -> &'a Value {
     fx["claims"].as_array().unwrap().iter().find(|c| c["name"] == name).unwrap()
 }
 
-fn source_id(name: &str) -> [u8; 32] {
-    keccak(name.as_bytes())
+/// Same as revenueSourceArgs in packages/oracle: keccak("name:paramsHash").
+fn source_id(fx: &Value, name: &str) -> [u8; 32] {
+    let s = fx["sources"].as_array().unwrap().iter().find(|s| s["name"] == name).unwrap();
+    keccak(format!("{}:{}", name, s["paramsHash"].as_str().unwrap()).as_bytes())
 }
 
 struct Setup {
@@ -46,7 +48,7 @@ fn setup() -> Setup {
     let payer = h.payer.pubkey();
 
     for s in fx["sources"].as_array().unwrap() {
-        let id = source_id(s["name"].as_str().unwrap());
+        let id = source_id(&fx, s["name"].as_str().unwrap());
         let args = SourceArgs {
             source_id: id,
             params_hash: hex(s["paramsHash"].as_str().unwrap()).try_into().unwrap(),
@@ -101,7 +103,7 @@ fn submit(s: &mut Setup, name: &str, loan: Pubkey, receipt_operator: [u8; 32]) -
     let c = claim(&s.fx, name).clone();
     s.h.set_time(c["timestampS"].as_i64().unwrap() + 60);
     let buffer = s.h.upload(b"http", c["parameters"].as_str().unwrap().as_bytes(), c["context"].as_str().unwrap().as_bytes())?;
-    let source = pda(&[b"source", &source_id(c["source"].as_str().unwrap())]);
+    let source = pda(&[b"source", &source_id(&s.fx, c["source"].as_str().unwrap())]);
     let timestamp_s = c["timestampS"].as_u64().unwrap() as u32;
     let extracted = &c["extracted"];
     let receipt_key = match extracted["item"].as_str() {
