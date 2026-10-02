@@ -96,6 +96,14 @@ describe("computeIndex", () => {
     expect(r.reason).toMatch(/sources/);
   });
 
+  it("freezes when many invoices come from fewer than three providers", () => {
+    const twoProviders = ["a", "b", "c", "d"].map((id, i) =>
+      obs({ sourceId: id, provider: i % 2 === 0 ? "lambda" : "vast", micro: 2_400_000 + i }),
+    );
+    const r = computeIndex(twoProviders, "H100", "paid", { ...DEFAULT_PARAMS, nowS: NOW });
+    expect(r.status).toBe("frozen");
+  });
+
   it("drops stale observations", () => {
     const stale = obs({ sourceId: "old", micro: 9_000_000, observedAtS: NOW - 100_000 });
     const r = computeIndex([...base, stale], "H100", "paid", { ...DEFAULT_PARAMS, nowS: NOW });

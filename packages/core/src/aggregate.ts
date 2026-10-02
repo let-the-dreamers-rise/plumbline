@@ -124,8 +124,9 @@ function rejectOutliers(candidates: readonly Observation[], p: IndexParams): [Ob
   return [kept, rejected];
 }
 
-function distinctSources(candidates: readonly Observation[]): number {
-  return new Set(candidates.map((o) => o.sourceId)).size;
+/** Liveness counts independent providers, so one provider's many invoices can't keep the index live. */
+function distinctProviders(candidates: readonly Observation[]): number {
+  return new Set(candidates.map((o) => o.provider)).size;
 }
 
 function frozen(sku: Sku, kind: PriceKind, reason: string, used: Observation[], rejected: Rejection[]): IndexResult {
@@ -147,12 +148,12 @@ export function computeIndex(
   const [fresh, screenedOut] = screen(relevant, params);
   const [unique, duplicates] = dedupe(fresh);
   const rejectedSoFar = [...screenedOut, ...duplicates];
-  const needed = `needs ${params.minSources} live sources`;
-  if (distinctSources(unique) < params.minSources) return frozen(sku, kind, needed, unique, rejectedSoFar);
+  const needed = `needs ${params.minSources} live providers (sources)`;
+  if (distinctProviders(unique) < params.minSources) return frozen(sku, kind, needed, unique, rejectedSoFar);
 
   const [inliers, outliers] = rejectOutliers(unique, params);
   const rejected = [...rejectedSoFar, ...outliers];
-  if (distinctSources(inliers) < params.minSources) return frozen(sku, kind, needed, inliers, rejected);
+  if (distinctProviders(inliers) < params.minSources) return frozen(sku, kind, needed, inliers, rejected);
 
   const value = Math.round(weightedMedian(cappedWeights(inliers, params.providerCap)));
   return { sku, kind, status: "live", valueMicroUsd: value, used: inliers, rejected };

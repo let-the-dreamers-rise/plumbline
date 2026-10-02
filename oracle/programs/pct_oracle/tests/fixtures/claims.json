@@ -1,0 +1,139 @@
+{
+  "attestor": "0x26d8c0938bd96ddfd4140dfa620a796235458c27",
+  "claims": [
+    {
+      "name": "lambda-invoice",
+      "provider": 1,
+      "kind": 0,
+      "gpuCount": 1,
+      "valueMode": 1,
+      "requiresNullifier": true,
+      "url": "https://cloud.lambda.example/api/invoices",
+      "matches": [
+        "\"amount\":\"(?<amount>[0-9.]+)\",\"hours\":(?<hours>[0-9.]+)",
+        "\"id\":\"(?<account>[^\"]+)\""
+      ],
+      "extracted": {
+        "account": "0x1111111111111111111111111111111111111111111111111111111111111111",
+        "amount": "4.98",
+        "hours": "2"
+      },
+      "expectedMicro": 2490000,
+      "claimProvider": "http",
+      "parameters": "{\"body\":\"\",\"method\":\"GET\",\"responseMatches\":[{\"type\":\"regex\",\"value\":\"\\\"amount\\\":\\\"(?<amount>[0-9.]+)\\\",\\\"hours\\\":(?<hours>[0-9.]+)\"},{\"type\":\"regex\",\"value\":\"\\\"id\\\":\\\"(?<account>[^\\\"]+)\\\"\"}],\"responseRedactions\":[{\"regex\":\"\\\"amount\\\":\\\"(?<amount>[0-9.]+)\\\",\\\"hours\\\":(?<hours>[0-9.]+)\"},{\"regex\":\"\\\"id\\\":\\\"(?<account>[^\\\"]+)\\\"\"}],\"url\":\"https://cloud.lambda.example/api/invoices\"}",
+      "context": "{\"contextAddress\":\"0x0000000000000000000000000000000000000000\",\"contextMessage\":\"note \\\"rate\\\":\\\"0.01\\\" injection attempt\",\"extractedParameters\":{\"account\":\"0x1111111111111111111111111111111111111111111111111111111111111111\",\"amount\":\"4.98\",\"hours\":\"2\"},\"providerHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
+      "owner": "0xabababababababababababababababababababab",
+      "timestampS": 1790900000,
+      "epoch": 1,
+      "identifier": "0x6665387b9c3aa370678792a0852835f5525523e831c1c3dfdb3a7ffb85a113d5",
+      "signature": "0x27e3c6e8f1ed84789bcb3c1771ee9a53ad00e090caa714ba19d1d10bccd98eda539bce89d8960b07d7a87dfe7c0c6d8cc1ca40ca66299c18d1574c46e78fb3dc1b",
+      "paramsHash": "0xb103aa61ac2895edc20d0369a5aa958a7422f9d9603e623923652a72c1d1695e"
+    },
+    {
+      "name": "runpod-invoice",
+      "provider": 2,
+      "kind": 0,
+      "gpuCount": 1,
+      "valueMode": 0,
+      "requiresNullifier": true,
+      "url": "https://api.runpod.example/billing",
+      "matches": [
+        "\"costPerHr\":(?<rate>[0-9.]+)",
+        "\"podId\":\"(?<account>[^\"]+)\""
+      ],
+      "extracted": {
+        "account": "0x2222222222222222222222222222222222222222222222222222222222222222",
+        "rate": "2.69"
+      },
+      "expectedMicro": 2690000,
+      "claimProvider": "http",
+      "parameters": "{\"body\":\"\",\"method\":\"GET\",\"responseMatches\":[{\"type\":\"regex\",\"value\":\"\\\"costPerHr\\\":(?<rate>[0-9.]+)\"},{\"type\":\"regex\",\"value\":\"\\\"podId\\\":\\\"(?<account>[^\\\"]+)\\\"\"}],\"responseRedactions\":[{\"regex\":\"\\\"costPerHr\\\":(?<rate>[0-9.]+)\"},{\"regex\":\"\\\"podId\\\":\\\"(?<account>[^\\\"]+)\\\"\"}],\"url\":\"https://api.runpod.example/billing\"}",
+      "context": "{\"contextAddress\":\"0x0000000000000000000000000000000000000000\",\"contextMessage\":\"note \\\"rate\\\":\\\"0.01\\\" injection attempt\",\"extractedParameters\":{\"account\":\"0x2222222222222222222222222222222222222222222222222222222222222222\",\"rate\":\"2.69\"},\"providerHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
+      "owner": "0xabababababababababababababababababababab",
+      "timestampS": 1790900000,
+      "epoch": 1,
+      "identifier": "0x715bfb814684dbd6e0df924f3e80d25a545f512d19325606642d00f4c1a886cc",
+      "signature": "0x6c2c9826d7a23bee2293e0e58504b06f4fb757a2da1a5366bbc36120ad6bd9936b0d7c2b04854c74598152cc2b3847f91538b07e8efc25d2bd08759f5817433e1b",
+      "paramsHash": "0x53cfd238979ffb6d4e7525e94f3af2c81a14768464f8856e3acb0c8a755b9037"
+    },
+    {
+      "name": "vast-invoice",
+      "provider": 3,
+      "kind": 0,
+      "gpuCount": 8,
+      "valueMode": 0,
+      "requiresNullifier": true,
+      "url": "https://console.vast.example/api/v0/invoices",
+      "matches": [
+        "\"dph_total\":(?<rate>[0-9.]+)",
+        "\"contract\":\"(?<account>[^\"]+)\""
+      ],
+      "extracted": {
+        "account": "0x3333333333333333333333333333333333333333333333333333333333333333",
+        "rate": "16.8"
+      },
+      "expectedMicro": 2100000,
+      "claimProvider": "http",
+      "parameters": "{\"body\":\"\",\"method\":\"GET\",\"responseMatches\":[{\"type\":\"regex\",\"value\":\"\\\"dph_total\\\":(?<rate>[0-9.]+)\"},{\"type\":\"regex\",\"value\":\"\\\"contract\\\":\\\"(?<account>[^\\\"]+)\\\"\"}],\"responseRedactions\":[{\"regex\":\"\\\"dph_total\\\":(?<rate>[0-9.]+)\"},{\"regex\":\"\\\"contract\\\":\\\"(?<account>[^\\\"]+)\\\"\"}],\"url\":\"https://console.vast.example/api/v0/invoices\"}",
+      "context": "{\"contextAddress\":\"0x0000000000000000000000000000000000000000\",\"contextMessage\":\"note \\\"rate\\\":\\\"0.01\\\" injection attempt\",\"extractedParameters\":{\"account\":\"0x3333333333333333333333333333333333333333333333333333333333333333\",\"rate\":\"16.8\"},\"providerHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
+      "owner": "0xabababababababababababababababababababab",
+      "timestampS": 1790900000,
+      "epoch": 1,
+      "identifier": "0x115539509687e7b8fbafeb8bfad6e5f77f3535c87c0d2f3b782c5710724b37b3",
+      "signature": "0x9b19a26da19b5d28640c630160368845bf3c7137d32c374d777708ae5108e69642c6202fd819ddf695f7f7e77bf954dccb2d4d5990c8b7259ef27e2fad8138bc1c",
+      "paramsHash": "0xb88b4ae5d9f56561bf14142d7ca32e0d74880df1edfee087cece2ebe93a310dc"
+    },
+    {
+      "name": "sfc-invoice",
+      "provider": 4,
+      "kind": 0,
+      "gpuCount": 1,
+      "valueMode": 0,
+      "requiresNullifier": true,
+      "url": "https://sfcompute.example/v0/orders",
+      "matches": [
+        "\"price\":(?<rate>[0-9.]+)",
+        "\"order\":\"(?<account>[^\"]+)\""
+      ],
+      "extracted": {
+        "account": "0x4444444444444444444444444444444444444444444444444444444444444444",
+        "rate": "2.80"
+      },
+      "expectedMicro": 2800000,
+      "claimProvider": "http",
+      "parameters": "{\"body\":\"\",\"method\":\"GET\",\"responseMatches\":[{\"type\":\"regex\",\"value\":\"\\\"price\\\":(?<rate>[0-9.]+)\"},{\"type\":\"regex\",\"value\":\"\\\"order\\\":\\\"(?<account>[^\\\"]+)\\\"\"}],\"responseRedactions\":[{\"regex\":\"\\\"price\\\":(?<rate>[0-9.]+)\"},{\"regex\":\"\\\"order\\\":\\\"(?<account>[^\\\"]+)\\\"\"}],\"url\":\"https://sfcompute.example/v0/orders\"}",
+      "context": "{\"contextAddress\":\"0x0000000000000000000000000000000000000000\",\"contextMessage\":\"note \\\"rate\\\":\\\"0.01\\\" injection attempt\",\"extractedParameters\":{\"account\":\"0x4444444444444444444444444444444444444444444444444444444444444444\",\"rate\":\"2.80\"},\"providerHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
+      "owner": "0xabababababababababababababababababababab",
+      "timestampS": 1790900000,
+      "epoch": 1,
+      "identifier": "0x2d8e86144bb24667b57cc3aaa6d145eabf1fa5310622e5a133fb6298b3f42f52",
+      "signature": "0x2439dbb2adb8e07d2524ffb463c88f10634236576fc8b0a1108255f399b80e00053698a96b1f0593f65d7e57f6db946a4c42d7d40c278a37d97468dd1f643d1d1c",
+      "paramsHash": "0x41f2680ec174cebce0e29f7b22c3f691b8d6f4f482a3d76873e5e8a31c8c2b73"
+    },
+    {
+      "name": "azure-list",
+      "provider": 5,
+      "kind": 1,
+      "gpuCount": 8,
+      "valueMode": 0,
+      "requiresNullifier": false,
+      "url": "https://prices.azure.com/api/retail/prices",
+      "matches": [
+        "\"retailPrice\":(?<rate>[0-9]+(?:\\.[0-9]+)?),\"unitPrice\""
+      ],
+      "extracted": {
+        "rate": "98.32"
+      },
+      "expectedMicro": 12290000,
+      "claimProvider": "http",
+      "parameters": "{\"body\":\"\",\"method\":\"GET\",\"responseMatches\":[{\"type\":\"regex\",\"value\":\"\\\"retailPrice\\\":(?<rate>[0-9]+(?:\\\\.[0-9]+)?),\\\"unitPrice\\\"\"}],\"responseRedactions\":[{\"regex\":\"\\\"retailPrice\\\":(?<rate>[0-9]+(?:\\\\.[0-9]+)?),\\\"unitPrice\\\"\"}],\"url\":\"https://prices.azure.com/api/retail/prices\"}",
+      "context": "{\"contextAddress\":\"0x0000000000000000000000000000000000000000\",\"contextMessage\":\"note \\\"rate\\\":\\\"0.01\\\" injection attempt\",\"extractedParameters\":{\"rate\":\"98.32\"},\"providerHash\":\"0x0000000000000000000000000000000000000000000000000000000000000000\"}",
+      "owner": "0xabababababababababababababababababababab",
+      "timestampS": 1790900000,
+      "epoch": 1,
+      "identifier": "0x6f39745ecffff004060266f34bc7fdef0750805a8761d9f50b126dcc6c413dd5",
+      "signature": "0x6eead080db47b433663b62ce24af039883e64acc2ea97bbe8ef0c92d8fc3bcbb3a6fe52e396f2c90f44118a225d2bc73cf6f5cfeb8b9d37df908cd96c7cdbfc21c",
+      "paramsHash": "0xb599c03bdfa434d577affb2d512e9bac52d38a07fe1267a059024b07735c17ca"
+    }
+  ]
+}
