@@ -123,3 +123,53 @@ pub fn verify(seal: &[u8], image_id: &[u8; 32], journal: &[u8]) -> Result<(), Gr
         Err(Groth16Error::Invalid)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const PROOF: &str = include_str!("../tests/fixtures/covenant-strong-groth16.json");
+
+    fn field(name: &str) -> Vec<u8> {
+        let at = PROOF.find(&format!("\"{name}\": \"0x")).unwrap() + name.len() + 7;
+        let hex = &PROOF[at..at + PROOF[at..].find('"').unwrap()];
+        (0..hex.len()).step_by(2).map(|i| u8::from_str_radix(&hex[i..i + 2], 16).unwrap()).collect()
+    }
+
+    fn id() -> [u8; 32] {
+        field("imageId").try_into().unwrap()
+    }
+
+    #[test]
+    fn claim_digest_matches_risc0() {
+        let jd: [u8; 32] = field("journalDigest").try_into().unwrap();
+        assert_eq!(hashv(&[&field("journal")]).to_bytes(), jd);
+        assert_eq!(claim_digest(&id(), &jd).to_vec(), field("claimDigest"));
+    }
+
+    #[test]
+    fn real_covenant_proof_verifies() {
+        assert_eq!(verify(&field("seal"), &id(), &field("journal")), Ok(()));
+    }
+
+    #[test]
+    fn changed_journal_is_refused() {
+        let mut j = field("journal");
+        *j.last_mut().unwrap() = 0; // PASS -> WATCH
+        assert_eq!(verify(&field("seal"), &id(), &j), Err(Groth16Error::Invalid));
+    }
+
+    #[test]
+    fn other_guest_is_refused() {
+        let mut other = id();
+        other[0] ^= 1;
+        assert_eq!(verify(&field("seal"), &other, &field("journal")), Err(Groth16Error::Invalid));
+    }
+
+    #[test]
+    fn tampered_seal_is_refused() {
+        let mut s = field("seal");
+        s[200] ^= 1;
+        assert!(verify(&s, &id(), &field("journal")).is_err());
+    }
+}
