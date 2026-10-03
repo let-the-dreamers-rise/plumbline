@@ -69,6 +69,11 @@ pub fn default_params() -> IndexParams {
 
 /// Fresh SVM with the built program, a funded payer, config with one attestor and H100 books.
 pub fn boot(attestor: [u8; 20], params: IndexParams, now: i64) -> Harness {
+    boot_with(vec![attestor], params, now)
+}
+
+/// Same as `boot` with any attestor list.
+pub fn boot_with(attestors: Vec<[u8; 20]>, params: IndexParams, now: i64) -> Harness {
     let mut svm = LiteSVM::new();
     let bytes = include_bytes!(concat!(env!("CARGO_TARGET_TMPDIR"), "/../deploy/pct_oracle.so"));
     svm.add_program(pct_oracle::id(), bytes).unwrap();
@@ -79,7 +84,7 @@ pub fn boot(attestor: [u8; 20], params: IndexParams, now: i64) -> Harness {
     let payer = h.payer.pubkey();
     let config = pda(&[b"config"]);
     let mut ixs = vec![Harness::ix(
-        pct_oracle::instruction::InitializeConfig { attestors: vec![attestor], params },
+        pct_oracle::instruction::InitializeConfig { attestors, params },
         pct_oracle::accounts::InitializeConfig { authority: payer, config, system_program: system_program::ID },
     )];
     for kind in [0u8, 1] {
