@@ -2894,6 +2894,7 @@ dependencies = [
  "base64 0.22.1",
  "hex",
  "k256",
+ "p256",
  "p384",
  "risc0-bigint2",
  "serde",
