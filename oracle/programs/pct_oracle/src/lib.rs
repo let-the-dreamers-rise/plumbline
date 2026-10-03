@@ -1,8 +1,10 @@
 pub mod constants;
 pub mod error;
+pub mod groth16;
 pub mod instructions;
 pub mod math;
 pub mod reclaim;
+pub mod sp1_vk;
 pub mod state;
 
 use anchor_lang::prelude::*;
@@ -77,5 +79,21 @@ pub mod pct_oracle {
 
     pub fn withdraw(ctx: Context<Withdraw>, lamports: u64) -> Result<()> {
         instructions::lending::handle_withdraw(ctx, lamports)
+    }
+
+    pub fn set_zk_config(ctx: Context<SetZkConfig>, program_vkey: [u8; 32], attestor_threshold: u8) -> Result<()> {
+        instructions::zk::handle_set_zk_config(ctx, program_vkey, attestor_threshold)
+    }
+
+    pub fn issue_gpu_challenge(ctx: Context<IssueGpuChallenge>, challenge: [u8; 32]) -> Result<()> {
+        instructions::zk::handle_issue_gpu_challenge(ctx, challenge)
+    }
+
+    pub fn prove_covenant(ctx: Context<ProveCovenant>, proof: Vec<u8>, public_values: Vec<u8>, as_of_period: u32) -> Result<()> {
+        instructions::zk::handle_prove_covenant(ctx, proof, public_values, as_of_period)
+    }
+
+    pub fn draw_private(ctx: Context<DrawPrivate>, lamports: u64) -> Result<()> {
+        instructions::zk::handle_draw_private(ctx, lamports)
     }
 }

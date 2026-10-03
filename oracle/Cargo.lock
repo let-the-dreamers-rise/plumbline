@@ -1912,11 +1912,13 @@ dependencies = [
  "anchor-lang",
  "litesvm",
  "serde_json",
+ "solana-bn254",
  "solana-clock 3.2.1",
  "solana-keccak-hasher",
  "solana-keypair",
  "solana-message",
  "solana-secp256k1-recover",
+ "solana-sha256-hasher",
  "solana-signer",
  "solana-transaction",
 ]

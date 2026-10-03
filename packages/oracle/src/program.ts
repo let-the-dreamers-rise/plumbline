@@ -77,6 +77,14 @@ export class OraclePdas {
   revenueReceipt(providerId: number, loan: PublicKey, receiptKey: Uint8Array): PublicKey {
     return this.find(Buffer.from("receipt"), u16le(providerId), loan.toBytes(), receiptKey);
   }
+  zkConfig(): PublicKey {
+    return this.find(Buffer.from("zk_config"));
+  }
+
+  zkCovenant(loan: PublicKey): PublicKey {
+    return this.find(Buffer.from("zk_covenant"), loan.toBytes());
+  }
+
   loan(lender: PublicKey, operatorKey: Uint8Array): PublicKey {
     return this.find(Buffer.from("loan"), lender.toBytes(), operatorKey);
   }
@@ -243,6 +251,42 @@ export class OracleInstructions {
 
   draw(borrower: PublicKey, loan: { lender: PublicKey; operatorKey: Uint8Array }, lamports: bigint | number): TransactionInstruction {
     return this.ix("draw", [signer(borrower), writable(this.pdas.loan(loan.lender, loan.operatorKey))], new Writer().u64(lamports));
+  }
+
+  setZkConfig(authority: PublicKey, programVkey: Uint8Array, attestorThreshold: number): TransactionInstruction {
+    const keys = [signer(authority), readonly(this.pdas.config()), writable(this.pdas.zkConfig()), system];
+    return this.ix("set_zk_config", keys, new Writer().fixed(programVkey, 32).u8(attestorThreshold));
+  }
+
+  issueGpuChallenge(lender: PublicKey, operatorKey: Uint8Array, challenge: Uint8Array): TransactionInstruction {
+    const loan = this.pdas.loan(lender, operatorKey);
+    const keys = [signer(lender), readonly(loan), writable(this.pdas.zkCovenant(loan)), system];
+    return this.ix("issue_gpu_challenge", keys, new Writer().fixed(challenge, 32));
+  }
+
+  proveCovenant(
+    submitter: PublicKey,
+    sourceId: Uint8Array,
+    loan: { lender: PublicKey; operatorKey: Uint8Array },
+    proof: Uint8Array,
+    publicValues: Uint8Array,
+    asOfPeriod: number,
+  ): TransactionInstruction {
+    const l = this.pdas.loan(loan.lender, loan.operatorKey);
+    const keys = [
+      signer(submitter),
+      readonly(this.pdas.config()),
+      readonly(this.pdas.zkConfig()),
+      readonly(this.pdas.source(sourceId)),
+      readonly(l),
+      writable(this.pdas.zkCovenant(l)),
+    ];
+    return this.ix("prove_covenant", keys, new Writer().vec(proof).vec(publicValues).u32(asOfPeriod));
+  }
+
+  drawPrivate(borrower: PublicKey, loan: { lender: PublicKey; operatorKey: Uint8Array }, lamports: bigint | number): TransactionInstruction {
+    const l = this.pdas.loan(loan.lender, loan.operatorKey);
+    return this.ix("draw_private", [signer(borrower), writable(l), readonly(this.pdas.zkCovenant(l))], new Writer().u64(lamports));
   }
 
   crankIndex(sku: number, kind: number): TransactionInstruction {

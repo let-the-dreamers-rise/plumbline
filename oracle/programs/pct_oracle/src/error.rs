@@ -52,6 +52,18 @@ pub enum OracleError {
     CurrencyMismatch,
     #[msg("Only the loan's lender can do this")]
     NotLender,
+    #[msg("Attestor threshold must be between 1 and the number of attestors")]
+    BadZkConfig,
+    #[msg("Zero-knowledge proof does not verify for the registered guest program")]
+    BadZkProof,
+    #[msg("GPU report was not made for the lender's current challenge")]
+    ZkStaleChallenge,
+    #[msg("Proof was checked against a different attestor set")]
+    ZkAttestorMismatch,
+    #[msg("Proof was checked against different loan terms")]
+    ZkTermsMismatch,
+    #[msg("Source is not an active revenue source")]
+    WrongSourceKind,
 }
 
 impl From<crate::reclaim::ClaimError> for OracleError {
