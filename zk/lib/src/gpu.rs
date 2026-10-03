@@ -95,6 +95,22 @@ fn key_of(cert: &Certificate, i: usize) -> Result<VerifyingKey, GpuError> {
     VerifyingKey::from_sec1_bytes(spki.subject_public_key.raw_bytes()).map_err(|_| GpuError::BadKey(i))
 }
 
+/// ECDSA P-384 / SHA-384 over `msg` with `cert`'s key; `sig` is r || s. In the RISC Zero guest
+/// this runs on the 384-bit curve accelerator, elsewhere on the `p384` crate.
+fn verify_with(cert: &Certificate, i: usize, msg: &[u8], sig: &Signature) -> Result<bool, GpuError> {
+    #[cfg(feature = "risc0")]
+    {
+        use sha2::Sha384;
+        let key = key_of(cert, i)?.to_encoded_point(false);
+        let digest: [u8; 48] = Sha384::digest(msg).into();
+        Ok(crate::p384_risc0::verify_prehashed(key.as_bytes(), &digest, &sig.to_bytes()))
+    }
+    #[cfg(not(feature = "risc0"))]
+    {
+        Ok(key_of(cert, i)?.verify(msg, sig).is_ok())
+    }
+}
+
 fn attr(cert: &Certificate, oid: &str) -> Option<Vec<u8>> {
     for rdn in cert.tbs_certificate.subject.0.iter() {
         for atv in rdn.0.iter() {
@@ -148,7 +164,9 @@ pub fn verify_gpu(report: &[u8], chain_der: &[Vec<u8>]) -> Result<GpuAttestation
         }
         let tbs = child.tbs_certificate.to_der().map_err(|_| GpuError::BadCert(i))?;
         let sig = Signature::from_der(child.signature.raw_bytes()).map_err(|_| GpuError::BadCertSignature(i))?;
-        key_of(parent, i + 1)?.verify(&tbs, &sig).map_err(|_| GpuError::BadCertSignature(i))?;
+        if !verify_with(parent, i + 1, &tbs, &sig)? {
+            return Err(GpuError::BadCertSignature(i));
+        }
     }
 
     let leaf = &certs[0];
@@ -177,7 +195,9 @@ pub fn verify_gpu(report: &[u8], chain_der: &[Vec<u8>]) -> Result<GpuAttestation
     }
 
     let sig = Signature::from_slice(&report[report.len() - SIGNATURE_LEN..]).map_err(|_| GpuError::BadReportSignature)?;
-    key_of(leaf, 0)?.verify(&report[..report.len() - SIGNATURE_LEN], &sig).map_err(|_| GpuError::BadReportSignature)?;
+    if !verify_with(leaf, 0, &report[..report.len() - SIGNATURE_LEN], &sig)? {
+        return Err(GpuError::BadReportSignature);
+    }
 
     // The firmware id the GPU reports must be the one its leaf certificate was issued for.
     let fwid = opaque_field(opaque, OPAQUE_FWID).ok_or(GpuError::FwidMismatch)?;

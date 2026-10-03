@@ -1982,6 +1982,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "include_bytes_aligned"
+version = "0.1.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4ee796ad498c8d9a1d68e477df8f754ed784ef875de1414ebdaf169f70a6a784"
+
+[[package]]
 name = "indenter"
 version = "0.3.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2889,6 +2895,7 @@ dependencies = [
  "hex",
  "k256",
  "p384",
+ "risc0-bigint2",
  "serde",
  "serde_json",
  "sha2",
@@ -3403,6 +3410,16 @@ dependencies = [
  "libc",
  "untrusted",
  "windows-sys 0.52.0",
+]
+
+[[package]]
+name = "risc0-bigint2"
+version = "1.4.14"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "43d497a20f29fafe5c188025761a05a62b3903a6b62e2f3fa20d77d0ab387ad0"
+dependencies = [
+ "include_bytes_aligned",
+ "stability",
 ]
 
 [[package]]
@@ -4752,6 +4769,16 @@ checksum = "d91ed6c858b01f942cd56b37a94b3e0a1798290327d1236e4d9cf4eaca44d29d"
 dependencies = [
  "base64ct",
  "der",
+]
+
+[[package]]
+name = "stability"
+version = "0.2.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d904e7009df136af5297832a3ace3370cd14ff1546a232f4f185036c2736fcac"
+dependencies = [
+ "quote",
+ "syn 2.0.119",
 ]
 
 [[package]]

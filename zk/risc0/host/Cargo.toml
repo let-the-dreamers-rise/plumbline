@@ -1,0 +1,12 @@
+[package]
+name = "pct-risc0-host"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+hex = "0.4"
+pct-risc0-methods = { path = "../methods" }
+pct-zk-lib = { path = "../../lib", features = ["host"] }
+risc0-zkvm = { version = "3.0.3", features = ["prove"] }
+serde_json = "1"

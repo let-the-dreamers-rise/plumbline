@@ -2,6 +2,8 @@
 #[cfg(any(test, feature = "host"))]
 pub mod fixtures;
 pub mod gpu;
+#[cfg(feature = "risc0")]
+pub mod p384_risc0;
 pub mod revenue;
 
 use gpu::GpuAttestation;

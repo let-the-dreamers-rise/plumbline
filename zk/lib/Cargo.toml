@@ -5,6 +5,7 @@ edition = "2021"
 publish = false
 
 [dependencies]
+risc0-bigint2 = { version = "1.4", optional = true }
 k256 = { version = "0.13", default-features = false, features = ["ecdsa", "std"] }
 serde = { version = "1", features = ["derive"] }
 tiny-keccak = { version = "2", features = ["keccak"] }
@@ -18,6 +19,7 @@ serde_json = { version = "1", optional = true }
 
 [features]
 host = ["dep:hex", "dep:serde_json"]
+risc0 = ["dep:risc0-bigint2"]
 
 [dev-dependencies]
 hex = "0.4"
