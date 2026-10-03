@@ -1,6 +1,7 @@
 //! Private covenant: one RISC Zero Groth16 proof says "this H100 is genuine (NVIDIA-signed report with
-//! the lender's challenge as nonce), and this operator's revenue over the covenant window covers
-//! debt service by X". The proof is checked here; amounts, payment ids and the GPU report never
+//! the lender's challenge as nonce), it sits inside this measured Intel TDX VM (quote chained to
+//! Intel's root, vouching for that exact report), and this operator's revenue over the covenant
+//! window covers debt service by X". The proof is checked here; amounts, payment ids and the GPU report never
 //! go onchain. The guest is zk/risc0/methods/guest; its journal layout is zk/lib `public_values`.
 
 use anchor_lang::prelude::*;
@@ -9,7 +10,7 @@ use crate::{constants::*, error::OracleError, reclaim::keccak, risc0_groth16, st
 
 pub const ZK_CONFIG_SEED: &[u8] = b"zk_config";
 pub const ZK_COVENANT_SEED: &[u8] = b"zk_covenant";
-const PUBLIC_VALUES_LEN: usize = 6 * 32 + 8 + 8 + 4 + 1;
+const PUBLIC_VALUES_LEN: usize = 6 * 32 + 8 + 8 + 4 + 1 + 32 + 16 + 1;
 
 pub const ZK_NONE: u8 = 0;
 pub const ZK_PASS: u8 = 1;
@@ -22,6 +23,10 @@ pub const ZK_WATCH: u8 = 2;
 pub struct ZkConfig {
     pub image_id: [u8; 32],
     pub attestor_threshold: u8,
+    /// Refuse proofs whose TDX quote does not vouch for the exact GPU report and challenge.
+    pub require_vm_bound: bool,
+    /// Only accept this VM image + runtime (sha256(mr_td || rtmrs hash)); all zero = any.
+    pub vm_measurement: [u8; 32],
     pub bump: u8,
 }
 
@@ -39,6 +44,9 @@ pub struct ZkCovenant {
     /// sha256 of the GPU's per-chip id, and of its signed firmware measurements.
     pub chip_id: [u8; 32],
     pub measurements: [u8; 32],
+    /// The confidential VM the TDX quote measured, and whether it vouched for this GPU report.
+    pub vm_measurement: [u8; 32],
+    pub vm_bound: bool,
     pub proven_at: i64,
     pub bump: u8,
 }
@@ -54,11 +62,19 @@ pub struct SetZkConfig<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handle_set_zk_config(ctx: Context<SetZkConfig>, image_id: [u8; 32], attestor_threshold: u8) -> Result<()> {
+pub fn handle_set_zk_config(
+    ctx: Context<SetZkConfig>,
+    image_id: [u8; 32],
+    attestor_threshold: u8,
+    require_vm_bound: bool,
+    vm_measurement: [u8; 32],
+) -> Result<()> {
     require!(attestor_threshold >= 1 && attestor_threshold as usize <= ctx.accounts.config.attestors.len(), OracleError::BadZkConfig);
     let z = &mut ctx.accounts.zk_config;
     z.image_id = image_id;
     z.attestor_threshold = attestor_threshold;
+    z.require_vm_bound = require_vm_bound;
+    z.vm_measurement = vm_measurement;
     z.bump = ctx.bumps.zk_config;
     Ok(())
 }
@@ -107,6 +123,8 @@ pub struct CovenantProven {
     pub as_of_period: u32,
     pub claims: u32,
     pub chip_id: [u8; 32],
+    pub vm_measurement: [u8; 32],
+    pub vm_bound: bool,
 }
 
 /// The terms hash the guest commits to; must match zk/lib `Terms::hash`.
@@ -144,6 +162,10 @@ pub fn handle_prove_covenant(ctx: Context<ProveCovenant>, seal: Vec<u8>, public_
     let coverage_bps = u64::from_le_bytes(tail[8..16].try_into().unwrap());
     let claims = u32::from_le_bytes(tail[16..20].try_into().unwrap());
     let pass = tail[20] == 1;
+    let vm_measurement: [u8; 32] = tail[21..53].try_into().unwrap();
+    let vm_bound = tail[69] == 1;
+    require!(vm_bound || !zk.require_vm_bound, OracleError::ZkVmNotBound);
+    require!(zk.vm_measurement == [0u8; 32] || zk.vm_measurement == vm_measurement, OracleError::ZkVmNotBound);
 
     let config = &ctx.accounts.config;
     let source = &ctx.accounts.source;
@@ -167,8 +189,10 @@ pub fn handle_prove_covenant(ctx: Context<ProveCovenant>, seal: Vec<u8>, public_
     z.claims = claims;
     z.chip_id = chip_id;
     z.measurements = measurements;
+    z.vm_measurement = vm_measurement;
+    z.vm_bound = vm_bound;
     z.proven_at = now;
-    emit!(CovenantProven { loan: loan.key(), status: z.status, coverage_bps, as_of_period, claims, chip_id });
+    emit!(CovenantProven { loan: loan.key(), status: z.status, coverage_bps, as_of_period, claims, chip_id, vm_measurement, vm_bound });
     Ok(())
 }
 

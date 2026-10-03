@@ -48,6 +48,10 @@ fn field(v: &Value, k: &str) -> Vec<u8> {
 /// Config with the two test attestors, the Razorpay revenue source, a funded INR loan with the
 /// terms the proof was made for, and the zk config pinned to the guest's image id.
 fn setup(debt_service_micro: u64) -> Setup {
+    setup_vm(debt_service_micro, false, [0u8; 32])
+}
+
+fn setup_vm(debt_service_micro: u64, require_vm_bound: bool, vm_measurement: [u8; 32]) -> Setup {
     let fx = json(include_str!("fixtures/zk-revenue-claims.json"));
     let proof = json(include_str!("fixtures/covenant-strong-groth16.json"));
     let t = &fx["terms"];
@@ -96,7 +100,7 @@ fn setup(debt_service_micro: u64) -> Setup {
             },
         ),
         Harness::ix(
-            pct_oracle::instruction::SetZkConfig { image_id, attestor_threshold: 2 },
+            pct_oracle::instruction::SetZkConfig { image_id, attestor_threshold: 2, require_vm_bound, vm_measurement },
             pct_oracle::accounts::SetZkConfig {
                 authority: payer,
                 config: pda(&[b"config"]),
@@ -197,6 +201,8 @@ fn real_proof_flips_the_loan_to_pass_and_unlocks_a_draw() {
     assert_eq!(z.coverage_bps, 13_541);
     assert_eq!(z.claims, 4);
     assert_eq!(z.as_of_period, s.as_of);
+    assert_eq!(z.vm_measurement.to_vec(), vm_measurement(&s.proof));
+    assert!(!z.vm_bound, "VoltageGPU's quote vouches for its own report, not NVIDIA's sample");
     s.draw(2 * SOL).unwrap();
 }
 
@@ -235,4 +241,34 @@ fn proof_is_too_old_once_the_window_moves_on() {
     let later = ((s.as_of + 2) as i64) * 604_800 + 60;
     s.h.set_time(later);
     assert!(s.prove_real().unwrap_err().contains("NoRecentRevenue"));
+}
+
+/// Journal: 6 words, revenue, coverage, claims, pass, then the VM measurement.
+fn vm_measurement(proof: &Value) -> Vec<u8> {
+    field(proof, "journal")[192 + 21..192 + 53].to_vec()
+}
+
+#[test]
+fn lender_requiring_a_bound_vm_refuses_an_unbound_proof() {
+    let mut s = setup_vm(120_000_000_000, true, [0u8; 32]);
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    assert!(s.prove_real().unwrap_err().contains("ZkVmNotBound"));
+}
+
+#[test]
+fn lender_pinning_another_vm_image_refuses_the_proof() {
+    let mut s = setup_vm(120_000_000_000, false, [9u8; 32]);
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    assert!(s.prove_real().unwrap_err().contains("ZkVmNotBound"));
+}
+
+#[test]
+fn lender_pinning_this_vm_image_accepts_the_proof() {
+    let proof = json(include_str!("fixtures/covenant-strong-groth16.json"));
+    let mut s = setup_vm(120_000_000_000, false, vm_measurement(&proof).try_into().unwrap());
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    s.prove_real().unwrap();
 }

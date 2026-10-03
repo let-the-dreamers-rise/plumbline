@@ -1,4 +1,5 @@
-//! Runs or proves the RISC Zero covenant guest on NVIDIA's sample H100 report and the
+//! Runs or proves the RISC Zero covenant guest on NVIDIA's sample H100 report, VoltageGPU's TDX
+//! quote (fixtures/tdx; not bound to the sample report, so the journal says vm_bound = 0) and the
 //! MONTH=strong|weak fixture claims.
 //!   cargo run --release -- execute
 //!   cargo run --release -- prove            (succinct STARK)
@@ -23,6 +24,8 @@ fn env_for(month: &str, po2: u32) -> ExecutorEnv<'static> {
         .write(&params)
         .unwrap()
         .write(&terms)
+        .unwrap()
+        .write(&include_bytes!("../../../fixtures/tdx/quote.bin").to_vec())
         .unwrap()
         .build()
         .unwrap()

@@ -948,6 +948,19 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 
 [[package]]
+name = "p256"
+version = "0.13.2"
+source = "git+https://github.com/risc0/RustCrypto-elliptic-curves?tag=p256%2Fv0.13.2-risczero.1#bb0f51ad3ba81585f36ea8a1ea81093d8664b195"
+dependencies = [
+ "bytemuck",
+ "ecdsa",
+ "elliptic-curve",
+ "primeorder 0.13.1",
+ "risc0-bigint2",
+ "sha2",
+]
+
+[[package]]
 name = "p384"
 version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -955,7 +968,7 @@ checksum = "fe42f1670a52a47d448f14b6a5c61dd78fce51856e68edaa38f7ae3a46b8d6b6"
 dependencies = [
  "ecdsa",
  "elliptic-curve",
- "primeorder",
+ "primeorder 0.13.6",
  "sha2",
 ]
 
@@ -971,6 +984,7 @@ version = "0.1.0"
 dependencies = [
  "base64",
  "k256",
+ "p256",
  "p384",
  "risc0-bigint2",
  "serde",
@@ -1014,6 +1028,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "85eae3c4ed2f50dcfe72643da4befc30deadb458a9b590d720cde2f2b1e97da9"
 dependencies = [
  "zerocopy",
+]
+
+[[package]]
+name = "primeorder"
+version = "0.13.1"
+source = "git+https://github.com/risc0/RustCrypto-elliptic-curves?tag=p256%2Fv0.13.2-risczero.1#bb0f51ad3ba81585f36ea8a1ea81093d8664b195"
+dependencies = [
+ "bytemuck",
+ "elliptic-curve",
+ "risc0-bigint2",
 ]
 
 [[package]]

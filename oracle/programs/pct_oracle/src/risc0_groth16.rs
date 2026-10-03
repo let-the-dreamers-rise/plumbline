@@ -155,7 +155,7 @@ mod tests {
     #[test]
     fn changed_journal_is_refused() {
         let mut j = field("journal");
-        *j.last_mut().unwrap() = 0; // PASS -> WATCH
+        j[192 + 20] = 0; // PASS -> WATCH
         assert_eq!(verify(&field("seal"), &id(), &j), Err(Groth16Error::Invalid));
     }
 

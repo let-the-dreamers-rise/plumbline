@@ -64,6 +64,8 @@ pub enum OracleError {
     ZkTermsMismatch,
     #[msg("Source is not an active revenue source")]
     WrongSourceKind,
+    #[msg("Proof's VM is not the required one, or its TDX quote does not vouch for this GPU report")]
+    ZkVmNotBound,
 }
 
 impl From<crate::reclaim::ClaimError> for OracleError {

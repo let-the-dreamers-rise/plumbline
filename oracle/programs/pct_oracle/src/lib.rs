@@ -81,8 +81,14 @@ pub mod pct_oracle {
         instructions::lending::handle_withdraw(ctx, lamports)
     }
 
-    pub fn set_zk_config(ctx: Context<SetZkConfig>, image_id: [u8; 32], attestor_threshold: u8) -> Result<()> {
-        instructions::zk::handle_set_zk_config(ctx, image_id, attestor_threshold)
+    pub fn set_zk_config(
+        ctx: Context<SetZkConfig>,
+        image_id: [u8; 32],
+        attestor_threshold: u8,
+        require_vm_bound: bool,
+        vm_measurement: [u8; 32],
+    ) -> Result<()> {
+        instructions::zk::handle_set_zk_config(ctx, image_id, attestor_threshold, require_vm_bound, vm_measurement)
     }
 
     pub fn issue_gpu_challenge(ctx: Context<IssueGpuChallenge>, challenge: [u8; 32]) -> Result<()> {

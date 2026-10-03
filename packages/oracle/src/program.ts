@@ -253,9 +253,17 @@ export class OracleInstructions {
     return this.ix("draw", [signer(borrower), writable(this.pdas.loan(loan.lender, loan.operatorKey))], new Writer().u64(lamports));
   }
 
-  setZkConfig(authority: PublicKey, imageId: Uint8Array, attestorThreshold: number): TransactionInstruction {
+  /** vmMeasurement all zero = accept any VM image; requireVmBound = the TDX quote must vouch for the GPU report. */
+  setZkConfig(
+    authority: PublicKey,
+    imageId: Uint8Array,
+    attestorThreshold: number,
+    requireVmBound = false,
+    vmMeasurement: Uint8Array = new Uint8Array(32),
+  ): TransactionInstruction {
     const keys = [signer(authority), readonly(this.pdas.config()), writable(this.pdas.zkConfig()), system];
-    return this.ix("set_zk_config", keys, new Writer().fixed(imageId, 32).u8(attestorThreshold));
+    const data = new Writer().fixed(imageId, 32).u8(attestorThreshold).u8(requireVmBound ? 1 : 0).fixed(vmMeasurement, 32);
+    return this.ix("set_zk_config", keys, data);
   }
 
   issueGpuChallenge(lender: PublicKey, operatorKey: Uint8Array, challenge: Uint8Array): TransactionInstruction {

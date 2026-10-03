@@ -1,4 +1,3 @@
 [workspace]
-members = ["lib", "script"]
-exclude = ["program"]
+members = ["lib"]
 resolver = "2"
