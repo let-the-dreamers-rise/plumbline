@@ -1,11 +1,11 @@
-//! Private covenant: one SP1 Groth16 proof says "this H100 is genuine (NVIDIA-signed report with
+//! Private covenant: one RISC Zero Groth16 proof says "this H100 is genuine (NVIDIA-signed report with
 //! the lender's challenge as nonce), and this operator's revenue over the covenant window covers
 //! debt service by X". The proof is checked here; amounts, payment ids and the GPU report never
-//! go onchain. The guest is zk/program; its public output layout is zk/lib `public_values`.
+//! go onchain. The guest is zk/risc0/methods/guest; its journal layout is zk/lib `public_values`.
 
 use anchor_lang::prelude::*;
 
-use crate::{constants::*, error::OracleError, groth16, reclaim::keccak, state::*};
+use crate::{constants::*, error::OracleError, reclaim::keccak, risc0_groth16, state::*};
 
 pub const ZK_CONFIG_SEED: &[u8] = b"zk_config";
 pub const ZK_COVENANT_SEED: &[u8] = b"zk_covenant";
@@ -15,12 +15,12 @@ pub const ZK_NONE: u8 = 0;
 pub const ZK_PASS: u8 = 1;
 pub const ZK_WATCH: u8 = 2;
 
-/// Which guest program (SP1 vkey hash) the oracle accepts, and how many attestors must sign
+/// Which guest program (RISC Zero image id) the oracle accepts, and how many attestors must sign
 /// each revenue claim inside it.
 #[account]
 #[derive(InitSpace)]
 pub struct ZkConfig {
-    pub program_vkey: [u8; 32],
+    pub image_id: [u8; 32],
     pub attestor_threshold: u8,
     pub bump: u8,
 }
@@ -54,10 +54,10 @@ pub struct SetZkConfig<'info> {
     pub system_program: Program<'info, System>,
 }
 
-pub fn handle_set_zk_config(ctx: Context<SetZkConfig>, program_vkey: [u8; 32], attestor_threshold: u8) -> Result<()> {
+pub fn handle_set_zk_config(ctx: Context<SetZkConfig>, image_id: [u8; 32], attestor_threshold: u8) -> Result<()> {
     require!(attestor_threshold >= 1 && attestor_threshold as usize <= ctx.accounts.config.attestors.len(), OracleError::BadZkConfig);
     let z = &mut ctx.accounts.zk_config;
-    z.program_vkey = program_vkey;
+    z.image_id = image_id;
     z.attestor_threshold = attestor_threshold;
     z.bump = ctx.bumps.zk_config;
     Ok(())
@@ -131,9 +131,9 @@ pub fn attestor_set_hash(threshold: u8, attestors: &[[u8; 20]]) -> [u8; 32] {
     keccak(&b)
 }
 
-pub fn handle_prove_covenant(ctx: Context<ProveCovenant>, proof: Vec<u8>, public_values: Vec<u8>, as_of_period: u32) -> Result<()> {
+pub fn handle_prove_covenant(ctx: Context<ProveCovenant>, seal: Vec<u8>, public_values: Vec<u8>, as_of_period: u32) -> Result<()> {
     let zk = &ctx.accounts.zk_config;
-    groth16::verify(&proof, &zk.program_vkey, &public_values).map_err(|e| {
+    risc0_groth16::verify(&seal, &zk.image_id, &public_values).map_err(|e| {
         msg!("groth16: {:?}", e);
         error!(OracleError::BadZkProof)
     })?;

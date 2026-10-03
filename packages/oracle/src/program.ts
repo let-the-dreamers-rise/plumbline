@@ -253,9 +253,9 @@ export class OracleInstructions {
     return this.ix("draw", [signer(borrower), writable(this.pdas.loan(loan.lender, loan.operatorKey))], new Writer().u64(lamports));
   }
 
-  setZkConfig(authority: PublicKey, programVkey: Uint8Array, attestorThreshold: number): TransactionInstruction {
+  setZkConfig(authority: PublicKey, imageId: Uint8Array, attestorThreshold: number): TransactionInstruction {
     const keys = [signer(authority), readonly(this.pdas.config()), writable(this.pdas.zkConfig()), system];
-    return this.ix("set_zk_config", keys, new Writer().fixed(programVkey, 32).u8(attestorThreshold));
+    return this.ix("set_zk_config", keys, new Writer().fixed(imageId, 32).u8(attestorThreshold));
   }
 
   issueGpuChallenge(lender: PublicKey, operatorKey: Uint8Array, challenge: Uint8Array): TransactionInstruction {
@@ -268,7 +268,7 @@ export class OracleInstructions {
     submitter: PublicKey,
     sourceId: Uint8Array,
     loan: { lender: PublicKey; operatorKey: Uint8Array },
-    proof: Uint8Array,
+    seal: Uint8Array,
     publicValues: Uint8Array,
     asOfPeriod: number,
   ): TransactionInstruction {
@@ -281,7 +281,7 @@ export class OracleInstructions {
       readonly(l),
       writable(this.pdas.zkCovenant(l)),
     ];
-    return this.ix("prove_covenant", keys, new Writer().vec(proof).vec(publicValues).u32(asOfPeriod));
+    return this.ix("prove_covenant", keys, new Writer().vec(seal).vec(publicValues).u32(asOfPeriod));
   }
 
   drawPrivate(borrower: PublicKey, loan: { lender: PublicKey; operatorKey: Uint8Array }, lamports: bigint | number): TransactionInstruction {
