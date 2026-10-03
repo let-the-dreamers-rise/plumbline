@@ -5,6 +5,7 @@ pub mod gpu;
 #[cfg(feature = "risc0")]
 pub mod p384_risc0;
 pub mod revenue;
+pub mod tdx;
 
 use gpu::GpuAttestation;
 use revenue::{AttestorSet, CovenantResult, Terms};
