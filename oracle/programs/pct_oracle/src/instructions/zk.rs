@@ -171,7 +171,7 @@ pub fn handle_prove_covenant(ctx: Context<ProveCovenant>, seal: Vec<u8>, public_
     let source = &ctx.accounts.source;
     let loan = &ctx.accounts.loan;
     let z = &mut ctx.accounts.zk_covenant;
-    require!(nonce == z.gpu_challenge, OracleError::ZkStaleChallenge);
+    require!(nonce != [0u8; 32] && nonce == z.gpu_challenge, OracleError::ZkStaleChallenge);
     require!(word(3) == attestor_set_hash(zk.attestor_threshold, &config.attestors), OracleError::ZkAttestorMismatch);
     require!(source.kind == KIND_REVENUE && source.active, OracleError::WrongSourceKind);
     require!(word(4) == source.params_hash, OracleError::ParamsMismatch);
@@ -192,6 +192,8 @@ pub fn handle_prove_covenant(ctx: Context<ProveCovenant>, seal: Vec<u8>, public_
     z.vm_measurement = vm_measurement;
     z.vm_bound = vm_bound;
     z.proven_at = now;
+    // One proof per challenge: the same proof (or any other made for this nonce) cannot be replayed.
+    z.gpu_challenge = [0u8; 32];
     emit!(CovenantProven { loan: loan.key(), status: z.status, coverage_bps, as_of_period, claims, chip_id, vm_measurement, vm_bound });
     Ok(())
 }

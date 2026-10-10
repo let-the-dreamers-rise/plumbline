@@ -10,7 +10,11 @@ use risc0_zkvm::{default_executor, default_prover, sha::Digestible, ExecutorEnv,
 
 fn env_for(month: &str, po2: u32) -> ExecutorEnv<'static> {
     let (report, chain) = sample_gpu();
-    let (fx, attestors, params, terms) = setup();
+    let (fx, attestors, params, mut terms) = setup();
+    // DEBT_SERVICE_MICRO overrides the fixture loan's weekly debt service (e.g. to land at 1.15x or 1.14x).
+    if let Some(d) = std::env::var("DEBT_SERVICE_MICRO").ok().and_then(|v| v.parse().ok()) {
+        terms.debt_service_micro = d;
+    }
     ExecutorEnv::builder()
         .segment_limit_po2(po2)
         .write(&report)
@@ -62,7 +66,7 @@ fn main() {
             "seal": format!("0x{}", hex::encode(&g.seal)),
             "claimDigest": format!("0x{}", hex::encode(g.claim.digest().as_bytes())),
         });
-        std::fs::write(format!("proofs/covenant-{month}-groth16.json"), serde_json::to_string_pretty(&json).unwrap()).unwrap();
-        println!("wrote proofs/covenant-{month}-groth16.json");
+        std::fs::write(format!("proofs/covenant-{month}{}-groth16.json", std::env::var("LABEL").map(|l| format!("-{l}")).unwrap_or_default()), serde_json::to_string_pretty(&json).unwrap()).unwrap();
+        println!("wrote proof for {month}");
     }
 }

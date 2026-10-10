@@ -272,3 +272,12 @@ fn lender_pinning_this_vm_image_accepts_the_proof() {
     s.challenge(nonce);
     s.prove_real().unwrap();
 }
+
+#[test]
+fn the_same_proof_cannot_be_replayed() {
+    let mut s = setup(120_000_000_000);
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    s.prove_real().unwrap();
+    assert!(s.prove_real().unwrap_err().contains("ZkStaleChallenge"));
+}

@@ -46,7 +46,7 @@ math with the onchain config) that must match the onchain value.
 `dist/pct_oracle.so` is a prebuilt copy of the program for id `2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz`
 (Agave 3.1.14, platform-tools v1.52), so a machine with only the Solana CLI can deploy it without
 compiling. Rebuild and recopy it whenever the program changes. sha256:
-`90167057aaa87f741b263728dc61221f38379fe5ca69ab9d9677ade302b64ebf`.
+`6633237e4778d8362f8bfe85e2036a866c5695bd50989a2148c55866e05707cd`.
 
 The program id is fixed by `declare_id!` in `src/lib.rs`, so deploying needs the keypair whose
 public key is `2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz` (Anchor created it where the program
