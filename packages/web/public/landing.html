@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paid Compute Tape · Paid Compute Tape</title>
+<style>
+:root {
+  --bg: #f4f2ec; --surface: #fffdf8; --sunken: #ebe8df; --ink: #1b1d20; --muted: #63666b; --rule: #d8d4c8;
+  --paid: #a35a00; --posted: #6f7c88; --good: #24733f; --warn: #8a6500; --bad: #b0322a; --focus: #1f5fbf;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #111417; --surface: #181c20; --sunken: #0c0f11; --ink: #e6e8e4; --muted: #9aa1a7; --rule: #2b3238;
+    --paid: #eca447; --posted: #8a98a4; --good: #5cc283; --warn: #d8b54c; --bad: #ee6a5f; --focus: #7fb0ff; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); }
+.wrap { max-width: 72rem; margin: 0 auto; padding: 24px 16px 64px; }
+a { color: var(--paid); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px 16px; border-bottom: 2px solid var(--ink); padding-bottom: 12px; }
+h1 { margin: 0; font-size: 1.1rem; letter-spacing: .08em; text-transform: uppercase; }
+nav { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 600 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+nav a { color: var(--muted); text-decoration: none; } nav a:hover, nav a[aria-current] { color: var(--paid); }
+.meta { font: 12px var(--mono); color: var(--muted); }
+h2 { font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; margin: 36px 0 10px; }
+h3 { margin: 0 0 6px; font-size: 1rem; }
+p { margin: 0 0 10px; max-width: 66ch; }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.card { background: var(--surface); border: 1px solid var(--rule); padding: 16px; min-width: 0; }
+.k { font: 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.big { font: 700 2.4rem/1.1 var(--mono); font-variant-numeric: tabular-nums; margin-top: 6px; }
+.big small { font-size: .9rem; font-weight: 400; color: var(--muted); }
+.chip { display: inline-block; font: 600 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: 2px 6px; border: 1px solid currentColor; }
+.good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); } .mutedc { color: var(--muted); }
+.sub { font-size: .88rem; color: var(--muted); margin-top: 6px; }
+.btn { display: inline-block; font: 600 13px var(--mono); letter-spacing: .04em; text-transform: uppercase; padding: 10px 14px; border: 1px solid var(--ink); color: var(--ink); text-decoration: none; background: transparent; cursor: pointer; }
+.btn.primary { background: var(--ink); color: var(--bg); }
+.btn:hover { border-color: var(--paid); color: var(--paid); } .btn.primary:hover { color: var(--bg); background: var(--paid); border-color: var(--paid); }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+code, pre { font: 12.5px/1.5 var(--mono); background: var(--sunken); }
+code { padding: 1px 4px; word-break: break-all; }
+pre { margin: 8px 0 12px; padding: 12px; overflow-x: auto; border: 1px solid var(--rule); white-space: pre; }
+ol, ul { padding-left: 1.2rem; margin: 0 0 10px; } li { margin: 4px 0; max-width: 70ch; }
+.tbl { overflow-x: auto; background: var(--surface); border: 1px solid var(--rule); }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font: 600 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--sunken); white-space: nowrap; }
+td.mono { font-family: var(--mono); font-size: .82rem; word-break: break-all; }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+label { display: grid; gap: 4px; font: 600 12px var(--mono); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+input, textarea { font: 14px var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--rule); padding: 8px 10px; width: 100%; }
+form { display: grid; gap: 12px; max-width: 34rem; }
+footer { margin-top: 48px; border-top: 1px solid var(--rule); padding-top: 12px; font: 12px var(--mono); color: var(--muted); display: grid; gap: 4px; }
+.hero { padding: 36px 0 8px; }
+.hero h2.title { font: 800 clamp(1.8rem, 4.6vw, 3rem)/1.05 var(--sans); letter-spacing: -.02em; text-transform: none; margin: 0 0 14px; max-width: 22ch; }
+.hero .lede { font-size: 1.1rem; max-width: 58ch; }
+.number { border-left: 4px solid var(--paid); padding: 6px 14px; margin: 18px 0; font: 600 1.05rem/1.4 var(--sans); max-width: 52ch; }
+.steps { counter-reset: s; display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.steps .card::before { counter-increment: s; content: counter(s); font: 700 1.6rem var(--mono); color: var(--paid); display: block; margin-bottom: 4px; }
+dl { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; font-size: .92rem; }
+dt { font: 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+dd { margin: 0; min-width: 0; word-break: break-word; }
+@media (max-width: 40rem) { dl { grid-template-columns: minmax(0, 1fr); gap: 2px 0; } dt { padding-top: 8px; } }
+.note { font-size: .88rem; color: var(--muted); border: 1px dashed var(--rule); padding: 8px 12px; max-width: 70ch; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div><h1>Paid Compute Tape</h1><div class="meta">The verification platform for GPU fleets · Solana devnet</div></div>
+  <nav><a href="/" aria-current="page">Product</a><a href="/prove">Prove</a><a href="/lender">Verify</a><a href="/tape">Tape</a><a href="/docs">Docs</a></nav>
+</header>
+
+<section class="hero">
+  <h2 class="title">The first GPU that proves itself onchain.</h2>
+  <p class="lede">One zero-knowledge proof says a fleet is real NVIDIA hardware, runs inside a measured enclave, and earned enough to cover its loan. A Solana program checks the proof and opens or refuses the next draw. Revenue stays private. The result is public.</p>
+  <div class="number">400,000 fake GPUs got onto io.net in 2024. One 256-byte proof stops that.</div>
+  <div class="row">
+    <a class="btn primary" href="/prove">Prove your fleet</a>
+    <a class="btn" href="/lender">Verify a loan</a>
+    <a class="btn" href="/tape">Read the tape</a>
+  </div>
+</section>
+
+<section id="live" class="grid" style="margin-top:24px">
+  <div class="card"><div class="k">Latest proof on devnet</div><div class="big" id="live-status">…</div><div class="sub" id="live-sub">Reading the program from Solana devnet.</div></div>
+  <div class="card"><div class="k">Verified onchain</div><div class="big">256<small> byte proof</small></div><div class="sub">Groth16 over a RISC Zero guest, verified in about 113k compute units.</div></div>
+  <div class="card"><div class="k">Covenant</div><div class="big">1.15<small>x</small></div><div class="sub">Trailing revenue over debt service, the ratio USD.AI sets. Checked inside the proof, never published.</div></div>
+</section>
+
+<h2>How it works</h2>
+<div class="steps">
+  <div class="card"><h3>The lender issues a challenge</h3><p>A 32-byte nonce goes into the loan account. The GPU must sign it, so an old report cannot be replayed.</p></div>
+  <div class="card"><h3>The operator runs one prover</h3><p>Inside a RISC Zero guest: NVIDIA's attestation report and its certificate chain to NVIDIA's root (the GPU is real), an Intel TDX quote bound to that report (the software is the software we expect), and zkTLS payout proofs from two attestors (the revenue is real). The guest tests coverage and outputs pass or fail.</p></div>
+  <div class="card"><h3>Solana verifies and gates the draw</h3><p>The program checks the proof, the challenge, the guest image and the attestor set, then records PASS or WATCH. A draw is approved or refused with no admin key and no human sign-off.</p></div>
+</div>
+
+<h2>Who it is for</h2>
+<div class="grid">
+  <div class="card"><h3>GPU operators that borrow</h3><p>Prove weekly, hand the public page to any lender, and stop paying for a telemetry box, a monthly audit and the spread lenders charge for revenue they cannot see.</p></div>
+  <div class="card"><h3>Lenders and vault curators</h3><p>Read PASS or WATCH per loan, embed the badge, pull the JSON. The covenant you already set, checked by math instead of a PDF.</p></div>
+  <div class="card"><h3>GPU networks</h3><p>Require a proof before a provider earns. The GPU's own signature, chain-verified to NVIDIA's root, replaces self-reported hardware.</p></div>
+  <div class="card"><h3>Confidential-AI clouds</h3><p>Show customers that a job ran on a real H100 inside a measured enclave, with the GPU bound to the enclave in the proof.</p></div>
+</div>
+
+<h2>Pricing</h2>
+<div class="grid">
+  <div class="card"><div class="k">Operators</div><div class="big">$0.25<small> per GPU per week</small></div><div class="sub">Charged per proof. First four proofs free. A 500-GPU fleet pays $125 a week; the warranty a lender buys on the same collateral costs about 150 basis points a year.</div></div>
+  <div class="card"><div class="k">Lenders, curators, networks</div><div class="big">Free<small> to verify</small></div><div class="sub">Verify pages, badges and the read API are free during beta. Bulk API pricing comes with mainnet.</div></div>
+  <div class="card"><div class="k">Where the fee goes</div><div class="big">Onchain</div><div class="sub">Fees are collected by the program at proof time from mainnet. On devnet, proofs are free.</div></div>
+</div>
+
+<h2>What the proof removes, and what it does not</h2>
+<div class="grid">
+  <div class="card"><h3>Removed</h3><ul><li>Trusted telemetry: the GPU signs its own report.</li><li>The single attestor: two independent attestors per payout.</li><li>The admin key: the program decides from the proof alone.</li><li>Public revenue: only coverage in basis points and pass or fail go onchain.</li></ul></div>
+  <div class="card"><h3>Still trusted</h3><ul><li>NVIDIA's root certificate and Intel's root certificate.</li><li>The two attestors not colluding, and the zkTLS proxy model they run.</li><li>The RISC Zero prover and its Solana verifier (self-deployed, audited by Veridise).</li></ul></div>
+</div>
+
+<h2>Request a proof for your fleet</h2>
+<form id="lead" method="post" action="/api/lead">
+  <label>Email <input name="email" type="email" required placeholder="you@operator.com" id="lead-email"></label>
+  <label>Fleet size (GPUs) <input name="fleetGpus" type="number" min="1" placeholder="512" id="lead-fleet"></label>
+  <label>Your lender, if any <input name="lender" placeholder="USD.AI, GAIB, Compute Labs, none yet" id="lead-lender"></label>
+  <label>Anything else <textarea name="note" rows="3" placeholder="Where the GPUs are, which cloud or marketplace pays you" id="lead-note"></textarea></label>
+  <div class="row"><button class="btn primary" type="submit" id="lead-submit">Request a proof</button><span class="meta" id="lead-msg"></span></div>
+</form>
+
+<footer>
+  <div>Program <code id="pid">2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz</code> on Solana devnet · open source · built Sep 14 to Oct 12, 2026 for the Colosseum Crypto World's Fair.</div>
+  <div>Evidence on devnet today: NVIDIA's published sample H100 report and VoltageGPU's published H200 TDX quote, both chain-verified to their roots. A report signed against our own challenge inside our own enclave is the next step and is labelled on every verify page.</div>
+</footer>
+</div>
+<script>
+(async () => {
+  const st = document.getElementById("live-status"), sub = document.getElementById("live-sub");
+  try {
+    const r = await fetch("/api/loans", { cache: "no-store" }); const j = await r.json();
+    const l = (j.loans || [])[0];
+    if (!l) { st.textContent = "No loan yet"; sub.textContent = "The devnet demo has not run on this program."; return; }
+    const z = l.zk || {}; const s = z.status || "none";
+    st.innerHTML = s === "pass" ? '<span class="good">PASS</span>' : s === "watch" ? '<span class="warn">WATCH</span>' : '<span class="mutedc">UNPROVEN</span>';
+    const cov = z.coverageBps ? (z.coverageBps / 10000).toFixed(2) + "x" : (l.trailingCoverageBps / 10000).toFixed(2) + "x";
+    sub.innerHTML = `Coverage ${cov} · week ${z.asOfPeriod ?? "–"} · <a href="/loan/${l.address}">verify page</a>`;
+  } catch (e) { st.textContent = "Devnet demo"; sub.textContent = "Live data is read from Solana when the dashboard runs."; }
+})();
+document.getElementById("lead").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const f = e.target, msg = document.getElementById("lead-msg"), btn = document.getElementById("lead-submit");
+  const body = { email: f.email.value.trim(), fleetGpus: Number(f.fleetGpus.value || 0), lender: f.lender.value.trim(), note: f.note.value.trim() };
+  btn.disabled = true; msg.textContent = "Sending…";
+  try { const r = await fetch("/api/lead", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
+    msg.textContent = r.ok ? "Received. We reply within a day with the terms and the first free proof." : "Could not send. Email hello@ the project domain instead."; if (r.ok) f.reset(); }
+  catch { msg.textContent = "Could not send. Email hello@ the project domain instead."; }
+  btn.disabled = false;
+});
+</script>
+</body>
+</html>

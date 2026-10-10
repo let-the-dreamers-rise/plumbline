@@ -7,6 +7,8 @@ and gates draws on a covenant (trailing-quarter revenue at least 1.15x debt serv
 a live feed instead of trusting PDF statements. Every proof with GPU-hours also adds realized
 $/GPU-hr to an open H100 price tape, which can feed a compute-price perp (Hyperliquid HIP-3 testnet).
 
+**The product.** Paid Compute Tape is the verification platform for GPU fleets. Operators prove, weekly, that their fleet is real NVIDIA hardware (the GPU's own attestation, chain-verified to NVIDIA's root), runs in a measured Intel TDX enclave, and earned enough to cover its debt service (zkTLS payout proofs from two attestors), all inside one RISC Zero proof. A Solana program verifies the 256-byte proof and records PASS or WATCH on the loan. Anyone can verify at `/loan/<address>`, embed `/badge/<address>.svg`, or read `/api/loan/<address>`. Pricing: $0.25 per GPU per week, charged per proof, first four proofs free; verification is free. The Tape (`/tape`) is the public H100 paid-price index built from the same proofs.
+
 Lender flow: `npm run lending:e2e` and the dashboard (`npm run web`) on a local validator; real
 Razorpay (or Stripe) test-mode proofs with `npm run prove:revenue` and `npm run loan:*` (see
 `oracle/README.md`).
@@ -21,7 +23,7 @@ Entry for the Colosseum Crypto World's Fair hackathon (submissions due Oct 12, 2
 | `packages/prover` | zkFetch source specs, request builder (secrets stay private, only price spans revealed, account id OPRF-hashed), proof-to-observation checks, CLIs. |
 | `sources/` | One JSON spec per provable paid-price source. `example-invoice.json` shows the format. |
 | `packages/oracle` | TS client for the Solana program: price proofs, loans, revenue proofs, draws; CLIs `oracle:*` and `loan:*`. |
-| `packages/web` | Dashboard: lender view (`/`) and price tape (`/tape`), read straight from Solana. |
+| `packages/web` | Product site and dashboard, read straight from Solana: product page (`/`), prove (`/prove`), docs (`/docs`), lender view (`/lender`), price tape (`/tape`), per-loan verify page (`/loan/<address>`), badge (`/badge/<address>.svg`) and JSON (`/api/loan/<address>`). Set `PCT_EVIDENCE=public` when the proofs use the published sample evidence. |
 | `packages/relayer` | Pushes the onchain index to a Hyperliquid HIP-3 market (`hl:deploy`, `hl:relay`). |
 | `oracle/` | Anchor program `pct_oracle` and its LiteSVM tests; prebuilt `dist/pct_oracle.so`. |
 | `proofs/` | Generated proofs (git-ignored). |

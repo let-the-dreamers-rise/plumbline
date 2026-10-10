@@ -1,0 +1,162 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verify a loan · Paid Compute Tape</title>
+<style>
+:root {
+  --bg: #f4f2ec; --surface: #fffdf8; --sunken: #ebe8df; --ink: #1b1d20; --muted: #63666b; --rule: #d8d4c8;
+  --paid: #a35a00; --posted: #6f7c88; --good: #24733f; --warn: #8a6500; --bad: #b0322a; --focus: #1f5fbf;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #111417; --surface: #181c20; --sunken: #0c0f11; --ink: #e6e8e4; --muted: #9aa1a7; --rule: #2b3238;
+    --paid: #eca447; --posted: #8a98a4; --good: #5cc283; --warn: #d8b54c; --bad: #ee6a5f; --focus: #7fb0ff; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); }
+.wrap { max-width: 72rem; margin: 0 auto; padding: 24px 16px 64px; }
+a { color: var(--paid); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px 16px; border-bottom: 2px solid var(--ink); padding-bottom: 12px; }
+h1 { margin: 0; font-size: 1.1rem; letter-spacing: .08em; text-transform: uppercase; }
+nav { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 600 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+nav a { color: var(--muted); text-decoration: none; } nav a:hover, nav a[aria-current] { color: var(--paid); }
+.meta { font: 12px var(--mono); color: var(--muted); }
+h2 { font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; margin: 36px 0 10px; }
+h3 { margin: 0 0 6px; font-size: 1rem; }
+p { margin: 0 0 10px; max-width: 66ch; }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.card { background: var(--surface); border: 1px solid var(--rule); padding: 16px; min-width: 0; }
+.k { font: 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.big { font: 700 2.4rem/1.1 var(--mono); font-variant-numeric: tabular-nums; margin-top: 6px; }
+.big small { font-size: .9rem; font-weight: 400; color: var(--muted); }
+.chip { display: inline-block; font: 600 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: 2px 6px; border: 1px solid currentColor; }
+.good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); } .mutedc { color: var(--muted); }
+.sub { font-size: .88rem; color: var(--muted); margin-top: 6px; }
+.btn { display: inline-block; font: 600 13px var(--mono); letter-spacing: .04em; text-transform: uppercase; padding: 10px 14px; border: 1px solid var(--ink); color: var(--ink); text-decoration: none; background: transparent; cursor: pointer; }
+.btn.primary { background: var(--ink); color: var(--bg); }
+.btn:hover { border-color: var(--paid); color: var(--paid); } .btn.primary:hover { color: var(--bg); background: var(--paid); border-color: var(--paid); }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+code, pre { font: 12.5px/1.5 var(--mono); background: var(--sunken); }
+code { padding: 1px 4px; word-break: break-all; }
+pre { margin: 8px 0 12px; padding: 12px; overflow-x: auto; border: 1px solid var(--rule); white-space: pre; }
+ol, ul { padding-left: 1.2rem; margin: 0 0 10px; } li { margin: 4px 0; max-width: 70ch; }
+.tbl { overflow-x: auto; background: var(--surface); border: 1px solid var(--rule); }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font: 600 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--sunken); white-space: nowrap; }
+td.mono { font-family: var(--mono); font-size: .82rem; word-break: break-all; }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+label { display: grid; gap: 4px; font: 600 12px var(--mono); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+input, textarea { font: 14px var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--rule); padding: 8px 10px; width: 100%; }
+form { display: grid; gap: 12px; max-width: 34rem; }
+footer { margin-top: 48px; border-top: 1px solid var(--rule); padding-top: 12px; font: 12px var(--mono); color: var(--muted); display: grid; gap: 4px; }
+.hero { padding: 36px 0 8px; }
+.hero h2.title { font: 800 clamp(1.8rem, 4.6vw, 3rem)/1.05 var(--sans); letter-spacing: -.02em; text-transform: none; margin: 0 0 14px; max-width: 22ch; }
+.hero .lede { font-size: 1.1rem; max-width: 58ch; }
+.number { border-left: 4px solid var(--paid); padding: 6px 14px; margin: 18px 0; font: 600 1.05rem/1.4 var(--sans); max-width: 52ch; }
+.steps { counter-reset: s; display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.steps .card::before { counter-increment: s; content: counter(s); font: 700 1.6rem var(--mono); color: var(--paid); display: block; margin-bottom: 4px; }
+dl { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; font-size: .92rem; }
+dt { font: 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+dd { margin: 0; min-width: 0; word-break: break-word; }
+@media (max-width: 40rem) { dl { grid-template-columns: minmax(0, 1fr); gap: 2px 0; } dt { padding-top: 8px; } }
+.note { font-size: .88rem; color: var(--muted); border: 1px dashed var(--rule); padding: 8px 12px; max-width: 70ch; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div><h1>Paid Compute Tape</h1><div class="meta" id="meta">Verify page · reading the loan from Solana</div></div>
+  <nav><a href="/">Product</a><a href="/prove">Prove</a><a href="/lender">Verify</a><a href="/tape">Tape</a><a href="/docs">Docs</a></nav>
+</header>
+
+<section class="hero" id="top">
+  <div class="k">Loan <code id="addr">…</code></div>
+  <h2 class="title" id="headline">Reading…</h2>
+  <p class="lede" id="lede"></p>
+  <div class="row" id="links"></div>
+</section>
+
+<div class="grid" id="tiles">
+  <div class="card"><div class="k">Covenant result</div><div class="big" id="t-status">…</div><div class="sub" id="t-status-sub"></div></div>
+  <div class="card"><div class="k">Coverage</div><div class="big" id="t-cov">…</div><div class="sub">Trailing revenue over debt service, from the proof. The amounts are not published.</div></div>
+  <div class="card"><div class="k">Proven</div><div class="big" id="t-when">…</div><div class="sub" id="t-when-sub"></div></div>
+</div>
+
+<h2>What the proof established</h2>
+<div class="card"><dl id="facts"></dl></div>
+
+<h2>Loan terms</h2>
+<div class="card"><dl id="terms"></dl></div>
+
+<h2>Embed the badge</h2>
+<div class="card">
+  <div class="row"><img id="badge" alt="GPU verified badge" height="22"></div>
+  <pre id="embed"></pre>
+  <div class="sub">The badge reads the chain on every load. Link it to this page.</div>
+</div>
+
+<h2>Verify it yourself</h2>
+<div class="card"><ol>
+  <li>Open the proof transaction in the explorer and read the <code>CovenantProven</code> log: loan, status, coverage, period.</li>
+  <li>Check the <code>zk_covenant</code> account under the program: the challenge the lender issued is the nonce the GPU signed.</li>
+  <li>Check the <code>zk_config</code> account: the guest image id and attestor threshold the program accepts. The guest source is <code>zk/risc0/methods/guest</code>; rebuild it and compare the image id.</li>
+  <li>Re-run the reference verifiers in <code>zk/</code> on the fixtures to see what each root checks.</li>
+</ol></div>
+
+<h2>Activity</h2>
+<div class="tbl"><table><thead><tr><th>When</th><th>Event</th><th>Detail</th><th>Transaction</th></tr></thead><tbody id="activity"><tr><td colspan="4" class="mutedc">Loading…</td></tr></tbody></table></div>
+
+<footer><div id="foot">Read straight from Solana; no database.</div></footer>
+</div>
+<script>
+const addr = location.pathname.split("/").filter(Boolean)[1] || "";
+const $ = (id) => document.getElementById(id);
+const hex = (h) => h ? h.slice(0, 16) + "…" + h.slice(-8) : "–";
+const ts = (s) => s ? new Date(s * 1000).toISOString().replace("T", " ").slice(0, 16) + " UTC" : "–";
+const bps = (b) => (b / 10000).toFixed(2) + "x";
+const dd = (k, v, mono) => `<dt>${k}</dt><dd${mono ? ' class="mono"' : ""}>${v}</dd>`;
+$("addr").textContent = addr;
+(async () => {
+  let l;
+  try { const r = await fetch(`/api/loan/${addr}`, { cache: "no-store" }); if (!r.ok) throw new Error(await r.text()); l = await r.json(); }
+  catch (e) { $("headline").textContent = "Loan not found"; $("lede").textContent = "No loan account at this address on the program, or the RPC is unreachable. " + (e.message || ""); return; }
+  const z = l.zk || { status: "none" }; const s = z.status || "none";
+  const ex = (l.explorer || "https://explorer.solana.com") + "/", cl = `?cluster=${l.cluster || "devnet"}`;
+  $("meta").textContent = `Verify page · ${l.cluster || "devnet"} · program ${l.programId || ""}`;
+  const word = s === "pass" ? "This fleet proved its covenant." : s === "watch" ? "This fleet proved its covenant is breached." : "No zero-knowledge proof yet for this loan.";
+  $("headline").textContent = word;
+  $("lede").textContent = s === "none" ? "The lender can issue a challenge; the operator then has until it expires to submit one proof covering the period." :
+    `One proof verified onchain says the GPU is genuine NVIDIA hardware${z.vmBound ? ", runs inside the measured enclave," : ","} and its revenue over the covenant window ${s === "pass" ? "covers" : "does not cover"} debt service at the minimum coverage. Amounts, payout ids and the GPU report never went onchain.`;
+  $("links").innerHTML = (z.proofTx ? `<a class="btn primary" href="${ex}tx/${z.proofTx}${cl}" target="_blank" rel="noopener">Proof transaction</a>` : "") +
+    `<a class="btn" href="${ex}address/${addr}${cl}" target="_blank" rel="noopener">Loan account</a><a class="btn" href="/api/loan/${addr}">JSON</a>`;
+  $("t-status").innerHTML = s === "pass" ? '<span class="good">PASS</span>' : s === "watch" ? '<span class="warn">WATCH</span>' : '<span class="mutedc">UNPROVEN</span>';
+  $("t-status-sub").textContent = s === "pass" ? "Next draw allowed." : s === "watch" ? "Next draw refused until a passing proof lands." : "Draws follow the public-proof covenant until then.";
+  $("t-cov").innerHTML = (z.coverageBps ? bps(z.coverageBps) : "–") + `<small> min ${bps(l.minCoverageBps || 0)}</small>`;
+  $("t-when").textContent = z.provenAt ? ts(z.provenAt).slice(0, 10) : "–";
+  $("t-when-sub").textContent = z.asOfPeriod ? `Covers period ${z.asOfPeriod} (${l.periodS === 604800 ? "week" : l.periodS + " s"}), ${z.claims ?? 0} payout claims.` : "";
+  $("facts").innerHTML =
+    dd("Evidence", z.evidence === "own" ? "GPU report and enclave quote produced against this loan's own challenge" : z.evidence === "public" ? "Published NVIDIA sample H100 report and published H200 TDX quote, chain-verified to their roots (devnet demo; not signed against this challenge)" : "–") +
+    dd("GPU chip id (hash)", hex(z.chipId), true) + dd("Firmware measurements (hash)", hex(z.measurements), true) +
+    dd("Enclave measurement", hex(z.vmMeasurement), true) + dd("GPU bound to enclave", z.vmBound ? "Yes: the TDX quote committed to this GPU report and challenge" : "No: quote verified, but not bound to this report") +
+    dd("Challenge the GPU signed", hex(z.challenge), true) + dd("Attestors per claim", z.attestorThreshold ?? "–") + dd("Guest image id", hex(z.imageId), true) + dd("Proven at", ts(z.provenAt));
+  $("terms").innerHTML = dd("Lender", l.lender, true) + dd("Borrower", l.borrower, true) + dd("Operator key (hash)", hex(l.operatorKey), true) +
+    dd("Fleet", `${l.fleetGpus} GPUs`) + dd("Period", l.periodS === 604800 ? "1 week" : `${l.periodS} s`) + dd("Minimum coverage", bps(l.minCoverageBps || 0)) +
+    dd("Currency", l.currency || "USD") + dd("Drawn / available", `${l.drawnSol ?? 0} / ${l.availableSol ?? 0} SOL`);
+  $("badge").src = `/badge/${addr}.svg`;
+  $("embed").textContent = `<a href="${location.origin}/loan/${addr}"><img src="${location.origin}/badge/${addr}.svg" alt="GPU verified"></a>`;
+  const rows = [];
+  if (z.proofTx) rows.push({ t: z.provenAt, e: "Covenant proven", d: `${s.toUpperCase()} ${z.coverageBps ? bps(z.coverageBps) : ""}`, sig: z.proofTx });
+  for (const d of l.draws || []) rows.push({ t: d.blockTime, e: "Draw approved", d: `${(d.lamports || 0) / 1e9} SOL`, sig: d.signature });
+  for (const p of l.proofs || []) rows.push({ t: p.blockTime || null, e: "Revenue proven (public path)", d: `${p.provider || ""} period ${p.period ?? ""}`, sig: p.signature });
+  rows.sort((a, b) => (b.t || 0) - (a.t || 0));
+  $("activity").innerHTML = rows.length ? rows.map(r => `<tr><td class="num">${r.t ? ts(r.t) : "–"}</td><td>${r.e}</td><td>${r.d}</td><td class="mono"><a href="${ex}tx/${r.sig}${cl}" target="_blank" rel="noopener">${r.sig.slice(0, 12)}…</a></td></tr>`).join("") : '<tr><td colspan="4" class="mutedc">No activity yet.</td></tr>';
+  $("foot").textContent = `Read straight from Solana ${l.cluster || "devnet"} at ${ts(l.fetchedAt)}; no database.`;
+})();
+</script>
+</body>
+</html>

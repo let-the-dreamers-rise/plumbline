@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Docs · Paid Compute Tape</title>
+<style>
+:root {
+  --bg: #f4f2ec; --surface: #fffdf8; --sunken: #ebe8df; --ink: #1b1d20; --muted: #63666b; --rule: #d8d4c8;
+  --paid: #a35a00; --posted: #6f7c88; --good: #24733f; --warn: #8a6500; --bad: #b0322a; --focus: #1f5fbf;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #111417; --surface: #181c20; --sunken: #0c0f11; --ink: #e6e8e4; --muted: #9aa1a7; --rule: #2b3238;
+    --paid: #eca447; --posted: #8a98a4; --good: #5cc283; --warn: #d8b54c; --bad: #ee6a5f; --focus: #7fb0ff; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); }
+.wrap { max-width: 72rem; margin: 0 auto; padding: 24px 16px 64px; }
+a { color: var(--paid); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px 16px; border-bottom: 2px solid var(--ink); padding-bottom: 12px; }
+h1 { margin: 0; font-size: 1.1rem; letter-spacing: .08em; text-transform: uppercase; }
+nav { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 600 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+nav a { color: var(--muted); text-decoration: none; } nav a:hover, nav a[aria-current] { color: var(--paid); }
+.meta { font: 12px var(--mono); color: var(--muted); }
+h2 { font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; margin: 36px 0 10px; }
+h3 { margin: 0 0 6px; font-size: 1rem; }
+p { margin: 0 0 10px; max-width: 66ch; }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.card { background: var(--surface); border: 1px solid var(--rule); padding: 16px; min-width: 0; }
+.k { font: 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.big { font: 700 2.4rem/1.1 var(--mono); font-variant-numeric: tabular-nums; margin-top: 6px; }
+.big small { font-size: .9rem; font-weight: 400; color: var(--muted); }
+.chip { display: inline-block; font: 600 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: 2px 6px; border: 1px solid currentColor; }
+.good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); } .mutedc { color: var(--muted); }
+.sub { font-size: .88rem; color: var(--muted); margin-top: 6px; }
+.btn { display: inline-block; font: 600 13px var(--mono); letter-spacing: .04em; text-transform: uppercase; padding: 10px 14px; border: 1px solid var(--ink); color: var(--ink); text-decoration: none; background: transparent; cursor: pointer; }
+.btn.primary { background: var(--ink); color: var(--bg); }
+.btn:hover { border-color: var(--paid); color: var(--paid); } .btn.primary:hover { color: var(--bg); background: var(--paid); border-color: var(--paid); }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+code, pre { font: 12.5px/1.5 var(--mono); background: var(--sunken); }
+code { padding: 1px 4px; word-break: break-all; }
+pre { margin: 8px 0 12px; padding: 12px; overflow-x: auto; border: 1px solid var(--rule); white-space: pre; }
+ol, ul { padding-left: 1.2rem; margin: 0 0 10px; } li { margin: 4px 0; max-width: 70ch; }
+.tbl { overflow-x: auto; background: var(--surface); border: 1px solid var(--rule); }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font: 600 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--sunken); white-space: nowrap; }
+td.mono { font-family: var(--mono); font-size: .82rem; word-break: break-all; }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+label { display: grid; gap: 4px; font: 600 12px var(--mono); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+input, textarea { font: 14px var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--rule); padding: 8px 10px; width: 100%; }
+form { display: grid; gap: 12px; max-width: 34rem; }
+footer { margin-top: 48px; border-top: 1px solid var(--rule); padding-top: 12px; font: 12px var(--mono); color: var(--muted); display: grid; gap: 4px; }
+.hero { padding: 36px 0 8px; }
+.hero h2.title { font: 800 clamp(1.8rem, 4.6vw, 3rem)/1.05 var(--sans); letter-spacing: -.02em; text-transform: none; margin: 0 0 14px; max-width: 22ch; }
+.hero .lede { font-size: 1.1rem; max-width: 58ch; }
+.number { border-left: 4px solid var(--paid); padding: 6px 14px; margin: 18px 0; font: 600 1.05rem/1.4 var(--sans); max-width: 52ch; }
+.steps { counter-reset: s; display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.steps .card::before { counter-increment: s; content: counter(s); font: 700 1.6rem var(--mono); color: var(--paid); display: block; margin-bottom: 4px; }
+dl { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; font-size: .92rem; }
+dt { font: 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+dd { margin: 0; min-width: 0; word-break: break-word; }
+@media (max-width: 40rem) { dl { grid-template-columns: minmax(0, 1fr); gap: 2px 0; } dt { padding-top: 8px; } }
+.note { font-size: .88rem; color: var(--muted); border: 1px dashed var(--rule); padding: 8px 12px; max-width: 70ch; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div><h1>Paid Compute Tape</h1><div class="meta">Docs · how it works, trust model, API, pricing</div></div>
+  <nav><a href="/">Product</a><a href="/prove">Prove</a><a href="/lender">Verify</a><a href="/tape">Tape</a><a href="/docs" aria-current="page">Docs</a></nav>
+</header>
+
+<h2>What the proof says</h2>
+<p>One RISC Zero guest (image id pinned onchain) verifies three independent roots and outputs one journal:</p>
+<div class="grid">
+  <div class="card"><h3>Root 1: the GPU is real</h3><p>NVIDIA's SPDM attestation report, signed by the H100 with ECDSA P-384, and its five-certificate chain to the NVIDIA Device Identity CA. The report's nonce must equal the lender's challenge. The guest outputs hashes of the chip id and the firmware measurements.</p></div>
+  <div class="card"><h3>Root 2: the enclave is the expected one</h3><p>An Intel TDX DCAP v4 quote: PCK chain to Intel's SGX Root CA, QE report, attestation-key binding and the quote signature. Its <code>report_data</code> must commit to the GPU report and the challenge, which binds the GPU to the enclave. The guest outputs the VM measurement and whether it vouched for the report.</p></div>
+  <div class="card"><h3>Root 3: the revenue is real</h3><p>Reclaim zkTLS claims of the period's payouts (Razorpay, Stripe, marketplace APIs), each signed by at least two attestors from the set hashed onchain. The guest sums the period, removes duplicate payout ids, and tests revenue against debt service at the minimum coverage. Amounts never leave the guest.</p></div>
+</div>
+<p style="margin-top:12px">Journal (public values): loan id, challenge, VM measurement, attestor-set hash, revenue commitment, chip-id hash, measurements hash, coverage in basis points, period, claim count, bound flag. The Solana program re-derives every one of them from onchain state before accepting the seal.</p>
+
+<h2>Trust model</h2>
+<div class="grid">
+  <div class="card"><h3>Removed</h3><ul><li>Trusted telemetry (the GPU signs its own report)</li><li>Single attestor (two per claim, from a set the program pins)</li><li>Admin key on the covenant (the program decides from the proof)</li><li>Public revenue (only coverage in basis points is published)</li></ul></div>
+  <div class="card"><h3>Remaining</h3><ul><li>NVIDIA's and Intel's root certificates</li><li>The attestors not colluding; Reclaim's proxy model (an attestor can still fabricate a session with the operator's cooperation)</li><li>The RISC Zero prover and the Groth16 verifier (risc0-solana, audited by Veridise, self-deployed)</li><li>Freshness: the challenge has a maximum age in slots because proving can take longer than Solana's recent-blockhash window</li></ul></div>
+</div>
+
+<h2>Evidence on devnet today</h2>
+<p class="note">The devnet proofs verify NVIDIA's published sample H100 report and VoltageGPU's published H200 TDX quote, both chain-verified to their roots, with revenue claims signed by two test attestors. They are real cryptographic evidence, but the quote is not bound to the sample report (<code>vm_bound = 0</code>) and neither was signed against our own challenge. Every verify page prints the evidence label (<code>public</code> or <code>own</code>). A report signed inside our own enclave against our own challenge is the next step.</p>
+
+<h2>API</h2>
+<div class="tbl"><table>
+  <thead><tr><th>Endpoint</th><th>Returns</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">GET /api/loans</td><td>The newest loans with terms, trailing coverage, proofs, draws and the zk covenant block.</td></tr>
+    <tr><td class="mono">GET /api/loan/&lt;address&gt;</td><td>One loan. <code>zk.status</code> is <code>pass</code>, <code>watch</code> or <code>none</code>; <code>zk.coverageBps</code>, <code>zk.asOfPeriod</code>, <code>zk.chipId</code>, <code>zk.measurements</code>, <code>zk.vmMeasurement</code>, <code>zk.vmBound</code>, <code>zk.challenge</code>, <code>zk.provenAt</code>, <code>zk.imageId</code>, <code>zk.attestorThreshold</code>, <code>zk.proofTx</code>, <code>zk.evidence</code>.</td></tr>
+    <tr><td class="mono">GET /badge/&lt;address&gt;.svg</td><td>An embeddable badge: PASS 1.15x · wk 2960, WATCH, or UNPROVEN.</td></tr>
+    <tr><td class="mono">GET /api/state</td><td>The Tape: paid and list books, accepted price proofs, and the off-chain recomputation of the index.</td></tr>
+    <tr><td class="mono">POST /api/lead</td><td>Request a proof: <code>{email, fleetGpus, lender, note}</code>.</td></tr>
+  </tbody>
+</table></div>
+<p style="margin-top:10px">Everything is read straight from Solana; there is no database. The program is <code>2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz</code> on devnet; the dashboard reads <code>SOLANA_RPC_URL</code>.</p>
+
+<h2>Pricing</h2>
+<ul>
+  <li><b>Operators:</b> $0.25 per GPU per week, charged per proof. First four proofs free. Fees are collected by the program at proof time from mainnet; devnet proofs are free.</li>
+  <li><b>Lenders, vault curators, GPU networks, clouds:</b> verify pages, badges and the read API are free during beta. Bulk API pricing comes with mainnet.</li>
+  <li><b>Why operators pay:</b> the gain is theirs. On a $15.8M loan (USD.AI's average), one point of rate is $158k a year, and a lender's warranty on the same collateral costs about 150 basis points a year. A 500-GPU fleet pays $6,500 a year for proofs.</li>
+</ul>
+
+<h2>Roadmap</h2>
+<ul>
+  <li>Own-enclave evidence: a report signed against our own challenge inside a Phala or NEAR AI confidential VM, bound in the proof.</li>
+  <li>Fleet Passport without a loan: prove hardware and enclave for a GPU network, no debt service.</li>
+  <li>Fees in USDC and x402 for the read API; several lenders reading one fleet's proofs.</li>
+  <li>Mainnet after the verifier audit; attestor set run with an independent operator.</li>
+</ul>
+
+<h2>Questions a careful reader asks</h2>
+<div class="grid">
+  <div class="card"><h3>Why a chain at all?</h3><p>Because the readers are not one lender. USD.AI's loans are onchain objects and its depositors are on Solana through Kamino; vault curators and depositors can read PASS or WATCH without asking anyone. A signed PDF from a verification service cannot be composed into a draw gate.</p></div>
+  <div class="card"><h3>Why zero knowledge?</h3><p>The GPU signs with P-384, which no chain verifies natively, and the evidence is megabytes. The proof makes it fit in one transaction, and it is what lets revenue stay private while the result is public.</p></div>
+  <div class="card"><h3>Does this replace the lender's monitoring vendor?</h3><p>Partly. Telemetry vendors see serials, health and temperature but not revenue, and their data is trusted, not signed by the GPU. The proof covers identity, enclave and coverage; it does not cover physical custody or power.</p></div>
+  <div class="card"><h3>What if the attestors collude?</h3><p>Then a fake payout can be proven. That is the weakest root and it is named as such. The attestor set is pinned onchain and can be replaced by the lender's own bank-feed attestor without changing the program.</p></div>
+</div>
+
+<footer><div>Source: the repository README and <code>oracle/README.md</code> have the instruction-level detail; <code>zk/</code> has the guest, the fixtures and the reference verifiers.</div></footer>
+</div>
+</body>
+</html>

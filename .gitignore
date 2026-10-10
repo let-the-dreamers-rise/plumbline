@@ -5,3 +5,4 @@ proofs/
 target/
 .anchor/
 test-ledger/
+leads.jsonl

@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prove your fleet · Paid Compute Tape</title>
+<style>
+:root {
+  --bg: #f4f2ec; --surface: #fffdf8; --sunken: #ebe8df; --ink: #1b1d20; --muted: #63666b; --rule: #d8d4c8;
+  --paid: #a35a00; --posted: #6f7c88; --good: #24733f; --warn: #8a6500; --bad: #b0322a; --focus: #1f5fbf;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #111417; --surface: #181c20; --sunken: #0c0f11; --ink: #e6e8e4; --muted: #9aa1a7; --rule: #2b3238;
+    --paid: #eca447; --posted: #8a98a4; --good: #5cc283; --warn: #d8b54c; --bad: #ee6a5f; --focus: #7fb0ff; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); }
+.wrap { max-width: 72rem; margin: 0 auto; padding: 24px 16px 64px; }
+a { color: var(--paid); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px 16px; border-bottom: 2px solid var(--ink); padding-bottom: 12px; }
+h1 { margin: 0; font-size: 1.1rem; letter-spacing: .08em; text-transform: uppercase; }
+nav { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 600 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+nav a { color: var(--muted); text-decoration: none; } nav a:hover, nav a[aria-current] { color: var(--paid); }
+.meta { font: 12px var(--mono); color: var(--muted); }
+h2 { font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; margin: 36px 0 10px; }
+h3 { margin: 0 0 6px; font-size: 1rem; }
+p { margin: 0 0 10px; max-width: 66ch; }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.card { background: var(--surface); border: 1px solid var(--rule); padding: 16px; min-width: 0; }
+.k { font: 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.big { font: 700 2.4rem/1.1 var(--mono); font-variant-numeric: tabular-nums; margin-top: 6px; }
+.big small { font-size: .9rem; font-weight: 400; color: var(--muted); }
+.chip { display: inline-block; font: 600 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: 2px 6px; border: 1px solid currentColor; }
+.good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); } .mutedc { color: var(--muted); }
+.sub { font-size: .88rem; color: var(--muted); margin-top: 6px; }
+.btn { display: inline-block; font: 600 13px var(--mono); letter-spacing: .04em; text-transform: uppercase; padding: 10px 14px; border: 1px solid var(--ink); color: var(--ink); text-decoration: none; background: transparent; cursor: pointer; }
+.btn.primary { background: var(--ink); color: var(--bg); }
+.btn:hover { border-color: var(--paid); color: var(--paid); } .btn.primary:hover { color: var(--bg); background: var(--paid); border-color: var(--paid); }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+code, pre { font: 12.5px/1.5 var(--mono); background: var(--sunken); }
+code { padding: 1px 4px; word-break: break-all; }
+pre { margin: 8px 0 12px; padding: 12px; overflow-x: auto; border: 1px solid var(--rule); white-space: pre; }
+ol, ul { padding-left: 1.2rem; margin: 0 0 10px; } li { margin: 4px 0; max-width: 70ch; }
+.tbl { overflow-x: auto; background: var(--surface); border: 1px solid var(--rule); }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font: 600 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--sunken); white-space: nowrap; }
+td.mono { font-family: var(--mono); font-size: .82rem; word-break: break-all; }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+label { display: grid; gap: 4px; font: 600 12px var(--mono); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+input, textarea { font: 14px var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--rule); padding: 8px 10px; width: 100%; }
+form { display: grid; gap: 12px; max-width: 34rem; }
+footer { margin-top: 48px; border-top: 1px solid var(--rule); padding-top: 12px; font: 12px var(--mono); color: var(--muted); display: grid; gap: 4px; }
+.hero { padding: 36px 0 8px; }
+.hero h2.title { font: 800 clamp(1.8rem, 4.6vw, 3rem)/1.05 var(--sans); letter-spacing: -.02em; text-transform: none; margin: 0 0 14px; max-width: 22ch; }
+.hero .lede { font-size: 1.1rem; max-width: 58ch; }
+.number { border-left: 4px solid var(--paid); padding: 6px 14px; margin: 18px 0; font: 600 1.05rem/1.4 var(--sans); max-width: 52ch; }
+.steps { counter-reset: s; display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.steps .card::before { counter-increment: s; content: counter(s); font: 700 1.6rem var(--mono); color: var(--paid); display: block; margin-bottom: 4px; }
+dl { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; font-size: .92rem; }
+dt { font: 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+dd { margin: 0; min-width: 0; word-break: break-word; }
+@media (max-width: 40rem) { dl { grid-template-columns: minmax(0, 1fr); gap: 2px 0; } dt { padding-top: 8px; } }
+.note { font-size: .88rem; color: var(--muted); border: 1px dashed var(--rule); padding: 8px 12px; max-width: 70ch; }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div><h1>Paid Compute Tape</h1><div class="meta">Prove your fleet · four steps, one proof a week</div></div>
+  <nav><a href="/">Product</a><a href="/prove" aria-current="page">Prove</a><a href="/lender">Verify</a><a href="/tape">Tape</a><a href="/docs">Docs</a></nav>
+</header>
+
+<section class="hero">
+  <h2 class="title">Prove the fleet. Keep the numbers.</h2>
+  <p class="lede">Each week you produce one proof that your GPUs are real, run in a measured enclave, and earned enough to cover debt service. The proof goes onchain; your payouts, tenants and prices never do. The first four proofs are free, then $0.25 per GPU per week.</p>
+</section>
+
+<h2>What you need</h2>
+<div class="grid">
+  <div class="card"><h3>Hardware</h3><p>NVIDIA H100 or H200 with confidential computing enabled, inside an Intel TDX confidential VM (Phala Cloud, NEAR AI, VoltageGPU and any own TDX host with the NVIDIA driver in CC mode all work).</p></div>
+  <div class="card"><h3>A payout record</h3><p>A Razorpay, Stripe or marketplace payout account that pays you for GPU time. The prover reads it over zkTLS; only amount, date and a payout id are extracted, and only a commitment to them leaves your machine.</p></div>
+  <div class="card"><h3>Loan terms</h3><p>Your lender opens the loan on the program with debt service, period and the minimum coverage (11,500 basis points is 1.15x). No lender yet? Request a proof below and we open a self-declared term sheet for the first proofs.</p></div>
+</div>
+
+<h2>The four steps</h2>
+<div class="steps">
+  <div class="card"><h3>Get the challenge</h3><p>Your lender runs <code>issue_gpu_challenge</code>; a 32-byte nonce lands in the loan's covenant account. Read it with <code>npm run loan:show</code>. The GPU must sign exactly this nonce, so last week's report cannot be reused.</p></div>
+  <div class="card"><h3>Collect evidence on the machine</h3><p>Ask the GPU for its attestation report with the challenge as the SPDM nonce, ask the enclave for a TDX quote whose <code>report_data</code> commits to that report and the challenge, and run <code>npm run prove:revenue</code> for the period's payouts. Exact commands and formats are in <a href="/docs">the docs</a> and <code>zk/README.md</code>.</p></div>
+  <div class="card"><h3>Run the prover</h3><p><code>cd zk/risc0 &amp;&amp; cargo run --release -- groth16</code> verifies all three roots inside the guest, tests coverage, and writes a 256-byte Groth16 seal plus the public journal. Needs Docker and about 16 GB of RAM; runs on your own machine so nothing leaves it.</p></div>
+  <div class="card"><h3>Submit</h3><p>Send the seal and journal to <code>prove_covenant</code> (CLI in the docs). The program checks the proof, the challenge, the guest image and the attestor set, then records PASS or WATCH. Your public page is <code>/loan/&lt;address&gt;</code> and your badge is <code>/badge/&lt;address&gt;.svg</code>.</p></div>
+</div>
+
+<h2>What goes onchain</h2>
+<div class="tbl"><table>
+  <thead><tr><th>Field</th><th>Public?</th><th>Why</th></tr></thead>
+  <tbody>
+    <tr><td>PASS or WATCH, coverage in basis points</td><td>Yes</td><td>The covenant result the lender and depositors act on.</td></tr>
+    <tr><td>Hash of the GPU's chip id and firmware measurements</td><td>Yes</td><td>Lets a lender tie proofs to the same hardware week after week.</td></tr>
+    <tr><td>Enclave measurement and whether it vouched for the GPU report</td><td>Yes</td><td>Lets anyone check the software stack is the expected one.</td></tr>
+    <tr><td>Challenge, period, attestor-set hash, revenue commitment</td><td>Yes</td><td>Freshness, scope and auditability without the amounts.</td></tr>
+    <tr><td>Payout amounts, payout ids, tenant names, prices</td><td>No</td><td>Checked inside the proof only.</td></tr>
+    <tr><td>The attestation report and the TDX quote</td><td>No</td><td>Megabytes of evidence stay on your machine; the proof is what travels.</td></tr>
+  </tbody>
+</table></div>
+
+<h2>Request a proof</h2>
+<p>Tell us the fleet and the lender, and we set up the terms and walk the first proof with you. First four proofs free.</p>
+<div class="row"><a class="btn primary" href="/#lead">Request a proof</a><a class="btn" href="/docs">Read the docs</a></div>
+
+<footer><div>Devnet today. Mainnet after the verifier audit. Fees are collected onchain from mainnet.</div></footer>
+</div>
+</body>
+</html>
