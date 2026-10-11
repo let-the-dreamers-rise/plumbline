@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { discriminator, Writer } from "@pct/oracle";
 import { Keypair } from "@solana/web3.js";
-import { badge, covenantProvenLoans, decodeZkConfig, decodeZkCovenant } from "./zk.js";
+import { badge, covenantProvenLoans, decodeZkConfig, decodeZkCovenant, provedChallenge } from "./zk.js";
 
 const PID = Keypair.generate().publicKey.toBase58();
 
@@ -60,5 +60,15 @@ describe("badge", () => {
     expect(badge("pass", 11_500, 2961)).toContain("PASS 1.15x · wk 2961");
     expect(badge("watch", 11_403, 2961)).toContain("WATCH 1.14x · wk 2961");
     expect(badge("none", 0, 0)).toContain(">UNPROVEN<");
+  });
+});
+
+describe("provedChallenge", () => {
+  it("reads the GPU nonce from prove_covenant's public values", () => {
+    const pv = new Uint8Array(262);
+    pv.fill(5, 32, 64);
+    const data = new Writer().raw(discriminator("global", "prove_covenant")).vec(new Uint8Array(256)).vec(pv).u32(2961).bytes();
+    expect(provedChallenge(data)).toBe("05".repeat(32));
+    expect(provedChallenge(new Writer().raw(discriminator("global", "draw_private")).u64(1n).bytes())).toBeNull();
   });
 });

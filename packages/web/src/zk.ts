@@ -27,6 +27,16 @@ const hex = (b: Uint8Array) => Buffer.from(b).toString("hex");
 const COVENANT_DISC = hex(discriminator("account", "ZkCovenant"));
 const CONFIG_DISC = hex(discriminator("account", "ZkConfig"));
 const PROVEN_DISC = hex(discriminator("event", "CovenantProven"));
+const PROVE_IX = hex(discriminator("global", "prove_covenant"));
+
+/** The challenge a prove_covenant call answered: word 1 of its public values (seal vec, then public_values vec). */
+export function provedChallenge(ixData: Uint8Array): string | null {
+  if (hex(ixData.subarray(0, 8)) !== PROVE_IX) return null;
+  const r = new Reader(ixData.subarray(8));
+  r.take(r.u32());
+  const pv = r.take(r.u32());
+  return pv.length >= 64 ? hex(pv.subarray(32, 64)) : null;
+}
 
 /** Decodes a ZkCovenant account (layout of `ZkCovenant` in instructions/zk.rs). */
 export function decodeZkCovenant(data: Uint8Array) {
@@ -64,12 +74,19 @@ export function covenantProvenLoans(logs: readonly string[], programId?: string)
     .map((d) => new PublicKey(d.subarray(8, 40)).toBase58());
 }
 
-/** The newest successful transaction on the covenant account that proved this loan. */
-async function proofTx(connection: Connection, covenant: PublicKey, loan: string, programId: PublicKey): Promise<string | null> {
+/**
+ * The newest successful transaction on the covenant account that proved this loan, and the challenge
+ * it answered (the program clears the stored challenge once a proof lands, so it is read from the proof).
+ */
+async function proofTx(connection: Connection, covenant: PublicKey, loan: string, programId: PublicKey): Promise<{ sig: string; challenge: string | null } | null> {
   const sigs = (await connection.getSignaturesForAddress(covenant, { limit: 20 }, "confirmed")).filter((s) => s.err === null);
   for (const s of sigs) {
     const tx = await connection.getTransaction(s.signature, { commitment: "confirmed", maxSupportedTransactionVersion: 0 });
-    if (covenantProvenLoans(tx?.meta?.logMessages ?? [], programId.toBase58()).includes(loan)) return s.signature;
+    if (!tx || !covenantProvenLoans(tx.meta?.logMessages ?? [], programId.toBase58()).includes(loan)) continue;
+    const msg = tx.transaction.message;
+    const keys = msg.staticAccountKeys;
+    const ix = msg.compiledInstructions.find((i) => keys[i.programIdIndex]?.equals(programId) && provedChallenge(i.data) !== null);
+    return { sig: s.signature, challenge: ix ? provedChallenge(ix.data) : null };
   }
   return null;
 }
@@ -87,6 +104,8 @@ export async function loadZk(connection: Connection, programId: PublicKey, loan:
   if (!cov) return null;
   const z = decodeZkCovenant(cov.data);
   const c = cfg ? decodeZkConfig(cfg.data) : null;
+  const proof = z.status === "none" ? null : await proofTx(connection, covenant, loan.toBase58(), programId);
+  const cleared = /^0+$/.test(z.challenge);
   return {
     status: z.status,
     coverageBps: z.coverageBps,
@@ -96,11 +115,11 @@ export async function loadZk(connection: Connection, programId: PublicKey, loan:
     measurements: z.measurements,
     vmMeasurement: z.vmMeasurement,
     vmBound: z.vmBound,
-    challenge: z.challenge,
+    challenge: cleared && proof?.challenge ? proof.challenge : z.challenge,
     provenAt: z.provenAt,
     imageId: c?.imageId ?? null,
     attestorThreshold: c?.attestorThreshold ?? null,
-    proofTx: z.status === "none" ? null : await proofTx(connection, covenant, loan.toBase58(), programId),
+    proofTx: proof?.sig ?? null,
     evidence: z.status === "none" ? null : evidence(),
   };
 }
