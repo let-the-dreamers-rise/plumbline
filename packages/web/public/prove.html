@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Prove your fleet · Tessera</title>
+<meta name="description" content="For GPU operators borrowing against their fleet: what you need and the four steps to one zero-knowledge proof per period that your lender can verify.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tessera">
+<meta property="og:title" content="Prove your fleet · Tessera">
+<meta property="og:description" content="For GPU operators borrowing against their fleet: one zero-knowledge proof per period that your lender can verify.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Prove your fleet · Tessera">
+<meta name="twitter:description" content="For GPU operators borrowing against their fleet: one zero-knowledge proof per period that your lender can verify.">
 <style>
 :root {
   --bg: #f4f2ec; --surface: #fffdf8; --sunken: #ebe8df; --ink: #1b1d20; --muted: #63666b; --rule: #d8d4c8;
@@ -71,18 +79,18 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 <div class="wrap">
 <header>
   <div><h1>Tessera</h1><div class="meta">Prove your fleet · four steps, one proof a week</div></div>
-  <nav><a href="/">Product</a><a href="/prove" aria-current="page">Prove</a><a href="/lender">Verify</a><a href="/tape">Tape</a><a href="/docs">Docs</a></nav>
+  <nav aria-label="Site"><a href="/">Home</a><a href="/prove" aria-current="page">Prove</a><a href="/docs">Docs</a><a href="/lender">Lender</a><a href="/tape">Tape</a></nav>
 </header>
 
 <section class="hero">
   <h2 class="title">Prove the fleet. Keep the numbers.</h2>
-  <p class="lede">Each week you produce one proof that your GPUs are real, run in a measured enclave, and earned enough to cover debt service. The proof goes onchain; your payouts, tenants and prices never do. The first four proofs are free, then $0.25 per GPU per week.</p>
+  <p class="lede">Each week you produce one proof that your GPUs are real, run in a measured enclave, and earned enough to cover debt service. The proof goes onchain; your individual payouts, tenants and prices never do (the period's total revenue and coverage are public). Planned pricing is $0.25 per GPU per week; today the program charges a flat fee on every proof (0.0013 SOL in the devnet demo).</p>
 </section>
 
 <h2>What you need</h2>
 <div class="grid">
   <div class="card"><h3>Hardware</h3><p>NVIDIA H100 or H200 with confidential computing enabled, inside an Intel TDX confidential VM (Phala Cloud, NEAR AI, VoltageGPU and any own TDX host with the NVIDIA driver in CC mode all work).</p></div>
-  <div class="card"><h3>A payout record</h3><p>A Razorpay, Stripe or marketplace payout account that pays you for GPU time. The prover reads it over zkTLS; only amount, date and a payout id are extracted, and only a commitment to them leaves your machine.</p></div>
+  <div class="card"><h3>A payout record</h3><p>A Razorpay, Stripe or marketplace payout account that pays you for GPU time. The prover reads it over zkTLS; only amount, date and a payout id are extracted. Individual payouts stay on your machine; the proof publishes only the window's total revenue, the coverage ratio and the number of claims.</p></div>
   <div class="card"><h3>Loan terms</h3><p>Your lender opens the loan on the program with debt service, period and the minimum coverage (11,500 basis points is 1.15x). No lender yet? Request a proof below and we open a self-declared term sheet for the first proofs.</p></div>
 </div>
 
@@ -94,6 +102,8 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
   <div class="card"><h3>Submit</h3><p>Send the seal and journal to <code>prove_covenant</code> (CLI in the docs). The program checks the proof, the challenge, the guest image and the attestor set, then records PASS or WATCH. Your public page is <code>/loan/&lt;address&gt;</code> and your badge is <code>/badge/&lt;address&gt;.svg</code>.</p></div>
 </div>
 
+<p class="note" style="margin-top:12px">Today the prover runs on the bundled sample evidence (NVIDIA's published H100 report, a published H200 TDX quote and test-signed revenue claims). A mode that takes your own report, quote and claims is planned; the steps above describe the target flow.</p>
+
 <h2>What goes onchain</h2>
 <div class="tbl"><table>
   <thead><tr><th>Field</th><th>Public?</th><th>Why</th></tr></thead>
@@ -101,17 +111,18 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
     <tr><td>PASS or WATCH, coverage in basis points</td><td>Yes</td><td>The covenant result the lender and depositors act on.</td></tr>
     <tr><td>Hash of the GPU's chip id and firmware measurements</td><td>Yes</td><td>Lets a lender tie proofs to the same hardware week after week.</td></tr>
     <tr><td>Enclave measurement and whether it vouched for the GPU report</td><td>Yes</td><td>Lets anyone check the software stack is the expected one.</td></tr>
-    <tr><td>Challenge, period, attestor-set hash, revenue commitment</td><td>Yes</td><td>Freshness, scope and auditability without the amounts.</td></tr>
-    <tr><td>Payout amounts, payout ids, tenant names, prices</td><td>No</td><td>Checked inside the proof only.</td></tr>
+    <tr><td>Challenge, period, attestor-set hash, number of payout claims</td><td>Yes</td><td>Freshness, scope and auditability.</td></tr>
+    <tr><td>Total revenue for the covenant window</td><td>Yes</td><td>It is in the proof's public values, sent as instruction data. Coverage times debt service also gives it.</td></tr>
+    <tr><td>Individual payout amounts, payout ids, tenant names, prices</td><td>No</td><td>Checked inside the proof only.</td></tr>
     <tr><td>The attestation report and the TDX quote</td><td>No</td><td>Megabytes of evidence stay on your machine; the proof is what travels.</td></tr>
   </tbody>
 </table></div>
 
 <h2>Request a proof</h2>
-<p>Tell us the fleet and the lender, and we set up the terms and walk the first proof with you. First four proofs free.</p>
-<div class="row"><a class="btn primary" href="/#lead">Request a proof</a><a class="btn" href="/docs">Read the docs</a></div>
+<p>Tell us the fleet and the lender, and we set up the terms and walk the first proof with you.</p>
+<div class="row"><a class="btn primary" href="/#request">Request a proof</a><a class="btn" href="/docs">Read the docs</a></div>
 
-<footer><div>Devnet today. Mainnet after the verifier audit. Fees are collected onchain at proof time; the devnet demo charges 0.0013 SOL of test SOL per proof.</div></footer>
+<footer><div>Runs on a local Solana validator today; devnet deploy pending. Mainnet after the verifier audit. Fees are collected onchain at proof time; the devnet demo sets a flat 0.0013 SOL per proof.</div></footer>
 </div>
 </body>
 </html>
