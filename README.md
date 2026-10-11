@@ -1,9 +1,9 @@
-# SealScore
+# Ironproof
 
-**SealScore verifies GPU fleets for the lenders who finance them.** GPU-backed private credit (lenders
+**Ironproof verifies GPU fleets for the lenders who finance them.** GPU-backed private credit (lenders
 such as USD.AI, GAIB and Compute Labs) today relies on warranties, site audits and PDF revenue
 statements to know that the collateral is real hardware and that it earns enough to service the
-debt. With SealScore an operator produces one zero-knowledge proof per period that says: this is a
+debt. With Ironproof an operator produces one zero-knowledge proof per period that says: this is a
 genuine NVIDIA H100 (its own attestation, chain-verified to NVIDIA's root), it runs in a measured
 Intel TDX confidential VM, and the fleet's revenue over the covenant window, proven from the
 payment processor with zkTLS (Reclaim), covers debt service by at least the loan's minimum coverage
@@ -11,7 +11,7 @@ payment processor with zkTLS (Reclaim), covers debt service by at least the loan
 records PASS or WATCH on the loan, and gates draws on it. Anyone can check a loan at
 `/loan/<address>`, embed `/badge/<address>.svg`, or read `/api/loan/<address>`.
 
-Naming: the product is **SealScore**. `paid-compute-tape` (repo), `PCT` (`@pct/*` packages,
+Naming: the product is **Ironproof**. `paid-compute-tape` (repo), `PCT` (`@pct/*` packages,
 `pct_oracle`, `PCT_*` env vars) is the internal code prefix from the project's first form, an
 H100 price tape, which still exists as a by-product (`/tape`).
 
@@ -154,7 +154,7 @@ The `Dockerfile` runs `packages/web` (site, verify pages, badges, lead form) on 
 ```bash
 npm i -g @railway/cli
 railway login
-railway init --name sealscore
+railway init --name ironproof
 railway up --detach                  # first deploy creates the service
 railway service                      # link it (pick the service just created)
 railway variables --set "SOLANA_RPC_URL=https://api.devnet.solana.com" --set "PCT_PROGRAM_ID=2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz" --set "PCT_EVIDENCE=public" --set "LEADS_FILE=/data/leads.jsonl"

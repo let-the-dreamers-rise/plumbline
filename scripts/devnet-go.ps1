@@ -1,4 +1,4 @@
-# One-shot devnet deploy + demo for SealScore. Safe to re-run: each step skips what is already done.
+# One-shot devnet deploy + demo for Ironproof. Safe to re-run: each step skips what is already done.
 # Run from PowerShell, in the repo:  powershell -ExecutionPolicy Bypass -File scripts\devnet-go.ps1
 $ErrorActionPreference = "Stop"
 $root = Split-Path $PSScriptRoot -Parent

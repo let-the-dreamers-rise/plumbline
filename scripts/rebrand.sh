@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Rename the user-facing product name, e.g. scripts/rebrand.sh Tessera SealScore. Safe to rerun with a new pair.
+# Rename the user-facing product name, e.g. scripts/rebrand.sh SealScore Ironproof. Safe to rerun with a new pair.
 # Internal identifiers (pct_oracle, PDA seeds, @pct/* packages, PCT_* env vars, repo and branch names) are left alone.
 set -euo pipefail
 old="$1"; new="$2"; lo_old=$(echo "$old" | tr '[:upper:]' '[:lower:]'); lo_new=$(echo "$new" | tr '[:upper:]' '[:lower:]')

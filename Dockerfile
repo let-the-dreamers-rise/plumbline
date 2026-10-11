@@ -1,4 +1,4 @@
-# SealScore web: the product site, verify pages, badges and lead form (packages/web). Reads Solana over RPC.
+# Ironproof web: the product site, verify pages, badges and lead form (packages/web). Reads Solana over RPC.
 FROM node:22-slim
 WORKDIR /app
 COPY package.json package-lock.json tsconfig.json ./

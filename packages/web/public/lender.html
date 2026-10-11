@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lender view · SealScore</title>
+<title>Lender view · Ironproof</title>
 <meta name="description" content="For lenders financing GPU fleets: each loan's coverage, proven revenue by week, proof transactions and draws, read straight from Solana.">
 <meta property="og:type" content="website">
-<meta property="og:site_name" content="SealScore">
-<meta property="og:title" content="Lender view · SealScore">
+<meta property="og:site_name" content="Ironproof">
+<meta property="og:title" content="Lender view · Ironproof">
 <meta property="og:description" content="Each GPU-backed loan's coverage, proven revenue, proof transactions and draws, read straight from Solana.">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:title" content="Lender view · SealScore">
+<meta name="twitter:title" content="Lender view · Ironproof">
 <meta name="twitter:description" content="Each GPU-backed loan's coverage, proven revenue, proof transactions and draws, read straight from Solana.">
 <style>
 :root {
@@ -88,7 +88,7 @@ dialog code { font: 12px var(--mono); background: var(--sunken); padding: 1px 4p
 <body>
 <div class="wrap">
   <header>
-    <div><h1><a href="/">SealScore</a></h1><div class="meta">Lender view · every loan on the program</div></div>
+    <div><h1><a href="/">Ironproof</a></h1><div class="meta">Lender view · every loan on the program</div></div>
     <nav aria-label="Site"><a href="/">Home</a><a href="/prove">Prove</a><a href="/docs">Docs</a><a href="/lender" aria-current="page">Lender</a><a href="/tape">Tape</a></nav>
   </header>
   <p class="meta" id="meta">loading…</p>
@@ -205,7 +205,7 @@ function emptyState() {
   const a = (href, text) => el("a", { href }, text);
   return el("section", { class: "empty" },
     el("h2", {}, "No loans on this cluster yet"),
-    el("p", {}, "When a lender opens a loan on the SealScore program, it appears here with:"),
+    el("p", {}, "When a lender opens a loan on the Ironproof program, it appears here with:"),
     el("ul", {},
       el("li", {}, "trailing coverage against the minimum the loan sets, and whether the covenant is met"),
       el("li", {}, "proven revenue by week, with every proof transaction and a step-by-step check of each"),
