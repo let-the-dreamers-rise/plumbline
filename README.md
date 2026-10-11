@@ -23,7 +23,7 @@ Entry for the Colosseum Crypto World's Fair hackathon (submissions due Oct 12, 2
 | `packages/prover` | zkFetch source specs, request builder (secrets stay private, only price spans revealed, account id OPRF-hashed), proof-to-observation checks, CLIs. |
 | `sources/` | One JSON spec per provable paid-price source. `example-invoice.json` shows the format. |
 | `packages/oracle` | TS client for the Solana program: price proofs, loans, revenue proofs, draws; CLIs `oracle:*` and `loan:*`. |
-| `packages/web` | Product site and dashboard, read straight from Solana: product page (`/`, the earlier one at `/simple`), prove (`/prove`), docs (`/docs`), lender view (`/lender`), price tape (`/tape`), per-loan verify page (`/loan/<address>`), badge (`/badge/<address>.svg`) and JSON (`/api/loan/<address>`). Set `PCT_EVIDENCE=public` when the proofs use the published sample evidence. |
+| `packages/web` | Product site and dashboard, read straight from Solana: product page (`/`; the Hallmark design at `/hallmark/`, the first landing at `/simple`), prove (`/prove`), docs (`/docs`), lender view (`/lender`), price tape (`/tape`), per-loan verify page (`/loan/<address>`), badge (`/badge/<address>.svg`) and JSON (`/api/loan/<address>`). Set `PCT_EVIDENCE=public` when the proofs use the published sample evidence. |
 | `packages/relayer` | Pushes the onchain index to a Hyperliquid HIP-3 market (`hl:deploy`, `hl:relay`). |
 | `oracle/` | Anchor program `pct_oracle` and its LiteSVM tests; prebuilt `dist/pct_oracle.so`. |
 | `proofs/` | Generated proofs (git-ignored). |

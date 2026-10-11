@@ -16,9 +16,11 @@ const cluster = rpc.includes("devnet") ? "devnet" : rpc.includes("testnet") ? "t
 const leadsFile = process.env.LEADS_FILE?.trim() || "leads.jsonl";
 const page = (f: string) => new URL(`../public/${f}`, import.meta.url);
 const pages: Record<string, URL> = {
-  "/": page("site/index.html"),
+  // Lens is the site; its own theme.css and hero.js are served at the root next to it.
+  "/": page("site/lens/index.html"),
   "/simple": page("landing.html"),
-  // The two other design directions, for comparison; trailing slash so their relative assets resolve.
+  // The other design directions, kept for comparison; trailing slash so their relative assets resolve.
+  "/hallmark/": page("site/index.html"),
   "/lens/": page("site/lens/index.html"),
   "/lattice/": page("site/lattice/index.html"),
   "/lender": page("lender.html"),
@@ -27,8 +29,6 @@ const pages: Record<string, URL> = {
   "/docs": page("docs.html"),
 };
 const port = Number(process.env.PORT ?? 8787);
-// Assets of the marketing site (public/site), served at the relative paths its index.html uses.
-const assetTypes: Record<string, string> = { ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8" };
 
 /** A base58 Solana address, or null; anything else never reaches a page or the RPC. */
 function address(s: string | undefined): PublicKey | null {
@@ -104,12 +104,17 @@ createServer(async (req, res) => {
       res.writeHead(200, { "content-type": "image/svg+xml", "cache-control": "max-age=60" }).end(badge(z?.status ?? "none", z?.coverageBps ?? 0, z?.asOfPeriod ?? 0));
       return;
     }
-    const asset = /^\/(css|js|vendor|lens|lattice)\/([A-Za-z0-9._-]+\.(css|js))$/.exec(path);
-    if (asset && existsSync(page(`site/${asset[1]}/${asset[2]}`))) {
-      res.writeHead(200, { "content-type": assetTypes[`.${asset[3]}`]!, "cache-control": "max-age=300" }).end(readFileSync(page(`site/${asset[1]}/${asset[2]}`)));
+    // /css|js|vendor/<file> (also under /hallmark/), /lens|lattice/<file>, and Lens's own /theme.css and /hero.js.
+    const asset =
+      /^\/(?:hallmark\/)?(css|js|vendor|lens|lattice)\/([A-Za-z0-9._-]+\.(css|js))$/.exec(path) ??
+      /^\/()((?:theme\.css|hero\.js))$/.exec(path)?.map((m, i) => (i === 1 ? "lens" : m));
+    const assetFile = asset && page(`site/${asset[1]}/${asset[2]}`);
+    if (asset && assetFile && existsSync(assetFile)) {
+      const type = asset[2]!.endsWith(".css") ? "text/css; charset=utf-8" : "text/javascript; charset=utf-8";
+      res.writeHead(200, { "content-type": type, "cache-control": "max-age=300" }).end(readFileSync(assetFile));
       return;
     }
-    if (path === "/lens" || path === "/lattice") {
+    if (path === "/lens" || path === "/lattice" || path === "/hallmark") {
       res.writeHead(301, { location: `${path}/` }).end();
       return;
     }
