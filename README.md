@@ -1,4 +1,4 @@
-# Paid Compute Tape
+# Tessera
 
 Verified revenue for GPU-backed lending. GPU operators prove their rental revenue straight from a
 third-party system of record (Razorpay payments, Stripe payouts, marketplace host earnings) with zkTLS (Reclaim
@@ -7,7 +7,7 @@ and gates draws on a covenant (trailing-quarter revenue at least 1.15x debt serv
 a live feed instead of trusting PDF statements. Every proof with GPU-hours also adds realized
 $/GPU-hr to an open H100 price tape, which can feed a compute-price perp (Hyperliquid HIP-3 testnet).
 
-**The product.** Paid Compute Tape is the verification platform for GPU fleets. Operators prove, weekly, that their fleet is real NVIDIA hardware (the GPU's own attestation, chain-verified to NVIDIA's root), runs in a measured Intel TDX enclave, and earned enough to cover its debt service (zkTLS payout proofs from two attestors), all inside one RISC Zero proof. A Solana program verifies the 256-byte proof and records PASS or WATCH on the loan. Anyone can verify at `/loan/<address>`, embed `/badge/<address>.svg`, or read `/api/loan/<address>`. Pricing: $0.25 per GPU per week, charged per proof, first four proofs free; verification is free. The Tape (`/tape`) is the public H100 paid-price index built from the same proofs.
+**The product.** Tessera (repository: paid-compute-tape) is the verification platform for GPU fleets. Operators prove, weekly, that their fleet is real NVIDIA hardware (the GPU's own attestation, chain-verified to NVIDIA's root), runs in a measured Intel TDX enclave, and earned enough to cover its debt service (zkTLS payout proofs from two attestors), all inside one RISC Zero proof. A Solana program verifies the 256-byte proof and records PASS or WATCH on the loan. Anyone can verify at `/loan/<address>`, embed `/badge/<address>.svg`, or read `/api/loan/<address>`. Pricing: $0.25 per GPU per week, charged per proof, first four proofs free; verification is free. The Tape (`/tape`) is the public H100 paid-price index built from the same proofs.
 
 Lender flow: `npm run lending:e2e` and the dashboard (`npm run web`) on a local validator; real
 Razorpay (or Stripe) test-mode proofs with `npm run prove:revenue` and `npm run loan:*` (see
