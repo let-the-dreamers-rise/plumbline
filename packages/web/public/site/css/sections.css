@@ -1,0 +1,219 @@
+/* ---------- Hero: the press ---------- */
+.hero {
+  max-width: var(--max); margin: 0 auto; padding: clamp(40px, 7vw, 96px) var(--gutter) 0;
+  display: grid; gap: clamp(32px, 5vw, 64px); grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); align-items: center;
+}
+.hero-copy { display: grid; gap: 22px; min-width: 0 }
+.lede { font-size: clamp(1.02rem, 1.4vw, 1.18rem); color: var(--polish); opacity: .86; max-width: 56ch }
+.hook { font: 400 clamp(1.1rem, 1.8vw, 1.4rem)/1.35 var(--display); max-width: 34ch; border-left: 1px solid var(--ingot); padding-left: 16px }
+.press { display: grid; gap: 14px; min-width: 0 }
+.press-stage {
+  position: relative; width: 100%; max-width: 560px; aspect-ratio: 1; margin: 0 auto; overflow: hidden; border-radius: 2px;
+  background: radial-gradient(120% 90% at 50% 100%, #221e18 0%, var(--vault-2) 45%, var(--vault) 100%);
+  border: 1px solid var(--slag); perspective: 900px;
+}
+#ore { position: absolute; inset: 0; width: 100%; height: 100% }
+html:not(.js) .frags, html:not(.js) .die { display: none }
+.frags { list-style: none; margin: 0; padding: 0; position: absolute; inset: 0 }
+.frags li {
+  position: absolute; font: 500 clamp(9px, 1.6vw, 11.5px)/1.2 var(--mono); letter-spacing: .04em; color: var(--muted);
+  padding: 6px 9px; border: 1px solid var(--slag); background: rgba(21, 19, 15, .9); white-space: nowrap; will-change: transform, opacity;
+}
+.frags li:nth-child(1) { left: 6%; top: 52% } .frags li:nth-child(2) { left: 40%; top: 64% }
+.frags li:nth-child(3) { left: 10%; top: 76% } .frags li:nth-child(4) { left: 50%; top: 80% }
+.frags li:nth-child(5) { left: 30%; top: 90% } .frags li:nth-child(6) { left: 58%; top: 56% }
+.die {
+  position: absolute; left: 50%; top: 0; width: 46%; height: 30%; margin-left: -23%;
+  background: linear-gradient(180deg, #24211c, #4a433a 85%, #5b5246); border: 1px solid #5b5246; border-bottom: 3px solid var(--ingot);
+  display: grid; place-items: end center; padding-bottom: 10px; transform: translateY(-105%); will-change: transform;
+}
+.die span { font: 500 10px var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted) }
+.coin {
+  position: absolute; left: 50%; top: 50%; width: 52%; aspect-ratio: 1; margin: -26% 0 0 -26%; border-radius: 50%;
+  background: radial-gradient(circle at 38% 30%, #fbecc0 0%, var(--ingot-hi) 18%, var(--ingot) 48%, var(--ingot-lo) 100%);
+  box-shadow: inset 0 0 0 2px #f6e2ac, inset 0 0 0 7px #a4823f, inset 0 0 0 8px #e9cf8f, 0 30px 60px -20px rgba(0,0,0,.8), 0 0 80px -10px rgba(201,164,92,.35);
+  display: grid; place-items: center; color: #2a1f0c; will-change: transform; transform-style: preserve-3d; overflow: hidden;
+}
+.coin-ring { position: absolute; inset: 0; width: 100%; height: 100% }
+.coin-ring text { font: 600 12.5px var(--mono); letter-spacing: .1em; fill: #5d441a }
+.coin-face { display: grid; justify-items: center; gap: 2px; text-align: center }
+.coin-face strong { font: 600 clamp(1.6rem, 5vw, 2.8rem)/1 var(--display); letter-spacing: .06em; color: #2a1f0c; text-shadow: 0 1px 0 rgba(255,240,200,.6) }
+.coin-sub { font: 500 clamp(9px, 1.5vw, 11px) var(--mono); letter-spacing: .14em; text-transform: uppercase; color: #5d441a }
+.coin-shine { position: absolute; inset: -30%; background: radial-gradient(circle at 50% 50%, rgba(255,250,230,.55), transparent 40%); mix-blend-mode: soft-light; transform: translate(var(--sx, -10%), var(--sy, -10%)); pointer-events: none }
+.flash { position: absolute; inset: 0; background: radial-gradient(circle, rgba(255,240,200,.85), rgba(201,164,92,0) 60%); opacity: 0; pointer-events: none }
+.press-caption { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; justify-content: space-between; max-width: 560px; width: 100%; margin: 0 auto }
+.press-caption p { font: 500 12px/1.4 var(--mono); letter-spacing: .06em; color: var(--muted) }
+.press-stage.holding .die span { color: var(--ingot-hi) }
+@media (max-width: 56rem) { .hero { grid-template-columns: minmax(0, 1fr) } }
+
+/* ---------- Marquee (placeholders) ---------- */
+.marquee { margin-top: clamp(64px, 10vw, 120px); border-block: 1px solid var(--slag); padding: 18px 0; display: grid; gap: 12px; overflow: hidden }
+.marquee .kicker { padding: 0 var(--gutter); display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: baseline }
+.ph { color: var(--muted); letter-spacing: .06em; text-transform: none; font-size: 12px }
+.mq-track { overflow: hidden; -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent); mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent) }
+.mq-row { display: flex; gap: 56px; width: max-content; animation: mq 48s linear infinite }
+.mq-row span { font: 400 italic clamp(1.1rem, 2.2vw, 1.6rem)/1 var(--display); color: var(--slag-2); white-space: nowrap }
+@keyframes mq { to { transform: translateX(calc(-50% - 28px)) } }
+.is-off .mq-row, .is-off .loop *, .is-off .loop { animation-play-state: paused !important }
+
+/* ---------- Before / after ---------- */
+.cmp { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; position: relative }
+.cmp-side { padding: clamp(20px, 3vw, 40px); border: 1px solid var(--slag); min-width: 0 }
+.cmp-side h3 { font: 500 1.6rem/1.1 var(--display); margin-bottom: 18px }
+.cmp-side ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px }
+.cmp-side li { padding-left: 26px; position: relative }
+.cmp-before { color: var(--muted); background: repeating-linear-gradient(135deg, transparent 0 9px, rgba(58,53,48,.25) 9px 10px) }
+.cmp-before li::before { content: "×"; position: absolute; left: 0; color: var(--watch) }
+.cmp-after { background: linear-gradient(160deg, #1d1912, var(--vault-2)); border-color: var(--ingot-lo) }
+.cmp-after h3 { color: var(--ingot-hi) }
+.cmp-after li::before { content: "✓"; position: absolute; left: 0; color: var(--pass) }
+.cmp-handle { display: none }
+@media (max-width: 46rem) { .cmp { grid-template-columns: minmax(0, 1fr) } }
+/* JS on, wide screens: the "one proof" plate slides over "today"; each side's copy fills its own half. */
+@media (min-width: 46.01rem) {
+  .cmp.live { grid-template-columns: minmax(0, 1fr); gap: 0; overflow: hidden; border: 1px solid var(--slag) }
+  .cmp.live .cmp-side { grid-area: 1 / 1; border: 0 }
+  .cmp.live .cmp-side > * { max-width: calc(50% - 30px) }
+  .cmp.live .cmp-after { transform: translateX(var(--split)); box-shadow: -30px 0 60px rgba(0,0,0,.5); transition: none }
+  .cmp.live .cmp-handle { display: block; position: absolute; inset: 0; pointer-events: none }
+  .cmp.live .cmp-handle::before { content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 2px; margin-left: -1px; background: var(--ingot); transform: translateX(var(--px, 0)); box-shadow: 0 0 20px var(--ingot) }
+  .cmp.live input { pointer-events: auto; position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: ew-resize; margin: 0 }
+  .cmp.live .knob { position: absolute; top: 50%; left: 0; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%; background: var(--ingot); color: #1d160a; display: grid; place-items: center; font: 600 14px var(--mono); transform: translateX(var(--px, 0)); pointer-events: none; transition: box-shadow var(--fast) }
+  .cmp.live:focus-within .knob { box-shadow: 0 0 0 3px var(--vault), 0 0 0 5px var(--focus) }
+}
+
+/* ---------- Story (pinned on wide screens) ---------- */
+.story-pin { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: clamp(24px, 5vw, 72px); align-items: center }
+.story-visual { position: relative; aspect-ratio: 1; max-width: 440px; width: 100%; border: 1px solid var(--slag); border-radius: 50%; display: grid; place-items: center }
+.seal-step { grid-area: 1 / 1; display: grid; justify-items: center; gap: 8px; opacity: 0; transition: opacity var(--med) var(--ease), transform var(--med) var(--ease); transform: scale(.92) }
+.seal-step b { font: 500 clamp(3rem, 8vw, 6rem)/1 var(--display); color: var(--ingot) }
+.seal-step span { font: 500 12px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted) }
+.seal-step.on { opacity: 1; transform: none }
+.story-rule { position: absolute; left: 10%; right: 10%; bottom: -28px; height: 2px; background: var(--slag) }
+.story-rule i { position: absolute; inset: 0; background: var(--ingot); transform: scaleX(0); transform-origin: left }
+.story-steps { display: grid; gap: 18px; min-width: 0 }
+.story-steps ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 28px; counter-reset: s }
+.step { padding-left: 52px; position: relative; transition: opacity var(--med) var(--ease) }
+.step::before { counter-increment: s; content: counter(s, upper-roman); position: absolute; left: 0; top: -2px; font: 500 1.4rem var(--display); color: var(--ingot) }
+.step h3 { font: 600 1.1rem/1.3 var(--body); margin-bottom: 6px }
+.step p { color: var(--muted); max-width: 54ch }
+.story.pinned .step { opacity: .28 } .story.pinned .step.on { opacity: 1 }
+.story-visual .seal-step:first-child { opacity: 1; transform: none }
+.story.pinned .story-visual .seal-step:first-child:not(.on) { opacity: 0; transform: scale(.92) }
+@media (max-width: 56rem) { .story-pin { grid-template-columns: minmax(0, 1fr) } .story-visual { max-width: 260px; margin: 0 auto 28px } }
+
+/* ---------- Bento ---------- */
+.bento { display: grid; gap: 14px; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-areas: "prove prove verify" "prove prove tape" "badge net cloud" }
+.t-prove { grid-area: prove } .t-verify { grid-area: verify } .t-tape { grid-area: tape } .t-badge { grid-area: badge } .t-net { grid-area: net } .t-cloud { grid-area: cloud }
+.tile {
+  position: relative; min-width: 0; padding: clamp(20px, 2.4vw, 30px); border: 1px solid var(--slag); background: var(--vault-2);
+  display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; min-height: 230px;
+  transition: transform var(--med) var(--ease), border-color var(--fast) var(--ease);
+}
+.tile:hover, .tile:focus-within { transform: translateY(-4px); border-color: var(--ingot-lo) }
+.tile h3 { font: 500 1.5rem/1.1 var(--display) }
+.tile h3 a { color: var(--polish); text-decoration: none } .tile h3 a::after { content: ""; position: absolute; inset: 0 }
+.tile h3 a:hover { color: var(--ingot-hi) }
+.tile p { color: var(--muted); font-size: .95rem; max-width: 48ch }
+.t-prove { background: radial-gradient(90% 80% at 80% 10%, #2a2318, var(--vault-2) 70%); }
+.t-prove h3 { font-size: clamp(2rem, 3.6vw, 3rem) }
+.loop { flex: 1; display: grid; place-items: center; min-height: 90px; overflow: hidden }
+.l-nonce { font: 400 clamp(2rem, 6vw, 4.4rem)/1.1 var(--mono); color: var(--ingot); height: 1.1em; min-height: 0; place-items: start center; -webkit-mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent); mask-image: linear-gradient(transparent, #000 30%, #000 70%, transparent); flex: 0 0 auto; margin: auto 0 }
+.l-nonce span { display: block; animation: roll 6s var(--ease) infinite }
+@keyframes roll { 0%, 18% { transform: translateY(0) } 25%, 43% { transform: translateY(-100%) } 50%, 68% { transform: translateY(-200%) } 75%, 93% { transform: translateY(-300%) } 100% { transform: translateY(-400%) } }
+.badge { position: relative; overflow: hidden; font: 600 14px var(--mono); letter-spacing: .14em; padding: 8px 16px; border: 1px solid var(--pass); color: var(--pass) }
+.badge::after { content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 35%, rgba(241,230,204,.45) 50%, transparent 65%); animation: glint 3.2s var(--ease) infinite; transform: translateX(-120%) }
+@keyframes glint { 60%, 100% { transform: translateX(120%) } }
+.l-tape { display: flex; align-items: end; gap: 6px; height: 90px; padding-top: 10px }
+.l-tape i { width: 8px; height: 100%; background: var(--ingot-lo); transform-origin: bottom; animation: tick 2.4s var(--ease) infinite alternate }
+.l-tape i:nth-child(3n) { animation-delay: -.6s } .l-tape i:nth-child(3n+1) { animation-delay: -1.3s } .l-tape i:nth-child(4n) { animation-delay: -1.9s; background: var(--ingot) }
+@keyframes tick { from { transform: scaleY(.25) } to { transform: scaleY(.9) } }
+.l-embed code { color: var(--ingot-hi); padding: 6px 10px; border: 1px dashed var(--slag); position: relative; overflow: hidden }
+.l-embed code::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 2px; background: var(--ingot); transform-origin: left; animation: ink 3s var(--ease) infinite }
+@keyframes ink { 0% { transform: scaleX(0) } 50%, 100% { transform: scaleX(1) } }
+.l-gate { display: flex; gap: 4px }
+.l-gate i { width: 34px; height: 60px; border: 1px solid var(--slag-2); transform-origin: left; animation: gate 3.4s var(--ease) infinite }
+.l-gate i:last-child { transform-origin: right; animation-name: gate2 }
+@keyframes gate { 0%, 30% { transform: none } 55%, 85% { transform: perspective(200px) rotateY(-70deg); border-color: var(--pass) } }
+@keyframes gate2 { 0%, 30% { transform: none } 55%, 85% { transform: perspective(200px) rotateY(70deg); border-color: var(--pass) } }
+.l-hash span { font: 500 11px var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; position: relative }
+.l-hash span::before { content: ""; position: absolute; inset: 0; border-radius: 50%; border: 1px dashed var(--ingot); animation: spin 14s linear infinite }
+@keyframes spin { to { transform: rotate(360deg) } }
+@media (max-width: 62rem) { .bento { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-areas: "prove prove" "verify tape" "badge net" "cloud cloud" } }
+@media (max-width: 40rem) { .bento { grid-template-columns: minmax(0, 1fr); grid-template-areas: "prove" "verify" "tape" "badge" "net" "cloud" } }
+
+/* ---------- Pricing calculator ---------- */
+.calc { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(20px, 4vw, 56px); border: 1px solid var(--slag); padding: clamp(20px, 4vw, 48px); background: var(--vault-2) }
+.calc-in { display: grid; gap: 14px; align-content: start }
+.calc label { display: flex; justify-content: space-between; gap: 12px; font: 500 12px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted) }
+.calc output { color: var(--polish); font-size: 14px; letter-spacing: .02em; font-variant-numeric: tabular-nums }
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 32px; background: transparent; margin: 0 0 10px; cursor: pointer }
+input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: linear-gradient(90deg, var(--ingot), var(--slag)) }
+input[type="range"]::-moz-range-track { height: 2px; background: var(--slag) }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 22px; height: 22px; margin-top: -10px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--ingot-hi), var(--ingot) 55%, var(--ingot-lo)); border: 0; transition: transform var(--fast) var(--ease) }
+input[type="range"]::-moz-range-thumb { width: 22px; height: 22px; border-radius: 50%; background: var(--ingot); border: 0 }
+input[type="range"]:hover::-webkit-slider-thumb { transform: scale(1.15) }
+.calc-out { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 24px; align-items: end }
+.stack { width: 64px; height: 170px; display: flex; flex-direction: column-reverse; gap: 0 }
+.stack i { display: block; height: 10px; border-radius: 50%; margin-top: -2px; background: linear-gradient(180deg, var(--ingot-hi), var(--ingot) 50%, var(--ingot-lo)); box-shadow: 0 1px 0 #2a1f0c; transform-origin: bottom; transition: transform var(--fast) var(--ease), opacity var(--fast) }
+.stack i.off { transform: translateY(-30px); opacity: 0 }
+.calc dl { margin: 0; display: grid; gap: 14px }
+.calc dt { font: 500 12px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted) }
+.calc dd { margin: 0; font: 500 clamp(2rem, 4.4vw, 3.2rem)/1 var(--display); font-variant-numeric: tabular-nums; color: var(--ingot-hi) }
+.calc .muted-row dd { font: 500 clamp(1.1rem, 2vw, 1.4rem)/1.2 var(--mono); color: var(--muted); text-decoration: line-through; text-decoration-color: var(--watch); text-decoration-thickness: 1px }
+@media (max-width: 52rem) { .calc { grid-template-columns: minmax(0, 1fr) } }
+
+/* ---------- Stats ---------- */
+.stat-grid { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--slag) }
+.stat-grid li { padding: 28px 20px 28px 0; border-bottom: 1px solid var(--slag); display: grid; gap: 8px; align-content: start; min-width: 0 }
+.stat-grid b { font: 500 clamp(2.4rem, 5.4vw, 4.4rem)/1 var(--display); color: var(--polish); font-variant-numeric: tabular-nums lining-nums; white-space: nowrap }
+.stat-grid span { color: var(--muted); font-size: .92rem; max-width: 30ch }
+@media (max-width: 52rem) { .stat-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) } }
+
+/* ---------- FAQ ---------- */
+.faq-list { border-top: 1px solid var(--slag) }
+.faq details { border-bottom: 1px solid var(--slag) }
+.faq summary { list-style: none; cursor: pointer; display: flex; justify-content: space-between; align-items: center; gap: 16px; padding: 22px 0; font: 500 clamp(1.1rem, 2vw, 1.4rem)/1.3 var(--display); transition: color var(--fast) }
+.faq summary::-webkit-details-marker { display: none }
+.faq summary::after { content: ""; flex: 0 0 14px; height: 14px; background: linear-gradient(var(--ingot), var(--ingot)) center/14px 1px no-repeat, linear-gradient(var(--ingot), var(--ingot)) center/1px 14px no-repeat; transition: transform var(--med) var(--ease) }
+.faq summary:hover { color: var(--ingot-hi) }
+.faq details[open] summary::after { transform: rotate(135deg) }
+.faq details > div { padding: 0 0 24px; color: var(--muted); max-width: 66ch }
+.faq details[open] > div { animation: lid var(--med) var(--ease) }
+@keyframes lid { from { opacity: 0; transform: translateY(-8px) } }
+
+/* ---------- CTA plate ---------- */
+.plate { border: 1px solid var(--ingot-lo); padding: clamp(24px, 6vw, 72px); background: radial-gradient(80% 120% at 0% 0%, #241e14, var(--vault-2) 60%); box-shadow: inset 0 0 0 6px var(--vault), inset 0 0 0 7px rgba(201,164,92,.35); display: grid; gap: 18px }
+.plate { grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); column-gap: clamp(24px, 5vw, 72px) }
+.plate > :not(.gets) { grid-column: 1 }
+.gets { grid-column: 2; grid-row: 1 / span 4; align-self: center; list-style: none; margin: 0; padding: 0; display: grid; gap: 0; border-top: 1px solid var(--slag) }
+.gets li { display: grid; gap: 2px; padding: 16px 0; border-bottom: 1px solid var(--slag) }
+.gets b { font: 500 1.15rem/1.2 var(--display); color: var(--polish) }
+.gets span { font-size: .9rem; color: var(--muted) }
+@media (max-width: 52rem) { .plate { grid-template-columns: minmax(0, 1fr) } .gets { grid-column: 1; grid-row: auto } }
+.plate .display-2 { font-size: clamp(2.2rem, 6vw, 4.6rem); max-width: 16ch }
+.cta-sub { color: var(--muted); max-width: 50ch }
+#lead { display: grid; gap: 14px; max-width: 40rem; margin-top: 12px }
+.f2 { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 14px }
+@media (max-width: 40rem) { .f2 { grid-template-columns: minmax(0, 1fr) } }
+#lead label { display: grid; gap: 6px; font: 500 12px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); min-width: 0 }
+#lead input, #lead textarea { font: 400 16px var(--body); color: var(--polish); background: var(--vault); border: 1px solid var(--slag); border-radius: 2px; padding: 12px 14px; width: 100%; transition: border-color var(--fast) }
+#lead input:hover, #lead textarea:hover { border-color: var(--slag-2) }
+#lead input:focus, #lead textarea:focus { border-color: var(--ingot); outline: none; box-shadow: 0 0 0 1px var(--ingot) }
+#lead [aria-invalid="true"] { border-color: var(--watch) }
+.plate.struck { animation: stampP .5s var(--ease) }
+@keyframes stampP { 30% { transform: scale(.992) } }
+
+/* ---------- Footer ---------- */
+.foot { max-width: var(--max); margin: clamp(80px, 12vw, 160px) auto 0; padding: 0 var(--gutter) 40px; display: grid; gap: 28px; position: relative; overflow: hidden }
+.foot::before { content: ""; position: absolute; left: 0; right: 0; top: 0; height: 1px; background: var(--slag) }
+.foot::after { content: ""; position: absolute; top: 0; left: 0; width: 30%; height: 1px; background: linear-gradient(90deg, transparent, var(--ingot-hi), transparent); animation: sweep 7s linear infinite }
+@keyframes sweep { from { transform: translateX(-100%) } to { transform: translateX(340%) } }
+.foot-mark { font: 500 clamp(2.2rem, 8.4vw, 7.4rem)/.9 var(--display); letter-spacing: -.03em; color: var(--slag); padding-top: 40px; white-space: nowrap }
+.foot > * { min-width: 0 }
+.foot-grid { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 20px }
+.foot-grid > div { display: grid; gap: 6px; min-width: 0 }
+.engrave { color: var(--ingot-hi); word-break: break-all; font-size: .9rem }
+.foot nav { display: flex; flex-wrap: wrap; gap: 8px 22px }
+.foot nav a { color: var(--muted); text-decoration: none } .foot nav a:hover { color: var(--ingot-hi) }
+.foot > .fine { max-width: 80ch }

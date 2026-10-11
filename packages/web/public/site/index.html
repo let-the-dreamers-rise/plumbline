@@ -1,0 +1,229 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Paid Compute Tape</title>
+<meta name="description" content="The verification platform for GPU fleets. One zero-knowledge proof says a fleet is real NVIDIA hardware, runs in a measured enclave, and earned enough to cover its loan.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..700;1,6..96,400..600&family=Hanken+Grotesk:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<script>document.documentElement.classList.add("js")</script>
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/sections.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav" id="top">
+  <a class="brand" href="/" aria-label="Paid Compute Tape, home"><span class="mark" aria-hidden="true"></span>Paid Compute Tape</a>
+  <nav aria-label="Product">
+    <a href="/prove">Prove</a><a href="/lender">Verify</a><a href="/tape">Tape</a><a href="/docs">Docs</a>
+  </nav>
+  <a class="btn btn-gold btn-sm" href="#request">Request a proof</a>
+</header>
+
+<main id="main">
+<section class="hero" aria-labelledby="hero-h">
+  <div class="hero-copy">
+    <p class="eyebrow">The verification platform for GPU fleets · Solana devnet</p>
+    <h1 id="hero-h" class="display reveal">The first GPU that proves itself onchain.</h1>
+    <p class="lede">One zero-knowledge proof says a fleet is real NVIDIA hardware, runs inside a measured enclave, and earned enough to cover its loan. A Solana program checks the proof and opens or refuses the next draw. Revenue stays private. The result is public.</p>
+    <p class="hook">400,000 fake GPUs got onto io.net in 2024. <em>One 256-byte proof stops that.</em></p>
+    <div class="row">
+      <a class="btn btn-gold" href="#request">Prove your fleet</a>
+      <a class="btn" href="/lender">Verify a loan</a>
+      <a class="btn btn-quiet" href="/tape">Read the tape</a>
+    </div>
+  </div>
+  <div class="press" id="press">
+    <div class="press-stage" id="stage" aria-hidden="true">
+      <canvas id="ore"></canvas>
+      <ul class="frags" id="frags">
+        <li>NVIDIA attestation report</li><li>Certificate chain to NVIDIA root</li><li>Intel TDX quote</li>
+        <li>Payout proof · attestor 1</li><li>Payout proof · attestor 2</li><li>32-byte challenge</li>
+      </ul>
+      <div class="die" id="die"><span>RISC Zero · Groth16</span></div>
+      <div class="coin" id="coin">
+        <svg class="coin-ring" viewBox="0 0 200 200"><defs><path id="ring" d="M100,100 m-78,0 a78,78 0 1,1 156,0 a78,78 0 1,1 -156,0"/></defs>
+          <text><textPath href="#ring" textLength="486">PAID COMPUTE TAPE · VERIFIED ONCHAIN · SOLANA ·</textPath></text></svg>
+        <div class="coin-face"><strong>PASS</strong><span class="coin-sub">256 bytes</span></div>
+        <i class="coin-shine"></i>
+      </div>
+      <div class="flash" id="flash"></div>
+    </div>
+    <div class="press-caption">
+      <p id="press-status" aria-live="polite">Megabytes of evidence, struck into one 256-byte proof.</p>
+      <button class="btn btn-sm" id="strike" type="button" hidden>Hold to strike</button>
+    </div>
+  </div>
+</section>
+
+<section class="marquee" aria-labelledby="mq-h">
+  <h2 id="mq-h" class="kicker">Proving fleets <span class="ph">Placeholder row: no operator has paid yet</span></h2>
+  <div class="mq-track" aria-hidden="true">
+    <div class="mq-row">
+      <span>[ Operator · placeholder ]</span><span>[ Lender · placeholder ]</span><span>[ GPU network · placeholder ]</span><span>[ Vault curator · placeholder ]</span><span>[ Confidential cloud · placeholder ]</span>
+      <span>[ Operator · placeholder ]</span><span>[ Lender · placeholder ]</span><span>[ GPU network · placeholder ]</span><span>[ Vault curator · placeholder ]</span><span>[ Confidential cloud · placeholder ]</span>
+    </div>
+  </div>
+</section>
+
+<section class="sec compare" aria-labelledby="cmp-h">
+  <p class="eyebrow">Before and after</p>
+  <h2 id="cmp-h" class="display-2 reveal">Comfort you pay for, or a proof anyone can check.</h2>
+  <div class="cmp" id="cmp" style="--split:50%">
+    <div class="cmp-side cmp-before">
+      <h3>Today</h3>
+      <ul>
+        <li>A telemetry box on the rack, reporting what it is told.</li>
+        <li>A monthly audit PDF.</li>
+        <li>A warranty at about 150 basis points a year, roughly $237k on a $15.8M loan.</li>
+        <li>Revenue the lender cannot see.</li>
+        <li>A human signs off each draw.</li>
+      </ul>
+    </div>
+    <div class="cmp-side cmp-after">
+      <h3>With one proof a week</h3>
+      <ul>
+        <li>The GPU signs its own report, chain-verified to NVIDIA's root.</li>
+        <li>The enclave is verified to Intel's root.</li>
+        <li>Two independent attestors per payout.</li>
+        <li>Only coverage and PASS or WATCH go onchain.</li>
+        <li>The program decides from the proof alone.</li>
+      </ul>
+    </div>
+    <label class="cmp-handle"><span class="sr">Compare before and after</span>
+      <input type="range" id="cmp-range" min="0" max="100" value="50">
+    </label>
+  </div>
+</section>
+
+<section class="sec story" id="story" aria-labelledby="st-h">
+  <div class="story-pin">
+    <div class="story-visual" aria-hidden="true">
+      <div class="seal-step" data-step="0"><b>0x</b><span>challenge</span></div>
+      <div class="seal-step" data-step="1"><b>zk</b><span>one prover</span></div>
+      <div class="seal-step" data-step="2"><b>✓</b><span>PASS</span></div>
+      <div class="story-rule"><i id="story-fill"></i></div>
+    </div>
+    <div class="story-steps">
+      <p class="eyebrow">How it works</p>
+      <h2 id="st-h" class="display-2 reveal">Three strikes, one mark.</h2>
+      <ol>
+        <li class="step"><h3>The lender issues a challenge</h3><p>A 32-byte nonce goes into the loan account. The GPU must sign it, so an old report cannot be replayed.</p></li>
+        <li class="step"><h3>The operator runs one prover</h3><p>Inside a RISC Zero guest: NVIDIA's attestation report and its certificate chain to NVIDIA's root, an Intel TDX quote verified to Intel's root, and zkTLS payout proofs from two attestors. The guest tests coverage and outputs pass or fail.</p></li>
+        <li class="step"><h3>Solana verifies and gates the draw</h3><p>The program checks the proof, the challenge, the guest image and the attestor set, then records PASS or WATCH. A draw is approved or refused with no admin key and no human sign-off.</p></li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<section class="sec" aria-labelledby="bento-h">
+  <p class="eyebrow">One platform</p>
+  <h2 id="bento-h" class="display-2 reveal">Prove. Verify. Read the tape.</h2>
+  <div class="bento">
+    <article class="tile t-prove"><div class="loop l-nonce" aria-hidden="true"><span>7f3a</span><span>c91e</span><span>04bd</span><span>e2a8</span><span>7f3a</span></div>
+      <h3><a href="/prove">Prove</a></h3><p>Each week, one proof that your GPUs are real, run in a measured enclave, and earned enough to cover debt service. Your payouts, tenants and prices never go onchain.</p></article>
+    <article class="tile t-verify"><div class="loop l-badge" aria-hidden="true"><span class="badge">PASS</span></div>
+      <h3><a href="/lender">Verify</a></h3><p>A public page per loan with PASS or WATCH, the coverage figure, the chip and enclave measurements and the proof transaction. Free.</p></article>
+    <article class="tile t-tape"><div class="loop l-tape" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+      <h3><a href="/tape">Tape</a></h3><p>The public H100 paid-price index built from the same proofs, already feeding a Hyperliquid perp.</p></article>
+    <article class="tile t-badge"><div class="loop l-embed" aria-hidden="true"><code>/badge/&lt;address&gt;.svg</code></div>
+      <h3>Embed the badge</h3><p>Lenders and curators drop the badge into a vault page or pull the JSON. No integration.</p></article>
+    <article class="tile t-net"><div class="loop l-gate" aria-hidden="true"><i></i><i></i></div>
+      <h3>GPU networks</h3><p>Require a proof before a provider earns. The GPU's own signature replaces self-reported hardware.</p></article>
+    <article class="tile t-cloud"><div class="loop l-hash" aria-hidden="true"><span>commit</span></div>
+      <h3>Confidential-AI clouds</h3><p>Show customers a job ran on a real H100 inside a measured enclave.</p></article>
+  </div>
+</section>
+
+<section class="sec price" aria-labelledby="pr-h">
+  <p class="eyebrow">Pricing</p>
+  <h2 id="pr-h" class="display-2 reveal">$0.25 per GPU per week. Verifying is free.</h2>
+  <div class="calc">
+    <div class="calc-in">
+      <label for="gpus">Fleet size <output id="gpus-out" for="gpus">500 GPUs</output></label>
+      <input type="range" id="gpus" min="4" max="4096" step="4" value="500">
+      <label for="loan">Loan on the fleet <output id="loan-out" for="loan">$15.8M</output></label>
+      <input type="range" id="loan" min="1" max="60" step="0.1" value="15.8">
+      <p class="fine">First four proofs free. Charged per proof, collected onchain at proof time.</p>
+    </div>
+    <div class="calc-out" aria-live="polite">
+      <div class="stack" id="stack" aria-hidden="true"></div>
+      <dl>
+        <div><dt>You pay per week</dt><dd id="wk">$125</dd></div>
+        <div><dt>Per year</dt><dd id="yr">$6,500</dd></div>
+        <div class="muted-row"><dt>A warranty at 150 bps a year</dt><dd id="wr">$237,000</dd></div>
+      </dl>
+    </div>
+  </div>
+</section>
+
+<section class="sec stats" aria-labelledby="sx-h">
+  <p class="eyebrow">Measured on the build</p>
+  <h2 id="sx-h" class="display-2 reveal">Small enough for one transaction.</h2>
+  <ul class="stat-grid">
+    <li><b class="num" data-to="256">256</b><span>byte proof, Groth16 over a RISC Zero guest</span></li>
+    <li><b class="num" data-to="118" data-suffix="k">118k</b><span>compute units to verify on Solana, approximately</span></li>
+    <li><b class="num" data-to="10.75" data-dec="2" data-suffix="M">10.75M</b><span>guest cycles for P-384, the certificate chain and DCAP</span></li>
+    <li><b class="num" data-to="108" data-from="97" data-prefix="97–">97–108</b><span>minutes to prove on a 4-core, 15 GB cloud VM</span></li>
+    <li><b class="num" data-to="1.15" data-dec="2" data-suffix="x">1.15x</b><span>coverage the covenant checks, inside the proof</span></li>
+    <li><b class="num" data-to="0.0013" data-dec="4">0.0013</b><span>SOL of test SOL per proof on devnet, about $0.25</span></li>
+  </ul>
+</section>
+
+<section class="sec faq" aria-labelledby="fq-h">
+  <p class="eyebrow">Questions</p>
+  <h2 id="fq-h" class="display-2 reveal">What a lender will ask.</h2>
+  <div class="faq-list">
+    <details><summary>Is this live?</summary><div><p>On Solana devnet today. Mainnet comes after an audit of the verifier program, which was written in the hackathon window.</p></div></details>
+    <details><summary>What evidence does the devnet demo use?</summary><div><p>NVIDIA's published sample H100 report and VoltageGPU's published H200 TDX quote, both chain-verified to their roots. A report signed against our own challenge inside our own enclave is the next step, and every verify page labels it.</p></div></details>
+    <details><summary>What goes onchain, and what stays private?</summary><div><p>PASS or WATCH, coverage in basis points, a hash of the chip id and firmware measurements, the enclave measurement, the challenge, period, attestor-set hash and a revenue commitment. Payout amounts, payout ids, tenants, prices and the raw evidence never leave the operator's machine.</p></div></details>
+    <details><summary>Who pays?</summary><div><p>The operator that borrows: $0.25 per GPU per week, charged per proof, first four proofs free. Lenders, curators and networks verify for free during beta.</p></div></details>
+    <details><summary>How long does a proof take?</summary><div><p>97 to 108 minutes on a 4-core, 15 GB cloud VM, including the Groth16 wrap. A fleet proves once a week, so this runs in the background.</p></div></details>
+    <details><summary>What do I still have to trust?</summary><div><p>NVIDIA's and Intel's root certificates, the two attestors not colluding, and the RISC Zero prover and our Groth16 verifier program, which is not yet audited.</p></div></details>
+  </div>
+</section>
+
+<section class="sec cta" id="request" aria-labelledby="cta-h">
+  <div class="plate">
+    <p class="eyebrow">First four proofs free</p>
+    <h2 id="cta-h" class="display-2 reveal">Request a proof for your fleet.</h2>
+    <p class="cta-sub">Tell us the fleet and the lender. We set up the terms and walk the first proof with you.</p>
+    <form id="lead" method="post" action="/api/lead" novalidate>
+      <div class="f2">
+        <label for="email">Email<input id="email" name="email" type="email" autocomplete="email" required placeholder="ops@yourfleet.com"></label>
+        <label for="fleetGpus">Fleet size (GPUs)<input id="fleetGpus" name="fleetGpus" type="number" min="1" inputmode="numeric" placeholder="500"></label>
+      </div>
+      <label for="lender">Your lender, if any<input id="lender" name="lender" type="text" autocomplete="organization"></label>
+      <label for="note">Anything else<textarea id="note" name="note" rows="3"></textarea></label>
+      <div class="row"><button class="btn btn-gold" id="lead-submit" type="submit">Request a proof</button><p id="lead-msg" class="fine" aria-live="polite"></p></div>
+    </form>
+    <ul class="gets" aria-label="What you get">
+      <li><b>A public verify page</b><span>PASS or WATCH, coverage, chip and enclave measurements, the proof transaction.</span></li>
+      <li><b>An embeddable badge</b><span>/badge/&lt;address&gt;.svg for any lender or vault page.</span></li>
+      <li><b>A JSON endpoint</b><span>/api/loan/&lt;address&gt; under the page.</span></li>
+      <li><b>Four proofs free</b><span>Then $0.25 per GPU per week, charged per proof.</span></li>
+    </ul>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <p class="foot-mark" aria-hidden="true">Paid Compute Tape</p>
+  <div class="foot-grid">
+    <div><span class="k">Program</span><code class="engrave" id="pid">2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz</code><span class="fine">on Solana devnet · open source</span></div>
+    <nav aria-label="Footer"><a href="/prove">Prove</a><a href="/lender">Verify</a><a href="/tape">Tape</a><a href="/docs">Docs</a><a href="#top">Back to top</a></nav>
+  </div>
+  <p class="fine">Built Sep 14 to Oct 12, 2026 for the Colosseum Crypto World's Fair. Evidence on devnet today: NVIDIA's published sample H100 report and VoltageGPU's published H200 TDX quote, both chain-verified to their roots. The TDX quote is not yet bound to the same machine as the GPU report.</p>
+</footer>
+
+<script src="vendor/gsap.min.js" defer></script>
+<script src="vendor/ScrollTrigger.min.js" defer></script>
+<script src="vendor/SplitText.min.js" defer></script>
+<script src="js/hero.js" defer></script>
+<script src="js/motion.js" defer></script>
+<script src="js/interact.js" defer></script>
+</body>
+</html>

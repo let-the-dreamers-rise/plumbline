@@ -1,4 +1,4 @@
-import { appendFileSync, readFileSync } from "node:fs";
+import { appendFileSync, existsSync, readFileSync } from "node:fs";
 import { createServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { DEFAULT_PROGRAM_ID } from "@pct/oracle";
@@ -16,13 +16,16 @@ const cluster = rpc.includes("devnet") ? "devnet" : rpc.includes("testnet") ? "t
 const leadsFile = process.env.LEADS_FILE?.trim() || "leads.jsonl";
 const page = (f: string) => new URL(`../public/${f}`, import.meta.url);
 const pages: Record<string, URL> = {
-  "/": page("landing.html"),
+  "/": page("site/index.html"),
+  "/simple": page("landing.html"),
   "/lender": page("lender.html"),
   "/tape": page("index.html"),
   "/prove": page("prove.html"),
   "/docs": page("docs.html"),
 };
 const port = Number(process.env.PORT ?? 8787);
+// Assets of the marketing site (public/site), served at the relative paths its index.html uses.
+const assetTypes: Record<string, string> = { ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8" };
 
 /** A base58 Solana address, or null; anything else never reaches a page or the RPC. */
 function address(s: string | undefined): PublicKey | null {
@@ -96,6 +99,11 @@ createServer(async (req, res) => {
       if (!loan) return json(res, 404, { error: "no loan of this program at that address" });
       const z = loan.zk;
       res.writeHead(200, { "content-type": "image/svg+xml", "cache-control": "max-age=60" }).end(badge(z?.status ?? "none", z?.coverageBps ?? 0, z?.asOfPeriod ?? 0));
+      return;
+    }
+    const asset = /^\/(css|js|vendor)\/([A-Za-z0-9._-]+\.(css|js))$/.exec(path);
+    if (asset && existsSync(page(`site/${asset[1]}/${asset[2]}`))) {
+      res.writeHead(200, { "content-type": assetTypes[`.${asset[3]}`]!, "cache-control": "max-age=300" }).end(readFileSync(page(`site/${asset[1]}/${asset[2]}`)));
       return;
     }
     const file = pages[path];

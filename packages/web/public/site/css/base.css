@@ -1,0 +1,106 @@
+/* Hallmark: blackened steel ground, struck gold for the proof, engraved serif display.
+   One deliberate dark look; every color is a token. */
+:root {
+  --vault: #0e0d0b;      /* ground */
+  --vault-2: #15130f;    /* raised steel */
+  --slag: #3a3530;       /* raw ore, unverified, rules */
+  --slag-2: #6d6253;     /* ore highlights */
+  --ingot: #c9a45c;      /* struck gold, the proof, the CTA */
+  --ingot-hi: #ecd29a;   /* gold highlight */
+  --ingot-lo: #7a5b22;   /* gold shadow */
+  --polish: #f1e6cc;     /* text */
+  --muted: #a89e8a;      /* secondary text */
+  --pass: #8fb98a;       /* PASS, verdigris */
+  --watch: #d08a3c;      /* WATCH, hot copper */
+  --focus: #ecd29a;
+  --display: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
+  --body: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  --gutter: clamp(16px, 4vw, 48px);
+  --max: 76rem;
+  --fast: .18s; --med: .6s; --slow: 1.4s;
+  --ease: cubic-bezier(.16, 1, .3, 1);      /* expo.out */
+  --ease-in: cubic-bezier(.7, 0, .84, 0);   /* expo.in */
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: border-box }
+html { -webkit-text-size-adjust: 100%; scroll-padding-top: 80px }
+body {
+  margin: 0; background: var(--vault); color: var(--polish);
+  font: 400 17px/1.6 var(--body); overflow-x: clip;
+  -webkit-font-smoothing: antialiased;
+}
+img, svg, canvas { max-width: 100%; display: block }
+a { color: var(--ingot-hi); text-underline-offset: .2em; text-decoration-thickness: 1px }
+a:hover { color: var(--polish) }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 2px }
+h1, h2, h3 { margin: 0; text-wrap: balance; font-weight: 500 }
+p { margin: 0 }
+[hidden] { display: none !important }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
+.skip { position: absolute; left: 16px; top: -60px; z-index: 50; background: var(--ingot); color: var(--vault); padding: 8px 12px; font-weight: 600 }
+.skip:focus { top: 12px }
+
+.eyebrow, .kicker, .k {
+  font: 500 12px/1.4 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--ingot);
+}
+.display {
+  font: 500 clamp(2.6rem, 7.4vw, 6.2rem)/.98 var(--display); letter-spacing: -.02em;
+  font-variation-settings: "opsz" 96;
+}
+.display-2 {
+  font: 500 clamp(2rem, 4.6vw, 3.6rem)/1.02 var(--display); letter-spacing: -.015em;
+  font-variation-settings: "opsz" 72; max-width: 20ch;
+}
+.display em, .display-2 em, .hook em { font-style: italic; color: var(--ingot-hi) }
+.fine { font-size: .86rem; color: var(--muted) }
+.row { display: flex; flex-wrap: wrap; gap: 12px; align-items: center }
+code { font: 400 .86em var(--mono) }
+
+/* Buttons: steel plates; gold is reserved for the main action. */
+.btn {
+  --b: var(--slag); display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  min-height: 48px; padding: 0 22px; border: 1px solid var(--b); border-radius: 2px;
+  background: transparent; color: var(--polish); font: 500 14px/1 var(--body); letter-spacing: .04em;
+  text-decoration: none; cursor: pointer; position: relative; overflow: hidden;
+  transition: border-color var(--fast) var(--ease), color var(--fast) var(--ease), transform var(--fast) var(--ease);
+}
+.btn::after { /* light passing over metal on hover */
+  content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(236, 210, 154, .28) 50%, transparent 70%);
+  transform: translateX(-120%); transition: transform var(--med) var(--ease);
+}
+.btn:hover { --b: var(--ingot); color: var(--polish) }
+.btn:hover::after { transform: translateX(120%) }
+.btn:active { transform: translateY(1px) }
+.btn-gold { background: linear-gradient(180deg, var(--ingot-hi), var(--ingot) 55%, #a8843f); color: #1d160a; border-color: var(--ingot); font-weight: 600 }
+.btn-gold:hover { color: #1d160a }
+.btn-quiet { border-color: transparent; color: var(--muted) }
+.btn-sm { min-height: 40px; padding: 0 16px; font-size: 13px; white-space: nowrap }
+.btn[disabled] { opacity: .6; cursor: progress }
+
+/* Header */
+.nav {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
+  display: flex; align-items: center; gap: 12px 28px; justify-content: space-between;
+  padding: 14px var(--gutter); background: rgba(14, 13, 11, .82); backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(58, 53, 48, .6);
+}
+.brand { display: inline-flex; align-items: center; gap: 10px; color: var(--polish); text-decoration: none; font: 500 1.05rem/1 var(--display); letter-spacing: .01em; white-space: nowrap }
+.mark { width: 22px; height: 22px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, var(--ingot-hi), var(--ingot) 50%, var(--ingot-lo)); box-shadow: inset 0 0 0 2px rgba(14,13,11,.35) }
+.nav nav { display: flex; gap: 24px; margin-right: auto }
+.nav nav a { color: var(--muted); text-decoration: none; font-size: 14px; position: relative; padding: 6px 0 }
+.nav nav a::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1px; background: var(--ingot); transform: scaleX(0); transform-origin: left; transition: transform var(--fast) var(--ease) }
+.nav nav a:hover { color: var(--polish) } .nav nav a:hover::after { transform: scaleX(1) }
+@media (max-width: 46rem) { .nav nav { display: none } }
+
+/* Sections */
+main { display: block }
+.sec { max-width: var(--max); margin: 0 auto; padding: clamp(72px, 12vw, 150px) var(--gutter) 0; display: grid; gap: 20px }
+.sec > .display-2 { margin-bottom: clamp(16px, 3vw, 36px) }
+
+/* Masked line reveals: SplitText wraps lines; the mask is the line box. */
+.line-mask { overflow: hidden; padding-bottom: .08em; margin-bottom: -.08em }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: .01ms !important; animation: none !important; scroll-behavior: auto !important }
+}
