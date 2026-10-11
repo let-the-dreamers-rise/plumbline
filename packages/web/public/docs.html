@@ -115,8 +115,9 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 
 <h2>Pricing</h2>
 <ul>
-  <li><b>Operators, today:</b> the program charges one flat fee (<code>fee_lamports</code>, set by the program authority) on every proof, PASS or WATCH, whatever the fleet size, and collects it into a treasury account at proof time. The devnet demo sets it to 0.0013 SOL. There is no free tier in the program.</li>
-  <li><b>Operators, planned:</b> $0.25 per GPU per week, charged per proof. A 500-GPU fleet would pay about $6,500 a year.</li>
+  <li>Planned pricing: a facility fee plus 5 to 15 basis points a year on the loan, weekly proofs included, paid by the lender or passed to the borrower in the loan terms. Today the program charges one flat fee on every proof (0.0013 SOL of test SOL in the devnet demo). Verifying is free.</li>
+  <li><b>In the program today:</b> one flat fee (<code>fee_lamports</code>, set by the program authority) on every proof, PASS or WATCH, collected into a treasury account at proof time. Facility fees and basis-point pricing are not in the program yet.</li>
+  <li><b>For scale:</b> on a $15.8M loan (USD.AI's average), 10 basis points is $15,800 a year plus the facility fee; a lender's warranty on the same collateral at 150 basis points is $237,000.</li>
   <li><b>Lenders, vault curators, GPU networks, clouds:</b> verify pages, badges and the read API are free.</li>
 </ul>
 

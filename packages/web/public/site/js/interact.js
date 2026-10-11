@@ -30,21 +30,22 @@
     }
   }
 
-  /* Pricing: planned $0.25 per GPU per week (not yet in the program, which charges a flat fee per proof). */
-  var gpus = document.getElementById('gpus');
-  if (gpus) {
+  /* Pricing: planned facility fee plus 5 to 15 bps a year on the loan (not yet in the program, which
+     charges a flat fee per proof), shown at 10 bps against a 150 bps warranty. Slider is in $M. */
+  var loan = document.getElementById('loan');
+  if (loan) {
     var usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
     var stack = document.getElementById('stack'), coins = [];
     for (var i = 0; i < 16; i++) { var c = document.createElement('i'); stack.appendChild(c); coins.push(c); }
     var calc = function () {
-      var g = +gpus.value;
-      document.getElementById('gpus-out').textContent = g.toLocaleString('en-US') + ' GPUs';
-      document.getElementById('wk').textContent = usd.format(g * .25);
-      document.getElementById('yr').textContent = usd.format(g * .25 * 52);
-      var on = Math.max(1, Math.ceil(16 * Math.sqrt(g / 4096)));
+      var m = +loan.value, dollars = Math.round(m * 1e6);
+      document.getElementById('loan-out').textContent = '$' + m.toFixed(1) + 'M';
+      document.getElementById('bps').textContent = usd.format(dollars * .001);
+      document.getElementById('war').textContent = usd.format(dollars * .015);
+      var on = Math.max(1, Math.ceil(16 * Math.sqrt(m / 100)));
       coins.forEach(function (c, k) { c.classList.toggle('off', k >= on); });
     };
-    gpus.addEventListener('input', calc); calc();
+    loan.addEventListener('input', calc); calc();
   }
 
   /* Lead form: POST /api/lead with {email, fleetGpus, lender, note}. */
