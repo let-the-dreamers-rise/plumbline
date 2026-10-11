@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Docs · Tessera</title>
+<meta name="description" content="How Tessera works: what the proof says, the trust model, the demo evidence, the API and pricing.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tessera">
+<meta property="og:title" content="Docs · Tessera">
+<meta property="og:description" content="How Tessera works: what the proof says, the trust model, the demo evidence, the API and pricing.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Docs · Tessera">
+<meta name="twitter:description" content="How Tessera works: what the proof says, the trust model, the demo evidence, the API and pricing.">
 <style>
 :root {
   --bg: #f4f2ec; --surface: #fffdf8; --sunken: #ebe8df; --ink: #1b1d20; --muted: #63666b; --rule: #d8d4c8;
@@ -71,26 +79,26 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 <div class="wrap">
 <header>
   <div><h1>Tessera</h1><div class="meta">Docs · how it works, trust model, API, pricing</div></div>
-  <nav><a href="/">Product</a><a href="/prove">Prove</a><a href="/lender">Verify</a><a href="/tape">Tape</a><a href="/docs" aria-current="page">Docs</a></nav>
+  <nav aria-label="Site"><a href="/">Home</a><a href="/prove">Prove</a><a href="/docs" aria-current="page">Docs</a><a href="/lender">Lender</a><a href="/tape">Tape</a></nav>
 </header>
 
 <h2>What the proof says</h2>
 <p>One RISC Zero guest (image id pinned onchain) verifies three independent roots and outputs one journal:</p>
 <div class="grid">
   <div class="card"><h3>Root 1: the GPU is real</h3><p>NVIDIA's SPDM attestation report, signed by the H100 with ECDSA P-384, and its five-certificate chain to the NVIDIA Device Identity CA. The report's nonce must equal the lender's challenge. The guest outputs hashes of the chip id and the firmware measurements.</p></div>
-  <div class="card"><h3>Root 2: the enclave is the expected one</h3><p>An Intel TDX DCAP v4 quote: PCK chain to Intel's SGX Root CA, QE report, attestation-key binding and the quote signature. Its <code>report_data</code> must commit to the GPU report and the challenge, which binds the GPU to the enclave. The guest outputs the VM measurement and whether it vouched for the report.</p></div>
-  <div class="card"><h3>Root 3: the revenue is real</h3><p>Reclaim zkTLS claims of the period's payouts (Razorpay, Stripe, marketplace APIs), each signed by at least two attestors from the set hashed onchain. The guest sums the period, removes duplicate payout ids, and tests revenue against debt service at the minimum coverage. Amounts never leave the guest.</p></div>
+  <div class="card"><h3>Root 2: the enclave is the expected one</h3><p>An Intel TDX DCAP v4 quote: PCK chain to Intel's SGX Root CA, QE report, attestation-key binding and the quote signature. When its <code>report_data</code> commits to the GPU report and the challenge, the GPU is bound to the enclave; the guest outputs the VM measurement and this bound flag, and the program can be configured to require it (the devnet demo does not). Intel TCB status, QE identity and CRLs are not yet checked.</p></div>
+  <div class="card"><h3>Root 3: the revenue is real</h3><p>Reclaim zkTLS claims of the period's payouts (Razorpay, Stripe, marketplace APIs), each signed by at least two attestors from the set hashed onchain. The guest sums the period, removes duplicate payout ids, and tests revenue against debt service at the minimum coverage. Individual payout amounts and ids never leave the guest; the window's total is in the public journal.</p></div>
 </div>
-<p style="margin-top:12px">Journal (public values): loan id, challenge, VM measurement, attestor-set hash, revenue commitment, chip-id hash, measurements hash, coverage in basis points, period, claim count, bound flag. The Solana program re-derives every one of them from onchain state before accepting the seal.</p>
+<p style="margin-top:12px">Journal (public values, fixed layout): chip-id hash, the GPU nonce (the challenge), measurements hash, attestor-set hash, revenue source parameters hash, loan terms hash (which covers the period), total window revenue in micro-units, coverage in basis points, claim count, pass flag, VM measurement, TDX TCB SVN, bound flag. The Solana program checks the challenge, attestor set, source and terms against onchain state before accepting the seal.</p>
 
 <h2>Trust model</h2>
 <div class="grid">
-  <div class="card"><h3>Removed</h3><ul><li>Trusted telemetry (the GPU signs its own report)</li><li>Single attestor (two per claim, from a set the program pins)</li><li>Admin key on the covenant (the program decides from the proof)</li><li>Public revenue (only coverage in basis points is published)</li></ul></div>
-  <div class="card"><h3>Remaining</h3><ul><li>NVIDIA's and Intel's root certificates</li><li>The attestors not colluding; Reclaim's proxy model (an attestor can still fabricate a session with the operator's cooperation)</li><li>The RISC Zero prover and our own Groth16 verifier program and TDX quote verifier (written in the window, not yet audited; mainnet after audit)</li><li>Freshness: a proof must cover the current period or the previous one, and the program clears the challenge once a proof lands, so the same proof cannot be submitted twice</li></ul></div>
+  <div class="card"><h3>Removed</h3><ul><li>Trusted telemetry (the GPU signs its own report)</li><li>Single attestor (a threshold per claim, from a set the program pins; the demo uses two test keys)</li><li>Admin key on the covenant (the program decides from the proof)</li><li>Public payout detail (individual payouts, ids and tenants stay private; the window's total revenue and coverage are published)</li></ul></div>
+  <div class="card"><h3>Remaining</h3><ul><li>NVIDIA's and Intel's root certificates</li><li>The attestors not colluding; Reclaim's proxy model (an attestor can still fabricate a session with the operator's cooperation)</li><li>The RISC Zero prover and our own Groth16 verifier program and TDX quote verifier (written in the window, not yet audited; the TDX check is structural, without TCB status, QE identity or CRLs; mainnet after audit)</li><li>Freshness: a proof must cover the current period or the previous one, and the program clears the challenge once a proof lands, so the same proof cannot be submitted twice</li></ul></div>
 </div>
 
-<h2>Evidence on devnet today</h2>
-<p class="note">The devnet proofs verify NVIDIA's published sample H100 report and VoltageGPU's published H200 TDX quote, both chain-verified to their roots, with revenue claims signed by two test attestors. They are real cryptographic evidence, but the quote is not bound to the sample report (<code>vm_bound = 0</code>) and neither was signed against our own challenge. Every verify page prints the evidence label (<code>public</code> or <code>own</code>). A report signed inside our own enclave against our own challenge is the next step.</p>
+<h2>Demo evidence</h2>
+<p class="note">The program runs end to end on a local Solana validator; the devnet deploy is pending. The demo proofs verify NVIDIA's published sample H100 report and VoltageGPU's published H200 TDX quote, both chain-verified to their roots, with revenue claims signed by two test attestor keys that anyone can derive. They are real cryptographic evidence, but the quote is not bound to the sample report (<code>vm_bound = 0</code>) and neither was signed against our own challenge: the demo sets the lender's challenge to the nonce already in the sample report. A verify page prints an evidence label (<code>public</code> or <code>own</code>) when the server is configured with one. A report signed inside our own enclave against our own challenge is the next step.</p>
 
 <h2>API</h2>
 <div class="tbl"><table>
@@ -103,13 +111,13 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
     <tr><td class="mono">POST /api/lead</td><td>Request a proof: <code>{email, fleetGpus, lender, note}</code>.</td></tr>
   </tbody>
 </table></div>
-<p style="margin-top:10px">Everything is read straight from Solana; there is no database. The program is <code>2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz</code> on devnet; the dashboard reads <code>SOLANA_RPC_URL</code>.</p>
+<p style="margin-top:10px">Everything is read straight from Solana; there is no database. The program id is <code>2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz</code> (devnet deploy pending); the dashboard reads <code>SOLANA_RPC_URL</code> and <code>PCT_PROGRAM_ID</code>.</p>
 
 <h2>Pricing</h2>
 <ul>
-  <li><b>Operators:</b> $0.25 per GPU per week, charged per proof. First four proofs free. The program collects the fee at proof time into a treasury account; on devnet the demo charges a flat 0.0013 SOL of test SOL per proof, about $0.25.</li>
-  <li><b>Lenders, vault curators, GPU networks, clouds:</b> verify pages, badges and the read API are free during beta. Bulk API pricing comes with mainnet.</li>
-  <li><b>Why operators pay:</b> the gain is theirs. On a $15.8M loan (USD.AI's average), one point of rate is $158k a year, and a lender's warranty on the same collateral costs about 150 basis points a year. A 500-GPU fleet pays $6,500 a year for proofs.</li>
+  <li><b>Operators, today:</b> the program charges one flat fee (<code>fee_lamports</code>, set by the program authority) on every proof, PASS or WATCH, whatever the fleet size, and collects it into a treasury account at proof time. The devnet demo sets it to 0.0013 SOL. There is no free tier in the program.</li>
+  <li><b>Operators, planned:</b> $0.25 per GPU per week, charged per proof. A 500-GPU fleet would pay about $6,500 a year.</li>
+  <li><b>Lenders, vault curators, GPU networks, clouds:</b> verify pages, badges and the read API are free.</li>
 </ul>
 
 <h2>Roadmap</h2>
@@ -122,8 +130,8 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 
 <h2>Questions a careful reader asks</h2>
 <div class="grid">
-  <div class="card"><h3>Why a chain at all?</h3><p>Because the readers are not one lender. USD.AI's loans are onchain objects and its depositors are on Solana through Kamino; vault curators and depositors can read PASS or WATCH without asking anyone. A signed PDF from a verification service cannot be composed into a draw gate.</p></div>
-  <div class="card"><h3>Why zero knowledge?</h3><p>The GPU signs with P-384, which no chain verifies natively, and the evidence is megabytes. The proof makes it fit in one transaction, and it is what lets revenue stay private while the result is public.</p></div>
+  <div class="card"><h3>Why a chain at all?</h3><p>Because the readers are not one lender. Vault curators and depositors in onchain credit can read PASS or WATCH without asking anyone, and the program can gate a draw on it directly. A signed PDF from a verification service cannot be composed into a draw gate.</p></div>
+  <div class="card"><h3>Why zero knowledge?</h3><p>The GPU signs with P-384, which no chain verifies natively, and the evidence is megabytes. The proof makes it fit in one transaction, and it is what lets individual payouts stay private while the result is public.</p></div>
   <div class="card"><h3>Does this replace the lender's monitoring vendor?</h3><p>Partly. Telemetry vendors see serials, health and temperature but not revenue, and their data is trusted, not signed by the GPU. The proof covers identity, enclave and coverage; it does not cover physical custody or power.</p></div>
   <div class="card"><h3>What if the attestors collude?</h3><p>Then a fake payout can be proven. That is the weakest root and it is named as such. The attestor set is pinned onchain and can be replaced by the lender's own bank-feed attestor without changing the program.</p></div>
 </div>

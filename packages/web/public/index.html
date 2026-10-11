@@ -3,7 +3,15 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tessera</title>
+<title>Price tape · Tessera</title>
+<meta name="description" content="A public H100 paid-price index built from zkTLS price proofs and checked onchain on Solana.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tessera">
+<meta property="og:title" content="Price tape · Tessera">
+<meta property="og:description" content="A public H100 paid-price index built from zkTLS price proofs and checked onchain on Solana.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Price tape · Tessera">
+<meta name="twitter:description" content="A public H100 paid-price index built from zkTLS price proofs and checked onchain on Solana.">
 <style>
 :root {
   --bg: #f4f2ec; --surface: #fffdf8; --sunken: #ebe8df; --ink: #1b1d20; --muted: #63666b; --rule: #d8d4c8;
@@ -22,6 +30,12 @@ a { color: var(--paid); }
 :focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
 header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; border-bottom: 2px solid var(--ink); padding-bottom: 12px; }
 h1 { margin: 0; font-size: 1.1rem; letter-spacing: .08em; text-transform: uppercase; }
+h1 a { color: inherit; text-decoration: none; }
+nav { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 600 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+nav a { color: var(--muted); text-decoration: none; } nav a:hover, nav a[aria-current] { color: var(--paid); }
+.empty { background: var(--surface); border: 1px solid var(--rule); padding: 16px; margin-top: 20px; max-width: 70ch; }
+.empty h2 { margin-top: 0; }
+.empty p { margin: 0 0 10px; }
 .meta { font: 12px var(--mono); color: var(--muted); }
 .hero { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); margin-top: 20px; }
 .card { background: var(--surface); border: 1px solid var(--rule); padding: 16px; min-width: 0; }
@@ -63,10 +77,17 @@ dialog code { font: 12px var(--mono); background: var(--sunken); padding: 1px 4p
 <body>
 <div class="wrap">
   <header>
-    <h1>Tessera · H100 price tape</h1>
-    <nav class="meta"><a href="/lender">Lender view</a> · <strong>Price tape</strong></nav>
-    <span class="meta" id="meta">loading…</span>
+    <div><h1><a href="/">Tessera</a></h1><div class="meta">H100 price tape</div></div>
+    <nav aria-label="Site"><a href="/">Home</a><a href="/prove">Prove</a><a href="/docs">Docs</a><a href="/lender">Lender</a><a href="/tape" aria-current="page">Tape</a></nav>
   </header>
+  <p class="meta" id="meta">loading…</p>
+
+  <section class="empty" id="empty" hidden>
+    <h2>No price proofs on this cluster yet</h2>
+    <p>The tape is a public H100 index of what renters proved they paid per GPU-hour. Each entry is a zkTLS proof of an invoice or a price page, checked onchain: attestor signature, registered source, freshness, and a receipt so one invoice counts once. With proofs from three or more providers the program publishes a weighted median, shown below next to the posted list price.</p>
+    <p>The program runs end to end on a local Solana validator today; its devnet deploy is pending and no price proofs have been published yet. The tape is designed to feed a Hyperliquid HIP-3 perp; that relayer is dry-run tested and a testnet market is pending.</p>
+    <p><a href="/docs">Read how it works</a> · <a href="/">Back to Tessera</a></p>
+  </section>
 
   <section class="hero">
     <div class="card paid">
@@ -129,6 +150,7 @@ function el(tag, attrs = {}, ...kids) {
 
 function render() {
   const { paid, list, proofs, recomputed, attestors } = state;
+  $("empty").hidden = proofs.length > 0;
   $("meta").textContent = `program ${short(state.programId)} · ${state.rpc.replace(/^https?:\/\//, "")} · updated ${new Date(state.fetchedAt * 1000).toLocaleTimeString()}`;
 
   const live = paid && paid.status === "live";
@@ -203,6 +225,7 @@ async function load() {
   } catch (e) {
     $("err").hidden = false;
     $("err").textContent = `Could not read the oracle: ${e.message}`;
+    if (!state) $("empty").hidden = false;
   }
 }
 load();

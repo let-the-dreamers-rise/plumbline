@@ -1,7 +1,9 @@
 # pct_oracle
 
 Solana program that verifies Reclaim zkTLS claims of GPU prices onchain and publishes a
-paid-price index per (SKU, kind). The TypeScript client and CLIs live in `packages/oracle`.
+paid-price index per (SKU, kind). It also runs the lending flow (revenue proofs gate draws on a
+loan) and verifies RISC Zero Groth16 proofs of the private covenant (`src/instructions/zk.rs`, guest
+in `../zk`, see `../zk/README.md`). The TypeScript client and CLIs live in `packages/oracle`.
 
 ## Build and test (Linux or WSL)
 
@@ -11,7 +13,7 @@ is unreachable, the same release is on GitHub:
 
 ```bash
 cargo build-sbf --manifest-path programs/pct_oracle/Cargo.toml   # writes target/deploy/pct_oracle.so
-cargo test -- --nocapture                                        # 15 unit + 4 LiteSVM flow tests
+cargo test -- --nocapture                                        # 25 unit tests + 29 LiteSVM tests (flow 4, lending 12, zk 13)
 ```
 
 The flow tests load `target/deploy/pct_oracle.so`, so build first.
@@ -35,7 +37,7 @@ Stripe revenue, draw, reject the same payout twice, prove a weak week, and get t
 SOLANA_RPC_URL=http://127.0.0.1:8899 npm run web   # http://localhost:8787
 ```
 
-`/` is the lender view: per loan, trailing-quarter coverage against the covenant, latest week's
+`/lender` is the lender view (`/` is the product page): per loan, trailing-quarter coverage against the covenant, latest week's
 revenue, utilization and realized $/GPU-hr, proven revenue by week against the debt-service line,
 each revenue proof with a "Verify" walkthrough, and draws. `/tape` is the price tape: it shows the paid index against the proven list price, every accepted proof with its transaction,
 a per-proof "Verify" walkthrough, and an off-chain recompute of the index (TypeScript reference
@@ -56,9 +58,14 @@ and set `PCT_PROGRAM_ID` for the CLIs.
 
 ```bash
 solana config set --url devnet
-solana airdrop 2   # repeat or use https://faucet.solana.com; the program needs about 2.4 SOL of rent
+solana airdrop 2   # repeat or use https://faucet.solana.com; see the SOL note below
 solana program deploy dist/pct_oracle.so --program-id target/deploy/pct_oracle-keypair.json
 ```
+
+SOL needed: `dist/pct_oracle.so` is 563,432 bytes, so the program data account alone holds about
+3.9 SOL of rent, and the upload buffer needs the same again while the deploy runs (about 7.5 to 8 SOL
+at peak; the buffer's share comes back afterwards). `scripts/devnet-go.ps1` waits for 8 SOL.
+As of 2026-10-12 the program is **not yet deployed on devnet** (the faucet rate-limited the deploy key).
 
 ## Feed it real proofs (from the repo root)
 
@@ -82,7 +89,7 @@ zkTLS pipeline, and a lender reads a per-borrower feed and gates draws on it.
 
 - **`open_loan(terms)`** creates a `Loan` PDA at `["loan", lender, keccak(account id)]` (so no one can
   squat another lender's loan for an operator): borrower wallet, SKU, fleet size, period length,
-  debt service per period, minimum coverage (11500 bps = USD.AI's 1.15x), currency and covenant
+  debt service per period, a configurable minimum coverage (11500 bps = 1.15x in the demo), currency and covenant
   window (1 to 13 periods). It keeps the last 13 periods of proven revenue and GPU-hours.
   Currencies without two-decimal minor units (JPY, KWD, ...) are refused.
 - **`submit_revenue(sig, receipt_key)`** takes a claim from a `kind = 2` (revenue) source. It runs

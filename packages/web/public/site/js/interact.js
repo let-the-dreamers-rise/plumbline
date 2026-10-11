@@ -30,27 +30,30 @@
     }
   }
 
-  /* Pricing: $0.25 per GPU per week, from the published price. Warranty at 150 bps, from the product brief. */
-  var gpus = document.getElementById('gpus'), loan = document.getElementById('loan');
-  if (gpus && loan) {
+  /* Pricing: planned $0.25 per GPU per week (not yet in the program, which charges a flat fee per proof). */
+  var gpus = document.getElementById('gpus');
+  if (gpus) {
     var usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
     var stack = document.getElementById('stack'), coins = [];
     for (var i = 0; i < 16; i++) { var c = document.createElement('i'); stack.appendChild(c); coins.push(c); }
     var calc = function () {
-      var g = +gpus.value, l = +loan.value;
+      var g = +gpus.value;
       document.getElementById('gpus-out').textContent = g.toLocaleString('en-US') + ' GPUs';
-      document.getElementById('loan-out').textContent = '$' + l.toFixed(1) + 'M';
       document.getElementById('wk').textContent = usd.format(g * .25);
       document.getElementById('yr').textContent = usd.format(g * .25 * 52);
-      document.getElementById('wr').textContent = usd.format(l * 1e6 * .015);
       var on = Math.max(1, Math.ceil(16 * Math.sqrt(g / 4096)));
       coins.forEach(function (c, k) { c.classList.toggle('off', k >= on); });
     };
-    gpus.addEventListener('input', calc); loan.addEventListener('input', calc); calc();
+    gpus.addEventListener('input', calc); calc();
   }
 
   /* Lead form: POST /api/lead with {email, fleetGpus, lender, note}. */
   var form = document.getElementById('lead');
+  /* A plain form post (JavaScript off at submit time) comes back as ?lead=thanks or ?lead=error. */
+  var back = /[?&]lead=(thanks|error)\b/.exec(location.search), backMsg = document.getElementById('lead-msg');
+  if (back && backMsg) backMsg.textContent = back[1] === 'thanks'
+    ? 'Received. You get a reply with the terms, and we walk the first proof with you.'
+    : 'Could not send the request. Check the email address and try again.';
   if (form) form.addEventListener('submit', function (e) {
     e.preventDefault();
     var msg = document.getElementById('lead-msg'), btn = document.getElementById('lead-submit');
@@ -65,7 +68,7 @@
     fetch('/api/lead', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) })
       .then(function (r) {
         if (!r.ok) throw new Error(r.status);
-        msg.textContent = 'Received. You get a reply with the terms and the first free proof.';
+        msg.textContent = 'Received. You get a reply with the terms, and we walk the first proof with you.';
         btn.textContent = 'Requested'; form.reset();
         form.closest('.plate').classList.add('struck');
       })

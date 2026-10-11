@@ -4,6 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Verify a loan · Tessera</title>
+<meta name="description" content="A public verify page for one GPU-backed loan: PASS or WATCH, coverage, chip and enclave measurements and the proof transaction, read from Solana.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Tessera">
+<meta property="og:title" content="Verify a loan · Tessera">
+<meta property="og:description" content="PASS or WATCH, coverage and the proof transaction for one GPU-backed loan, read from Solana.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Verify a loan · Tessera">
+<meta name="twitter:description" content="PASS or WATCH, coverage and the proof transaction for one GPU-backed loan, read from Solana.">
 <style>
 :root {
   --bg: #f4f2ec; --surface: #fffdf8; --sunken: #ebe8df; --ink: #1b1d20; --muted: #63666b; --rule: #d8d4c8;
@@ -71,7 +79,7 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 <div class="wrap">
 <header>
   <div><h1>Tessera</h1><div class="meta" id="meta">Verify page · reading the loan from Solana</div></div>
-  <nav><a href="/">Product</a><a href="/prove">Prove</a><a href="/lender">Verify</a><a href="/tape">Tape</a><a href="/docs">Docs</a></nav>
+  <nav aria-label="Site"><a href="/">Home</a><a href="/prove">Prove</a><a href="/docs">Docs</a><a href="/lender">Lender</a><a href="/tape">Tape</a></nav>
 </header>
 
 <section class="hero" id="top">
@@ -83,7 +91,7 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 
 <div class="grid" id="tiles">
   <div class="card"><div class="k">Covenant result</div><div class="big" id="t-status">…</div><div class="sub" id="t-status-sub"></div></div>
-  <div class="card"><div class="k">Coverage</div><div class="big" id="t-cov">…</div><div class="sub">Trailing revenue over debt service, from the proof. The amounts are not published.</div></div>
+  <div class="card"><div class="k">Coverage</div><div class="big" id="t-cov">…</div><div class="sub">Window revenue over debt service, from the proof. Individual payouts are not published; the window total is in the proof's public values.</div></div>
   <div class="card"><div class="k">Proven</div><div class="big" id="t-when">…</div><div class="sub" id="t-when-sub"></div></div>
 </div>
 
@@ -131,7 +139,7 @@ $("addr").textContent = addr;
   const word = s === "pass" ? "This fleet proved its covenant." : s === "watch" ? "This fleet proved its covenant is breached." : "No zero-knowledge proof yet for this loan.";
   $("headline").textContent = word;
   $("lede").textContent = s === "none" ? "The lender can issue a challenge; the operator then has until it expires to submit one proof covering the period." :
-    `One proof verified onchain says the GPU is genuine NVIDIA hardware${z.vmBound ? ", runs inside the measured enclave," : ","} and its revenue over the covenant window ${s === "pass" ? "covers" : "does not cover"} debt service at the minimum coverage. Amounts, payout ids and the GPU report never went onchain.`;
+    `One proof verified onchain says the GPU is genuine NVIDIA hardware${z.vmBound ? ", runs inside the measured enclave," : ","} and its revenue over the covenant window ${s === "pass" ? "covers" : "does not cover"} debt service at the minimum coverage. Individual payout amounts, payout ids and the GPU report never went onchain.`;
   $("links").innerHTML = (z.proofTx ? `<a class="btn primary" href="${ex}tx/${z.proofTx}${cl}" target="_blank" rel="noopener">Proof transaction</a>` : "") +
     `<a class="btn" href="${ex}address/${addr}${cl}" target="_blank" rel="noopener">Loan account</a><a class="btn" href="/api/loan/${addr}">JSON</a>`;
   $("t-status").innerHTML = s === "pass" ? '<span class="good">PASS</span>' : s === "watch" ? '<span class="warn">WATCH</span>' : '<span class="mutedc">UNPROVEN</span>';

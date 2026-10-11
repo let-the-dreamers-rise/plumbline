@@ -4,6 +4,12 @@ import bs58 from "bs58";
 import { parseDrawApproved, parseRevenueProven, type DrawApproved, type RevenueProven } from "./events.js";
 import { providerName } from "./state.js";
 import { loadZk, type ZkView } from "./zk.js";
+import { createTtlCache, ttlFromEnv, type TtlCache } from "./cache.js";
+
+// /api/loans, /api/loan/<addr>, /loan/<addr> and /badge/<addr>.svg all read through this cache, so a
+// burst of page views costs one round of RPC calls per PCT_CACHE_TTL_MS (default 30 s), not one per view.
+const listCache: TtlCache<LoanView[]> = createTtlCache({ ttlMs: ttlFromEnv(process.env.PCT_CACHE_TTL_MS) });
+const loanCache: TtlCache<LoanView | null> = createTtlCache({ ttlMs: ttlFromEnv(process.env.PCT_CACHE_TTL_MS) });
 
 export type CovenantStatus = "ok" | "breached" | "no-recent-revenue";
 
@@ -102,8 +108,18 @@ async function loanView(connection: Connection, programId: PublicKey, address: P
 
 const LOAN_DISC = Buffer.from(discriminator("account", "Loan"));
 
-/** Every Loan account of the program, newest activity first. */
-export async function loadLoans(connection: Connection, programId: PublicKey = DEFAULT_PROGRAM_ID, limit = 5): Promise<LoanView[]> {
+/** Every Loan account of the program, newest activity first (cached for PCT_CACHE_TTL_MS). */
+export function loadLoans(connection: Connection, programId: PublicKey = DEFAULT_PROGRAM_ID, limit = 5): Promise<LoanView[]> {
+  return listCache.get(`${connection.rpcEndpoint}|${programId.toBase58()}|${limit}`, () => fetchLoans(connection, programId, limit));
+}
+
+/** One Loan account by address (cached for PCT_CACHE_TTL_MS); null when the address holds no loan of this program. */
+export function loadLoan(connection: Connection, programId: PublicKey, address: PublicKey): Promise<LoanView | null> {
+  return loanCache.get(`${connection.rpcEndpoint}|${programId.toBase58()}|${address.toBase58()}`, () => fetchLoan(connection, programId, address));
+}
+
+/** Uncached: every Loan account of the program, newest activity first. */
+export async function fetchLoans(connection: Connection, programId: PublicKey = DEFAULT_PROGRAM_ID, limit = 5): Promise<LoanView[]> {
   const accounts = await connection.getProgramAccounts(programId, {
     commitment: "confirmed",
     filters: [{ memcmp: { offset: 0, bytes: bs58.encode(LOAN_DISC) } }],
@@ -116,8 +132,8 @@ export async function loadLoans(connection: Connection, programId: PublicKey = D
   return Promise.all(newest.map(({ a }) => loanView(connection, programId, a.pubkey, a.account.data, a.account.lamports, nowS)));
 }
 
-/** One Loan account by address; null when the address holds no loan of this program. */
-export async function loadLoan(connection: Connection, programId: PublicKey, address: PublicKey): Promise<LoanView | null> {
+/** Uncached: one Loan account by address; null when the address holds no loan of this program. */
+export async function fetchLoan(connection: Connection, programId: PublicKey, address: PublicKey): Promise<LoanView | null> {
   const a = await connection.getAccountInfo(address, "confirmed");
   if (!a || !a.owner.equals(programId) || !a.data.subarray(0, 8).equals(LOAN_DISC)) return null;
   return loanView(connection, programId, address, a.data, a.lamports, Math.floor(Date.now() / 1000));
