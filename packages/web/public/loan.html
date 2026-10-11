@@ -103,7 +103,7 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 <h2>Verify it yourself</h2>
 <div class="card"><ol>
   <li>Open the proof transaction in the explorer and read the <code>CovenantProven</code> log: loan, status, coverage, period.</li>
-  <li>Check the <code>zk_covenant</code> account under the program: the challenge the lender issued is the nonce the GPU signed.</li>
+  <li>Open the proof transaction's public values: the challenge the GPU signed must equal the one the lender issued in the earlier <code>issue_gpu_challenge</code> transaction. The program clears the challenge from the <code>zk_covenant</code> account once a proof lands, so it cannot be replayed.</li>
   <li>Check the <code>zk_config</code> account: the guest image id and attestor threshold the program accepts. The guest source is <code>zk/risc0/methods/guest</code>; rebuild it and compare the image id.</li>
   <li>Re-run the reference verifiers in <code>zk/</code> on the fixtures to see what each root checks.</li>
 </ol></div>
@@ -143,7 +143,7 @@ $("addr").textContent = addr;
     dd("Evidence", z.evidence === "own" ? "GPU report and enclave quote produced against this loan's own challenge" : z.evidence === "public" ? "Published NVIDIA sample H100 report and published H200 TDX quote, chain-verified to their roots (devnet demo; not signed against this challenge)" : "–") +
     dd("GPU chip id (hash)", hex(z.chipId), true) + dd("Firmware measurements (hash)", hex(z.measurements), true) +
     dd("Enclave measurement", hex(z.vmMeasurement), true) + dd("GPU bound to enclave", z.vmBound ? "Yes: the TDX quote committed to this GPU report and challenge" : "No: quote verified, but not bound to this report") +
-    dd("Challenge the GPU signed", hex(z.challenge), true) + dd("Attestors per claim", z.attestorThreshold ?? "–") + dd("Guest image id", hex(z.imageId), true) + dd("Proven at", ts(z.provenAt));
+    dd("Challenge the GPU signed", hex(z.challenge), true) + dd("Attestors per claim", z.attestorThreshold ?? "–") + dd("Guest image id", hex(z.imageId), true) + dd("Proven at", ts(z.provenAt)) + (z.feeLamports ? dd("Proof fee paid", (z.feeLamports / 1e9) + " SOL") : "");
   $("terms").innerHTML = dd("Lender", l.lender, true) + dd("Borrower", l.borrower, true) + dd("Operator key (hash)", hex(l.operatorKey), true) +
     dd("Fleet", `${l.fleetGpus} GPUs`) + dd("Period", l.periodS === 604800 ? "1 week" : `${l.periodS} s`) + dd("Minimum coverage", bps(l.minCoverageBps || 0)) +
     dd("Currency", l.currency || "USD") + dd("Drawn / available", `${l.drawnSol ?? 0} / ${l.availableSol ?? 0} SOL`);

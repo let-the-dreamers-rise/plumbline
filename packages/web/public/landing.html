@@ -87,14 +87,14 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 
 <section id="live" class="grid" style="margin-top:24px">
   <div class="card"><div class="k">Latest proof on devnet</div><div class="big" id="live-status">…</div><div class="sub" id="live-sub">Reading the program from Solana devnet.</div></div>
-  <div class="card"><div class="k">Verified onchain</div><div class="big">256<small> byte proof</small></div><div class="sub">Groth16 over a RISC Zero guest, verified in about 113k compute units.</div></div>
+  <div class="card"><div class="k">Verified onchain</div><div class="big">256<small> byte proof</small></div><div class="sub">Groth16 over a RISC Zero guest, verified in about 118k compute units.</div></div>
   <div class="card"><div class="k">Covenant</div><div class="big">1.15<small>x</small></div><div class="sub">Trailing revenue over debt service, the ratio USD.AI sets. Checked inside the proof, never published.</div></div>
 </section>
 
 <h2>How it works</h2>
 <div class="steps">
   <div class="card"><h3>The lender issues a challenge</h3><p>A 32-byte nonce goes into the loan account. The GPU must sign it, so an old report cannot be replayed.</p></div>
-  <div class="card"><h3>The operator runs one prover</h3><p>Inside a RISC Zero guest: NVIDIA's attestation report and its certificate chain to NVIDIA's root (the GPU is real), an Intel TDX quote bound to that report (the software is the software we expect), and zkTLS payout proofs from two attestors (the revenue is real). The guest tests coverage and outputs pass or fail.</p></div>
+  <div class="card"><h3>The operator runs one prover</h3><p>Inside a RISC Zero guest: NVIDIA's attestation report and its certificate chain to NVIDIA's root (the GPU is real), an Intel TDX quote verified to Intel's root (the software stack is the one we expect; when both come from the same machine, the proof binds the GPU to the enclave), and zkTLS payout proofs from two attestors (the revenue is real). The guest tests coverage and outputs pass or fail.</p></div>
   <div class="card"><h3>Solana verifies and gates the draw</h3><p>The program checks the proof, the challenge, the guest image and the attestor set, then records PASS or WATCH. A draw is approved or refused with no admin key and no human sign-off.</p></div>
 </div>
 
@@ -110,13 +110,13 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 <div class="grid">
   <div class="card"><div class="k">Operators</div><div class="big">$0.25<small> per GPU per week</small></div><div class="sub">Charged per proof. First four proofs free. A 500-GPU fleet pays $125 a week; the warranty a lender buys on the same collateral costs about 150 basis points a year.</div></div>
   <div class="card"><div class="k">Lenders, curators, networks</div><div class="big">Free<small> to verify</small></div><div class="sub">Verify pages, badges and the read API are free during beta. Bulk API pricing comes with mainnet.</div></div>
-  <div class="card"><div class="k">Where the fee goes</div><div class="big">Onchain</div><div class="sub">Fees are collected by the program at proof time from mainnet. On devnet, proofs are free.</div></div>
+  <div class="card"><div class="k">Where the fee goes</div><div class="big">Onchain</div><div class="sub">The program collects the fee at proof time into a treasury account. On devnet the fee is set to zero.</div></div>
 </div>
 
 <h2>What the proof removes, and what it does not</h2>
 <div class="grid">
   <div class="card"><h3>Removed</h3><ul><li>Trusted telemetry: the GPU signs its own report.</li><li>The single attestor: two independent attestors per payout.</li><li>The admin key: the program decides from the proof alone.</li><li>Public revenue: only coverage in basis points and pass or fail go onchain.</li></ul></div>
-  <div class="card"><h3>Still trusted</h3><ul><li>NVIDIA's root certificate and Intel's root certificate.</li><li>The two attestors not colluding, and the zkTLS proxy model they run.</li><li>The RISC Zero prover and its Solana verifier (self-deployed, audited by Veridise).</li></ul></div>
+  <div class="card"><h3>Still trusted</h3><ul><li>NVIDIA's root certificate and Intel's root certificate.</li><li>The two attestors not colluding, and the zkTLS proxy model they run.</li><li>The RISC Zero prover and our own Groth16 verifier program (written in the window, not yet audited; mainnet after audit).</li></ul></div>
 </div>
 
 <h2>Request a proof for your fleet</h2>
@@ -152,8 +152,8 @@ document.getElementById("lead").addEventListener("submit", async (e) => {
   const body = { email: f.email.value.trim(), fleetGpus: Number(f.fleetGpus.value || 0), lender: f.lender.value.trim(), note: f.note.value.trim() };
   btn.disabled = true; msg.textContent = "Sending…";
   try { const r = await fetch("/api/lead", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) });
-    msg.textContent = r.ok ? "Received. We reply within a day with the terms and the first free proof." : "Could not send. Email hello@ the project domain instead."; if (r.ok) f.reset(); }
-  catch { msg.textContent = "Could not send. Email hello@ the project domain instead."; }
+    msg.textContent = r.ok ? "Received. You get a reply with the terms and the first free proof." : "Could not send. Open an issue on the repository instead."; if (r.ok) f.reset(); }
+  catch { msg.textContent = "Could not send. Open an issue on the repository instead."; }
   btn.disabled = false;
 });
 </script>

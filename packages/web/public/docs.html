@@ -86,7 +86,7 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 <h2>Trust model</h2>
 <div class="grid">
   <div class="card"><h3>Removed</h3><ul><li>Trusted telemetry (the GPU signs its own report)</li><li>Single attestor (two per claim, from a set the program pins)</li><li>Admin key on the covenant (the program decides from the proof)</li><li>Public revenue (only coverage in basis points is published)</li></ul></div>
-  <div class="card"><h3>Remaining</h3><ul><li>NVIDIA's and Intel's root certificates</li><li>The attestors not colluding; Reclaim's proxy model (an attestor can still fabricate a session with the operator's cooperation)</li><li>The RISC Zero prover and the Groth16 verifier (risc0-solana, audited by Veridise, self-deployed)</li><li>Freshness: the challenge has a maximum age in slots because proving can take longer than Solana's recent-blockhash window</li></ul></div>
+  <div class="card"><h3>Remaining</h3><ul><li>NVIDIA's and Intel's root certificates</li><li>The attestors not colluding; Reclaim's proxy model (an attestor can still fabricate a session with the operator's cooperation)</li><li>The RISC Zero prover and our own Groth16 verifier program and TDX quote verifier (written in the window, not yet audited; mainnet after audit)</li><li>Freshness: a proof must cover the current period or the previous one, and the program clears the challenge once a proof lands, so the same proof cannot be submitted twice</li></ul></div>
 </div>
 
 <h2>Evidence on devnet today</h2>
@@ -97,7 +97,7 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
   <thead><tr><th>Endpoint</th><th>Returns</th></tr></thead>
   <tbody>
     <tr><td class="mono">GET /api/loans</td><td>The newest loans with terms, trailing coverage, proofs, draws and the zk covenant block.</td></tr>
-    <tr><td class="mono">GET /api/loan/&lt;address&gt;</td><td>One loan. <code>zk.status</code> is <code>pass</code>, <code>watch</code> or <code>none</code>; <code>zk.coverageBps</code>, <code>zk.asOfPeriod</code>, <code>zk.chipId</code>, <code>zk.measurements</code>, <code>zk.vmMeasurement</code>, <code>zk.vmBound</code>, <code>zk.challenge</code>, <code>zk.provenAt</code>, <code>zk.imageId</code>, <code>zk.attestorThreshold</code>, <code>zk.proofTx</code>, <code>zk.evidence</code>.</td></tr>
+    <tr><td class="mono">GET /api/loan/&lt;address&gt;</td><td>One loan. <code>zk.status</code> is <code>pass</code>, <code>watch</code> or <code>none</code>; <code>zk.coverageBps</code>, <code>zk.asOfPeriod</code>, <code>zk.chipId</code>, <code>zk.measurements</code>, <code>zk.vmMeasurement</code>, <code>zk.vmBound</code>, <code>zk.challenge</code>, <code>zk.provenAt</code>, <code>zk.imageId</code>, <code>zk.attestorThreshold</code>, <code>zk.proofTx</code>, <code>zk.feeLamports</code>, <code>zk.evidence</code>. The challenge is read from the proof transaction's public values; the program clears it from the account after a proof.</td></tr>
     <tr><td class="mono">GET /badge/&lt;address&gt;.svg</td><td>An embeddable badge: PASS 1.15x · wk 2960, WATCH, or UNPROVEN.</td></tr>
     <tr><td class="mono">GET /api/state</td><td>The Tape: paid and list books, accepted price proofs, and the off-chain recomputation of the index.</td></tr>
     <tr><td class="mono">POST /api/lead</td><td>Request a proof: <code>{email, fleetGpus, lender, note}</code>.</td></tr>
@@ -107,7 +107,7 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 
 <h2>Pricing</h2>
 <ul>
-  <li><b>Operators:</b> $0.25 per GPU per week, charged per proof. First four proofs free. Fees are collected by the program at proof time from mainnet; devnet proofs are free.</li>
+  <li><b>Operators:</b> $0.25 per GPU per week, charged per proof. First four proofs free. The program collects the fee at proof time into a treasury account; on devnet the fee is set to zero.</li>
   <li><b>Lenders, vault curators, GPU networks, clouds:</b> verify pages, badges and the read API are free during beta. Bulk API pricing comes with mainnet.</li>
   <li><b>Why operators pay:</b> the gain is theirs. On a $15.8M loan (USD.AI's average), one point of rate is $158k a year, and a lender's warranty on the same collateral costs about 150 basis points a year. A 500-GPU fleet pays $6,500 a year for proofs.</li>
 </ul>
