@@ -18,6 +18,9 @@ const page = (f: string) => new URL(`../public/${f}`, import.meta.url);
 const pages: Record<string, URL> = {
   "/": page("site/index.html"),
   "/simple": page("landing.html"),
+  // The two other design directions, for comparison; trailing slash so their relative assets resolve.
+  "/lens/": page("site/lens/index.html"),
+  "/lattice/": page("site/lattice/index.html"),
   "/lender": page("lender.html"),
   "/tape": page("index.html"),
   "/prove": page("prove.html"),
@@ -101,9 +104,13 @@ createServer(async (req, res) => {
       res.writeHead(200, { "content-type": "image/svg+xml", "cache-control": "max-age=60" }).end(badge(z?.status ?? "none", z?.coverageBps ?? 0, z?.asOfPeriod ?? 0));
       return;
     }
-    const asset = /^\/(css|js|vendor)\/([A-Za-z0-9._-]+\.(css|js))$/.exec(path);
+    const asset = /^\/(css|js|vendor|lens|lattice)\/([A-Za-z0-9._-]+\.(css|js))$/.exec(path);
     if (asset && existsSync(page(`site/${asset[1]}/${asset[2]}`))) {
       res.writeHead(200, { "content-type": assetTypes[`.${asset[3]}`]!, "cache-control": "max-age=300" }).end(readFileSync(page(`site/${asset[1]}/${asset[2]}`)));
+      return;
+    }
+    if (path === "/lens" || path === "/lattice") {
+      res.writeHead(301, { location: `${path}/` }).end();
       return;
     }
     const file = pages[path];

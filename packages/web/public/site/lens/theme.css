@@ -1,0 +1,83 @@
+/* Lens: dark glass and focused light. Soft round forms, glow instead of borders, hairline serif.
+   Motion is sine: things drift, converge and brighten; nothing snaps. */
+:root {
+  --vault: #07090d; --vault-2: #0c1018; --slag: #1c2433; --slag-2: #34425a;
+  --ingot: #8fd8ff; --ingot-hi: #d4f0ff; --ingot-lo: #2b5878; --refract: #b6a4ff; --caustic: #ffe9b0;
+  --polish: #eef2fb; --muted: #97a3ba; --pass: #9be8c0; --watch: #ffb38a; --focus: #ffe9b0;
+  --tint: #101a2a; --on-accent: #04111b; --accent-deep: #5fb8e8; --nav-bg: rgba(7, 9, 13, .78);
+  --display: "Instrument Serif", "Didot", Georgia, serif;
+  --body: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "DM Mono", ui-monospace, Menlo, Consolas, monospace;
+  --ease: cubic-bezier(.37, 0, .63, 1); --fast: .24s; --med: .9s; --slow: 2.2s;
+  --r: 22px;
+}
+body { background: radial-gradient(70rem 40rem at 85% -10%, rgba(143, 216, 255, .08), transparent 60%), radial-gradient(50rem 30rem at -10% 40%, rgba(182, 164, 255, .06), transparent 60%), var(--vault) }
+.display { font-weight: 400; font-size: clamp(2.9rem, 8vw, 7rem); line-height: .95; letter-spacing: -.01em }
+.display-2 { font-weight: 400; font-size: clamp(2.3rem, 5.2vw, 4.2rem); letter-spacing: -.005em }
+.display em, .display-2 em, .hook em { color: var(--caustic) }
+.eyebrow, .kicker, .k { color: var(--ingot); letter-spacing: .16em }
+.btn { border-radius: 999px; border-color: var(--slag-2) }
+.btn::after { background: radial-gradient(circle at 50% 50%, rgba(212, 240, 255, .28), transparent 60%); transform: translateX(-120%) scale(1.4) }
+.btn-gold { background: linear-gradient(180deg, #f2fbff, var(--ingot) 70%); box-shadow: 0 0 0 1px rgba(143, 216, 255, .5), 0 8px 30px -8px rgba(143, 216, 255, .55); border-color: transparent }
+.btn-gold:hover { box-shadow: 0 0 0 1px var(--ingot-hi), 0 10px 44px -6px rgba(143, 216, 255, .8) }
+.mark { background: radial-gradient(circle, #fff 0 18%, var(--caustic) 30%, rgba(143, 216, 255, .5) 55%, transparent 72%); box-shadow: none }
+.brand { font-size: 1.25rem }
+.hook { border-left: 0; padding-left: 0 }
+
+/* Hero: the lens */
+.lens-stage {
+  position: relative; width: 100%; max-width: 560px; aspect-ratio: 1; margin: 0 auto; overflow: hidden; border-radius: 28px;
+  background: radial-gradient(90% 90% at 50% 50%, #0f1626, #090c13 70%); box-shadow: inset 0 0 0 1px rgba(143, 216, 255, .12), 0 40px 80px -40px rgba(0, 0, 0, .9);
+  cursor: none; touch-action: pan-y;
+}
+.lens-stage:focus-visible { outline-offset: 4px }
+#light { position: absolute; inset: 0; width: 100%; height: 100% }
+.claims { list-style: none; margin: 0; padding: 0; position: absolute; inset: 0 }
+.claims li { position: absolute; font: 500 clamp(9.5px, 1.7vw, 12.5px)/1.2 var(--mono); color: var(--muted); white-space: nowrap; filter: blur(2.2px); opacity: .7 }
+.claims li:nth-child(1) { left: 8%; top: 12% } .claims li:nth-child(2) { left: 56%; top: 20% }
+.claims li:nth-child(3) { left: 14%; top: 32% } .claims li:nth-child(4) { left: 52%; top: 44% }
+.claims li:nth-child(5) { left: 6%; top: 56% } .claims li:nth-child(6) { left: 50%; top: 66% }
+.claims li:nth-child(7) { left: 12%; top: 78% } .claims li:nth-child(8) { left: 54%; top: 88% }
+.lens { position: absolute; left: 0; top: 0; width: 46%; aspect-ratio: 1; border-radius: 50%; overflow: hidden; will-change: transform;
+  background: radial-gradient(circle at 50% 50%, rgba(143, 216, 255, .1), rgba(182, 164, 255, .06) 60%, rgba(7, 9, 13, .5)); }
+.claims.proven { will-change: transform }
+.claims.proven li { filter: none; opacity: 1; color: var(--ingot-hi); font-weight: 500; text-shadow: 0 0 12px rgba(143, 216, 255, .55) }
+.lens-rim { position: absolute; inset: 0; border-radius: 50%; pointer-events: none;
+  box-shadow: inset 0 0 0 1px rgba(212, 240, 255, .55), inset 0 0 0 3px rgba(182, 164, 255, .18), inset 6px -6px 24px rgba(182, 164, 255, .35), inset -6px 6px 24px rgba(143, 216, 255, .3), 0 0 40px rgba(143, 216, 255, .2) }
+.focus { position: absolute; inset: 0; pointer-events: none }
+.focus i { position: absolute; left: 50%; top: 50%; width: 18px; height: 18px; margin: -9px; border-radius: 50%; background: #fff; box-shadow: 0 0 24px 8px rgba(255, 233, 176, .85), 0 0 90px 30px rgba(143, 216, 255, .35) }
+.focus span { position: absolute; left: 50%; bottom: 6%; transform: translateX(-50%); white-space: nowrap; font: 500 12px var(--mono); letter-spacing: .16em; color: var(--caustic); background: rgba(7, 9, 13, .75); padding: 6px 12px; border-radius: 999px; box-shadow: inset 0 0 0 1px rgba(255, 233, 176, .3) }
+html:not(.js) .lens { display: none }
+.lens-stage.dimmed > .claims li { opacity: .28 }
+
+/* Sections, re-cut in glass */
+.marquee { border-color: transparent; background: linear-gradient(90deg, transparent, rgba(143, 216, 255, .05), transparent) }
+.mq-row span { color: var(--slag-2); font-style: italic }
+.cmp-side, .cmp.live, .tile, .calc, .faq-list, .stat-grid { border-color: rgba(143, 216, 255, .1) }
+.cmp, .cmp.live { border-radius: var(--r) } .cmp-side { border-radius: var(--r) }
+.cmp-before { background: none; filter: none }
+.cmp-before li { opacity: .75 }
+.cmp-after { background: linear-gradient(160deg, #0f1a2b, var(--vault-2)) }
+.cmp.live .cmp-handle::before { box-shadow: 0 0 24px 2px var(--ingot) }
+.story-visual { border: 0; background: radial-gradient(circle, rgba(143, 216, 255, .1), transparent 62%); box-shadow: inset 0 0 0 1px rgba(143, 216, 255, .25), inset 0 0 60px rgba(182, 164, 255, .12) }
+.seal-step b { font-weight: 400; color: var(--caustic); text-shadow: 0 0 30px rgba(255, 233, 176, .5) }
+.story-rule { border-radius: 2px } .story-rule i { box-shadow: 0 0 12px var(--ingot) }
+.tile { border-radius: var(--r); background: linear-gradient(180deg, rgba(143, 216, 255, .04), rgba(143, 216, 255, 0)), var(--vault-2) }
+.tile:hover, .tile:focus-within { border-color: rgba(143, 216, 255, .35); box-shadow: 0 20px 60px -30px rgba(143, 216, 255, .45) }
+.t-prove { background: radial-gradient(80% 70% at 80% 10%, rgba(182, 164, 255, .14), transparent 70%), var(--vault-2) }
+.tile h3 { font-weight: 400; font-size: 1.8rem }
+.l-nonce { color: var(--ingot-hi); text-shadow: 0 0 22px rgba(143, 216, 255, .6) }
+.badge { border-radius: 999px }
+.l-tape i { border-radius: 4px; background: linear-gradient(var(--ingot), rgba(143, 216, 255, .1)) }
+.l-tape i:nth-child(4n) { background: linear-gradient(var(--caustic), rgba(255, 233, 176, .1)) }
+.l-embed code { border-radius: 10px }
+.l-gate i { border-radius: 10px }
+.calc { border-radius: 28px }
+.calc dd { color: var(--caustic); font-weight: 400 }
+.stack i { border-radius: 50%; background: radial-gradient(circle, #fff, var(--ingot) 60%, var(--ingot-lo)); opacity: .9 }
+.faq-list { border-top-color: rgba(143, 216, 255, .1) } .faq details { border-color: rgba(143, 216, 255, .1) }
+.faq summary { font-weight: 400; font-size: clamp(1.25rem, 2.2vw, 1.6rem) }
+.plate { border-radius: 32px; border-color: rgba(143, 216, 255, .25); box-shadow: inset 0 0 120px rgba(143, 216, 255, .06); background: radial-gradient(70% 120% at 100% 0%, rgba(182, 164, 255, .14), transparent 60%), var(--vault-2) }
+#lead input, #lead textarea { border-radius: 14px }
+.gets b { font-weight: 400; font-size: 1.3rem }
+.foot-mark { color: transparent; -webkit-text-stroke: 1px var(--slag-2); font-weight: 400 }

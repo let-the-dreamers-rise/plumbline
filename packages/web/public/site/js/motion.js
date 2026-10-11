@@ -3,7 +3,9 @@
 (function () {
   if (!window.gsap) return;
   gsap.registerPlugin(ScrollTrigger, SplitText);
-  gsap.defaults({ ease: 'expo.out', duration: .9 });
+  /* Each direction sets its own physics on <html>: data-ease, data-ease-in-out, data-speed. */
+  var D = document.documentElement.dataset, K = +(D.speed || 1), EIO = D.easeInOut || 'expo.inOut';
+  gsap.defaults({ ease: D.ease || 'expo.out', duration: .9 * K });
 
   /* Pause CSS loops (marquee, bento micro-animations, footer sweep) while offscreen. */
   var io = new IntersectionObserver(function (es) {
@@ -26,21 +28,21 @@
       document.querySelectorAll('.reveal').forEach(function (h) {
         var split = SplitText.create(h, { type: 'lines', mask: 'lines', linesClass: 'line' });
         var hero = h.id === 'hero-h';
-        gsap.from(split.lines, { yPercent: 110, duration: hero ? 1.4 : 1, stagger: .09, delay: hero ? .15 : 0,
+        gsap.from(split.lines, { yPercent: 110, duration: (hero ? 1.4 : 1) * K, stagger: .09, delay: hero ? .15 : 0,
           scrollTrigger: hero ? null : { trigger: h, start: 'top 88%', once: true } });
       });
       /* Footer: the program address is engraved character by character. */
       var pid = document.getElementById('pid');
-      if (pid) gsap.from(SplitText.create(pid, { type: 'chars' }).chars, { opacity: .12, duration: .3, stagger: .025, ease: 'none',
+      if (pid) gsap.from(SplitText.create(pid, { type: 'chars' }).chars, { opacity: .12, duration: (.3) * K, stagger: .025, ease: 'none',
         scrollTrigger: { trigger: pid, start: 'top 95%', once: true } });
       ScrollTrigger.refresh();
     });
 
     /* Staggered entrances: content settles up into place, like plates being laid down. */
-    gsap.from('.hero-copy > :not(h1)', { y: 24, opacity: 0, duration: 1, stagger: .08, delay: .5 });
+    gsap.from('.hero-copy > :not(h1)', { y: 24, opacity: 0, duration: (1) * K, stagger: .08, delay: .5 });
     [['.cmp-side', .12], ['.tile', .07], ['.stat-grid li', .06], ['.faq details', .05], ['.calc', 0], ['.plate', 0]].forEach(function (g) {
       ScrollTrigger.batch(g[0], { start: 'top 90%', once: true,
-        onEnter: function (els) { gsap.from(els, { y: 36, opacity: 0, duration: 1, stagger: g[1] }); } });
+        onEnter: function (els) { gsap.from(els, { y: 36, opacity: 0, duration: (1) * K, stagger: g[1] }); } });
     });
 
     /* Count-ups: numbers run, then land with a 2% strike. */
@@ -49,8 +51,8 @@
       var pre = el.dataset.prefix || '', suf = el.dataset.suffix || '', o = { v: from };
       ScrollTrigger.create({ trigger: el, start: 'top 90%', once: true, onEnter: function () {
         gsap.timeline()
-          .to(o, { v: to, duration: 1.4, ease: 'expo.inOut', onUpdate: function () { el.textContent = pre + o.v.toFixed(dec) + suf; } })
-          .fromTo(el, { scale: 1.04 }, { scale: 1, duration: .4, transformOrigin: 'left bottom' });
+          .to(o, { v: to, duration: (1.4) * K, ease: EIO, onUpdate: function () { el.textContent = pre + o.v.toFixed(dec) + suf; } })
+          .fromTo(el, { scale: 1.04 }, { scale: 1, duration: (.4) * K, transformOrigin: 'left bottom' });
       } });
     });
 

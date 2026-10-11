@@ -13,6 +13,10 @@
   --pass: #8fb98a;       /* PASS, verdigris */
   --watch: #d08a3c;      /* WATCH, hot copper */
   --focus: #ecd29a;
+  --tint: #241e14;       /* warm lift behind feature plates */
+  --on-accent: #1d160a;  /* text on the accent */
+  --accent-deep: #a8843f;
+  --nav-bg: rgba(14, 13, 11, .82);
   --display: "Bodoni Moda", "Didot", "Bodoni 72", Georgia, serif;
   --body: "Hanken Grotesk", system-ui, -apple-system, "Segoe UI", sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
@@ -38,7 +42,7 @@ h1, h2, h3 { margin: 0; text-wrap: balance; font-weight: 500 }
 p { margin: 0 }
 [hidden] { display: none !important }
 .sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap }
-.skip { position: absolute; left: 16px; top: -60px; z-index: 50; background: var(--ingot); color: var(--vault); padding: 8px 12px; font-weight: 600 }
+.skip { position: absolute; left: 16px; top: -60px; z-index: 50; background: var(--ingot); color: var(--on-accent); padding: 8px 12px; font-weight: 600 }
 .skip:focus { top: 12px }
 
 .eyebrow, .kicker, .k {
@@ -72,8 +76,8 @@ code { font: 400 .86em var(--mono) }
 .btn:hover { --b: var(--ingot); color: var(--polish) }
 .btn:hover::after { transform: translateX(120%) }
 .btn:active { transform: translateY(1px) }
-.btn-gold { background: linear-gradient(180deg, var(--ingot-hi), var(--ingot) 55%, #a8843f); color: #1d160a; border-color: var(--ingot); font-weight: 600 }
-.btn-gold:hover { color: #1d160a }
+.btn-gold { background: linear-gradient(180deg, var(--ingot-hi), var(--ingot) 55%, var(--accent-deep)); color: var(--on-accent); border-color: var(--ingot); font-weight: 600 }
+.btn-gold:hover { color: var(--on-accent) }
 .btn-quiet { border-color: transparent; color: var(--muted) }
 .btn-sm { min-height: 40px; padding: 0 16px; font-size: 13px; white-space: nowrap }
 .btn[disabled] { opacity: .6; cursor: progress }
@@ -82,7 +86,7 @@ code { font: 400 .86em var(--mono) }
 .nav {
   position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20;
   display: flex; align-items: center; gap: 12px 28px; justify-content: space-between;
-  padding: 14px var(--gutter); background: rgba(14, 13, 11, .82); backdrop-filter: blur(10px);
+  padding: 14px var(--gutter); background: var(--nav-bg); backdrop-filter: blur(10px);
   border-bottom: 1px solid rgba(58, 53, 48, .6);
 }
 .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--polish); text-decoration: none; font: 500 1.05rem/1 var(--display); letter-spacing: .01em; white-space: nowrap }
