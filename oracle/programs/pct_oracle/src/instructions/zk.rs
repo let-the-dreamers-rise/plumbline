@@ -9,7 +9,7 @@ use anchor_lang::prelude::*;
 use crate::{
     constants::*,
     error::OracleError,
-    instructions::registry::{bind_device, Pledge},
+    instructions::registry::{bind_device, claim_nonce, registry_enforced, require_nonce_claimed_by, Pledge},
     reclaim::keccak,
     risc0_groth16,
     state::*,
@@ -38,9 +38,6 @@ pub struct ZkConfig {
     pub bump: u8,
     /// Charged to the submitter on every proof, PASS or WATCH (the proving work was done either way); 0 = free.
     pub fee_lamports: u64,
-    /// Bind each proven GPU to its loan in the cross-lender device registry (instructions/registry.rs)
-    /// and refuse a GPU already pledged to another loan. Off by default; set_device_registry turns it on.
-    pub enforce_device_registry: bool,
 }
 
 /// Holds the proof fees until the authority withdraws them.
@@ -108,12 +105,20 @@ pub struct IssueGpuChallenge<'info> {
     #[account(init_if_needed, payer = lender, space = 8 + ZkCovenant::INIT_SPACE, seeds = [ZK_COVENANT_SEED, loan.key().as_ref()], bump)]
     pub zk_covenant: Account<'info, ZkCovenant>,
     pub system_program: Program<'info, System>,
+    // remaining_accounts[0] (optional): the writable NonceClaim PDA ["nonce", challenge]. Passing it
+    // claims the nonce for this loan (NonceTaken if another loan holds it). While the device
+    // registry is enforced, prove_covenant only binds a GPU with a nonce its loan claimed, so a
+    // lender using the registry passes it here, in the same instruction that reveals the nonce.
 }
 
 /// The lender picks the nonce the operator's GPU must sign (any fresh random 32 bytes).
-pub fn handle_issue_gpu_challenge(ctx: Context<IssueGpuChallenge>, challenge: [u8; 32]) -> Result<()> {
+pub fn handle_issue_gpu_challenge<'info>(ctx: Context<'info, IssueGpuChallenge<'info>>, challenge: [u8; 32]) -> Result<()> {
+    let loan = ctx.accounts.loan.key();
+    if let Some(claim) = ctx.remaining_accounts.first() {
+        claim_nonce(claim, &ctx.accounts.lender.to_account_info(), &challenge, loan)?;
+    }
     let z = &mut ctx.accounts.zk_covenant;
-    z.loan = ctx.accounts.loan.key();
+    z.loan = loan;
     z.gpu_challenge = challenge;
     z.bump = ctx.bumps.zk_covenant;
     Ok(())
@@ -138,8 +143,11 @@ pub struct ProveCovenant<'info> {
     #[account(mut, seeds = [TREASURY_SEED], bump)]
     pub treasury: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
-    // remaining_accounts[0]: the writable Device PDA ["device", chip_id], required only while
-    // zk_config.enforce_device_registry is set (kept out of the struct so existing clients still work).
+    // remaining_accounts[0]: the RegistryConfig PDA ["registry_config"], always, initialised or not
+    //   (any other account fails, so leaving it out cannot skip enforcement).
+    // While it enforces the registry:
+    //   remaining_accounts[1]: the writable Device PDA ["device", chip_id];
+    //   remaining_accounts[2]: the NonceClaim PDA ["nonce", journal nonce], claimed by this loan.
 }
 
 #[event]
@@ -224,10 +232,13 @@ pub fn handle_prove_covenant<'info>(
     require!(as_of_period <= current && as_of_period + 1 >= current, OracleError::NoRecentRevenue);
     require!(z.status == ZK_NONE || as_of_period >= z.as_of_period, OracleError::RevenueTooOld);
 
-    if zk.enforce_device_registry {
-        let device = ctx.remaining_accounts.first().ok_or(error!(OracleError::BadDeviceAccount))?;
+    let extra = ctx.remaining_accounts;
+    if registry_enforced(extra.first())? {
+        let device = extra.get(1).ok_or(error!(OracleError::BadDeviceAccount))?;
         let pledge = Pledge { chip_id, loan: loan.key(), lender: loan.lender, now, period: as_of_period };
         bind_device(device, &ctx.accounts.submitter.to_account_info(), &pledge)?;
+        // The journal names the terms, not the loan: only the loan that claimed this nonce may bind with it.
+        require_nonce_claimed_by(extra.get(2), &nonce, loan.key())?;
     }
 
     z.status = if pass { ZK_PASS } else { ZK_WATCH };

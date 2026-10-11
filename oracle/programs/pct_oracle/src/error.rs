@@ -72,6 +72,18 @@ pub enum OracleError {
     DevicePledgedElsewhere,
     #[msg("Missing or wrong device registry account for this GPU")]
     BadDeviceAccount,
+    #[msg("Challenge nonce is already claimed by another loan")]
+    NonceTaken,
+    #[msg("Missing or wrong nonce claim account for this challenge")]
+    BadNonceClaim,
+    #[msg("Remaining account 0 must be the device registry config PDA")]
+    BadRegistryConfig,
+    #[msg("Only the bound loan's lender or borrower, or the config authority, can release this GPU")]
+    CannotReleaseDevice,
+    #[msg("This GPU is not pledged to any loan")]
+    DeviceNotPledged,
+    #[msg("Proof carries an all-zero chip id")]
+    ZeroChipId,
 }
 
 impl From<crate::reclaim::ClaimError> for OracleError {

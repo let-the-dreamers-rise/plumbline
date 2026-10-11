@@ -8,7 +8,10 @@ mod common;
 use {
     anchor_lang::{
         prelude::Pubkey,
-        solana_program::{instruction::Instruction, system_program},
+        solana_program::{
+            instruction::{AccountMeta, Instruction},
+            system_program,
+        },
     },
     common::{boot_with, default_params, hex, keccak, pda, Harness},
     pct_oracle::{
@@ -148,22 +151,22 @@ impl Setup {
 
     fn prove(&mut self, seal: Vec<u8>, journal: Vec<u8>) -> Result<u64, String> {
         let payer = self.h.payer.pubkey();
-        self.h.send(&[
-            compute_limit(1_400_000),
-            Harness::ix(
-                pct_oracle::instruction::ProveCovenant { seal, public_values: journal, as_of_period: self.as_of },
-                pct_oracle::accounts::ProveCovenant {
-                    submitter: payer,
-                    config: pda(&[b"config"]),
-                    zk_config: pda(&[b"zk_config"]),
-                    source: pda(&[b"source", &self.source_id]),
-                    loan: self.loan,
-                    zk_covenant: pda(&[b"zk_covenant", self.loan.as_ref()]),
-                    treasury: pda(&[b"treasury"]),
-                    system_program: system_program::ID,
-                },
-            ),
-        ])
+        let mut ix = Harness::ix(
+            pct_oracle::instruction::ProveCovenant { seal, public_values: journal, as_of_period: self.as_of },
+            pct_oracle::accounts::ProveCovenant {
+                submitter: payer,
+                config: pda(&[b"config"]),
+                zk_config: pda(&[b"zk_config"]),
+                source: pda(&[b"source", &self.source_id]),
+                loan: self.loan,
+                zk_covenant: pda(&[b"zk_covenant", self.loan.as_ref()]),
+                treasury: pda(&[b"treasury"]),
+                system_program: system_program::ID,
+            },
+        );
+        // Remaining account 0: the device registry config PDA, always (uninitialised here = registry off).
+        ix.accounts.push(AccountMeta::new_readonly(pda(&[b"registry_config"]), false));
+        self.h.send(&[compute_limit(1_400_000), ix])
     }
 
     fn set_fee(&mut self, fee_lamports: u64) {

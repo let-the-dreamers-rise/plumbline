@@ -91,7 +91,7 @@ pub mod pct_oracle {
         instructions::zk::handle_set_zk_config(ctx, image_id, attestor_threshold, require_vm_bound, vm_measurement)
     }
 
-    pub fn issue_gpu_challenge(ctx: Context<IssueGpuChallenge>, challenge: [u8; 32]) -> Result<()> {
+    pub fn issue_gpu_challenge<'info>(ctx: Context<'info, IssueGpuChallenge<'info>>, challenge: [u8; 32]) -> Result<()> {
         instructions::zk::handle_issue_gpu_challenge(ctx, challenge)
     }
 
