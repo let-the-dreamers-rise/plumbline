@@ -66,6 +66,8 @@ pub enum OracleError {
     WrongSourceKind,
     #[msg("Proof's VM is not the required one, or its TDX quote does not vouch for this GPU report")]
     ZkVmNotBound,
+    #[msg("Treasury holds fewer withdrawable fees than requested")]
+    InsufficientFees,
 }
 
 impl From<crate::reclaim::ClaimError> for OracleError {

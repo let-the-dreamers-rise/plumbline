@@ -81,6 +81,9 @@ export class OraclePdas {
     return this.find(Buffer.from("zk_config"));
   }
 
+  treasury(): PublicKey {
+    return this.find(Buffer.from("treasury"));
+  }
   zkCovenant(loan: PublicKey): PublicKey {
     return this.find(Buffer.from("zk_covenant"), loan.toBytes());
   }
@@ -288,8 +291,21 @@ export class OracleInstructions {
       readonly(this.pdas.source(sourceId)),
       readonly(l),
       writable(this.pdas.zkCovenant(l)),
+      writable(this.pdas.treasury()),
+      system,
     ];
     return this.ix("prove_covenant", keys, new Writer().vec(seal).vec(publicValues).u32(asOfPeriod));
+  }
+
+  /** Fee every prove_covenant pays into the treasury (0 = free); creates the treasury on first use. */
+  setProofFee(authority: PublicKey, feeLamports: bigint | number): TransactionInstruction {
+    const keys = [signer(authority), readonly(this.pdas.config()), writable(this.pdas.zkConfig()), writable(this.pdas.treasury()), system];
+    return this.ix("set_proof_fee", keys, new Writer().u64(feeLamports));
+  }
+
+  withdrawFees(authority: PublicKey, lamports: bigint | number): TransactionInstruction {
+    const keys = [signer(authority), readonly(this.pdas.config()), writable(this.pdas.treasury())];
+    return this.ix("withdraw_fees", keys, new Writer().u64(lamports));
   }
 
   drawPrivate(borrower: PublicKey, loan: { lender: PublicKey; operatorKey: Uint8Array }, lamports: bigint | number): TransactionInstruction {

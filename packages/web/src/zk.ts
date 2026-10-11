@@ -19,6 +19,8 @@ export interface ZkView {
   imageId: string | null;
   attestorThreshold: number | null;
   proofTx: string | null;
+  /** Lamports the proving transaction paid into the treasury (0 when proofs are free). */
+  feeLamports: number;
   /** "public": proven from the published NVIDIA sample report and VoltageGPU quote; "own": evidence made against this loan's challenge. */
   evidence: "public" | "own" | null;
 }
@@ -64,29 +66,40 @@ export function decodeZkCovenant(data: Uint8Array) {
 export function decodeZkConfig(data: Uint8Array) {
   if (hex(data.subarray(0, 8)) !== CONFIG_DISC) throw new Error("not a ZkConfig account");
   const r = new Reader(data.subarray(8));
-  return { imageId: hex(r.take(32)), attestorThreshold: r.u8(), requireVmBound: r.u8() === 1, vmMeasurement: hex(r.take(32)) };
+  const imageId = hex(r.take(32));
+  const attestorThreshold = r.u8();
+  const requireVmBound = r.u8() === 1;
+  const vmMeasurement = hex(r.take(32));
+  r.u8(); // bump
+  return { imageId, attestorThreshold, requireVmBound, vmMeasurement, feeLamports: Number(r.u64()) };
 }
 
-/** Loans named by `CovenantProven` events in one transaction's logs. */
-export function covenantProvenLoans(logs: readonly string[], programId?: string): string[] {
+/** `CovenantProven` events in one transaction's logs: the loan and the fee the proof paid. */
+export function covenantProven(logs: readonly string[], programId?: string): { loan: string; feeLamports: number }[] {
   return programData(logs, programId)
     .filter((d) => hex(d.subarray(0, 8)) === PROVEN_DISC)
-    .map((d) => new PublicKey(d.subarray(8, 40)).toBase58());
+    .map((d) => {
+      const r = new Reader(d.subarray(8));
+      const loan = new PublicKey(r.take(32)).toBase58();
+      r.take(1 + 8 + 4 + 4 + 32 + 32 + 1); // status, coverage, period, claims, chip id, vm measurement, vm bound
+      return { loan, feeLamports: Number(r.u64()) };
+    });
 }
 
 /**
  * The newest successful transaction on the covenant account that proved this loan, and the challenge
  * it answered (the program clears the stored challenge once a proof lands, so it is read from the proof).
  */
-async function proofTx(connection: Connection, covenant: PublicKey, loan: string, programId: PublicKey): Promise<{ sig: string; challenge: string | null } | null> {
+async function proofTx(connection: Connection, covenant: PublicKey, loan: string, programId: PublicKey): Promise<{ sig: string; challenge: string | null; feeLamports: number } | null> {
   const sigs = (await connection.getSignaturesForAddress(covenant, { limit: 20 }, "confirmed")).filter((s) => s.err === null);
   for (const s of sigs) {
     const tx = await connection.getTransaction(s.signature, { commitment: "confirmed", maxSupportedTransactionVersion: 0 });
-    if (!tx || !covenantProvenLoans(tx.meta?.logMessages ?? [], programId.toBase58()).includes(loan)) continue;
+    const ev = tx && covenantProven(tx.meta?.logMessages ?? [], programId.toBase58()).find((e) => e.loan === loan);
+    if (!tx || !ev) continue;
     const msg = tx.transaction.message;
     const keys = msg.staticAccountKeys;
     const ix = msg.compiledInstructions.find((i) => keys[i.programIdIndex]?.equals(programId) && provedChallenge(i.data) !== null);
-    return { sig: s.signature, challenge: ix ? provedChallenge(ix.data) : null };
+    return { sig: s.signature, challenge: ix ? provedChallenge(ix.data) : null, feeLamports: ev.feeLamports };
   }
   return null;
 }
@@ -120,6 +133,7 @@ export async function loadZk(connection: Connection, programId: PublicKey, loan:
     imageId: c?.imageId ?? null,
     attestorThreshold: c?.attestorThreshold ?? null,
     proofTx: proof?.sig ?? null,
+    feeLamports: proof?.feeLamports ?? 0,
     evidence: z.status === "none" ? null : evidence(),
   };
 }

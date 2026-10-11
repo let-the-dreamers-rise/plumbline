@@ -10,6 +10,7 @@ use crate::{constants::*, error::OracleError, reclaim::keccak, risc0_groth16, st
 
 pub const ZK_CONFIG_SEED: &[u8] = b"zk_config";
 pub const ZK_COVENANT_SEED: &[u8] = b"zk_covenant";
+pub const TREASURY_SEED: &[u8] = b"treasury";
 const PUBLIC_VALUES_LEN: usize = 6 * 32 + 8 + 8 + 4 + 1 + 32 + 16 + 1;
 
 pub const ZK_NONE: u8 = 0;
@@ -27,6 +28,15 @@ pub struct ZkConfig {
     pub require_vm_bound: bool,
     /// Only accept this VM image + runtime (sha256(mr_td || rtmrs hash)); all zero = any.
     pub vm_measurement: [u8; 32],
+    pub bump: u8,
+    /// Charged to the submitter on every proof, PASS or WATCH (the proving work was done either way); 0 = free.
+    pub fee_lamports: u64,
+}
+
+/// Holds the proof fees until the authority withdraws them.
+#[account]
+#[derive(InitSpace)]
+pub struct Treasury {
     pub bump: u8,
 }
 
@@ -101,6 +111,7 @@ pub fn handle_issue_gpu_challenge(ctx: Context<IssueGpuChallenge>, challenge: [u
 
 #[derive(Accounts)]
 pub struct ProveCovenant<'info> {
+    #[account(mut)]
     pub submitter: Signer<'info>,
     #[account(seeds = [CONFIG_SEED], bump = config.bump)]
     pub config: Account<'info, Config>,
@@ -113,6 +124,10 @@ pub struct ProveCovenant<'info> {
     pub loan: Account<'info, Loan>,
     #[account(mut, seeds = [ZK_COVENANT_SEED, loan.key().as_ref()], bump = zk_covenant.bump, has_one = loan)]
     pub zk_covenant: Account<'info, ZkCovenant>,
+    /// CHECK: the fee treasury by address; it only has to exist once a fee is set (set_proof_fee creates it).
+    #[account(mut, seeds = [TREASURY_SEED], bump)]
+    pub treasury: UncheckedAccount<'info>,
+    pub system_program: Program<'info, System>,
 }
 
 #[event]
@@ -125,6 +140,7 @@ pub struct CovenantProven {
     pub chip_id: [u8; 32],
     pub vm_measurement: [u8; 32],
     pub vm_bound: bool,
+    pub fee_lamports: u64,
 }
 
 /// The terms hash the guest commits to; must match zk/lib `Terms::hash`.
@@ -151,6 +167,14 @@ pub fn attestor_set_hash(threshold: u8, attestors: &[[u8; 20]]) -> [u8; 32] {
 
 pub fn handle_prove_covenant(ctx: Context<ProveCovenant>, seal: Vec<u8>, public_values: Vec<u8>, as_of_period: u32) -> Result<()> {
     let zk = &ctx.accounts.zk_config;
+    let fee_lamports = zk.fee_lamports;
+    if fee_lamports > 0 {
+        let cpi = anchor_lang::system_program::Transfer {
+            from: ctx.accounts.submitter.to_account_info(),
+            to: ctx.accounts.treasury.to_account_info(),
+        };
+        anchor_lang::system_program::transfer(CpiContext::new(ctx.accounts.system_program.key(), cpi), fee_lamports)?;
+    }
     risc0_groth16::verify(&seal, &zk.image_id, &public_values).map_err(|e| {
         msg!("groth16: {:?}", e);
         error!(OracleError::BadZkProof)
@@ -194,7 +218,46 @@ pub fn handle_prove_covenant(ctx: Context<ProveCovenant>, seal: Vec<u8>, public_
     z.proven_at = now;
     // One proof per challenge: the same proof (or any other made for this nonce) cannot be replayed.
     z.gpu_challenge = [0u8; 32];
-    emit!(CovenantProven { loan: loan.key(), status: z.status, coverage_bps, as_of_period, claims, chip_id, vm_measurement, vm_bound });
+    emit!(CovenantProven { loan: loan.key(), status: z.status, coverage_bps, as_of_period, claims, chip_id, vm_measurement, vm_bound, fee_lamports });
+    Ok(())
+}
+
+#[derive(Accounts)]
+pub struct SetProofFee<'info> {
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    #[account(seeds = [CONFIG_SEED], bump = config.bump, has_one = authority @ OracleError::Unauthorized)]
+    pub config: Account<'info, Config>,
+    #[account(mut, seeds = [ZK_CONFIG_SEED], bump = zk_config.bump)]
+    pub zk_config: Account<'info, ZkConfig>,
+    #[account(init_if_needed, payer = authority, space = 8 + Treasury::INIT_SPACE, seeds = [TREASURY_SEED], bump)]
+    pub treasury: Account<'info, Treasury>,
+    pub system_program: Program<'info, System>,
+}
+
+pub fn handle_set_proof_fee(ctx: Context<SetProofFee>, fee_lamports: u64) -> Result<()> {
+    ctx.accounts.zk_config.fee_lamports = fee_lamports;
+    ctx.accounts.treasury.bump = ctx.bumps.treasury;
+    Ok(())
+}
+
+#[derive(Accounts)]
+pub struct WithdrawFees<'info> {
+    #[account(mut)]
+    pub authority: Signer<'info>,
+    #[account(seeds = [CONFIG_SEED], bump = config.bump, has_one = authority @ OracleError::Unauthorized)]
+    pub config: Account<'info, Config>,
+    #[account(mut, seeds = [TREASURY_SEED], bump = treasury.bump)]
+    pub treasury: Account<'info, Treasury>,
+}
+
+/// Moves collected fees to the authority, keeping the treasury rent-exempt.
+pub fn handle_withdraw_fees(ctx: Context<WithdrawFees>, lamports: u64) -> Result<()> {
+    let treasury = ctx.accounts.treasury.to_account_info();
+    let floor = Rent::get()?.minimum_balance(treasury.data_len());
+    require!(treasury.lamports().saturating_sub(floor) >= lamports, OracleError::InsufficientFees);
+    **treasury.try_borrow_mut_lamports()? -= lamports;
+    **ctx.accounts.authority.to_account_info().try_borrow_mut_lamports()? += lamports;
     Ok(())
 }
 

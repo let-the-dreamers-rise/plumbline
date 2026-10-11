@@ -52,8 +52,12 @@ fn setup(debt_service_micro: u64) -> Setup {
 }
 
 fn setup_vm(debt_service_micro: u64, require_vm_bound: bool, vm_measurement: [u8; 32]) -> Setup {
+    setup_with(include_str!("fixtures/covenant-strong-groth16.json"), debt_service_micro, require_vm_bound, vm_measurement)
+}
+
+fn setup_with(proof: &str, debt_service_micro: u64, require_vm_bound: bool, vm_measurement: [u8; 32]) -> Setup {
     let fx = json(include_str!("fixtures/zk-revenue-claims.json"));
-    let proof = json(include_str!("fixtures/covenant-strong-groth16.json"));
+    let proof = json(proof);
     let t = &fx["terms"];
     let as_of = t["as_of_period"].as_u64().unwrap() as u32;
     let period_s = t["period_s"].as_u64().unwrap();
@@ -155,9 +159,39 @@ impl Setup {
                     source: pda(&[b"source", &self.source_id]),
                     loan: self.loan,
                     zk_covenant: pda(&[b"zk_covenant", self.loan.as_ref()]),
+                    treasury: pda(&[b"treasury"]),
+                    system_program: system_program::ID,
                 },
             ),
         ])
+    }
+
+    fn set_fee(&mut self, fee_lamports: u64) {
+        let payer = self.h.payer.pubkey();
+        self.h
+            .send(&[Harness::ix(
+                pct_oracle::instruction::SetProofFee { fee_lamports },
+                pct_oracle::accounts::SetProofFee {
+                    authority: payer,
+                    config: pda(&[b"config"]),
+                    zk_config: pda(&[b"zk_config"]),
+                    treasury: pda(&[b"treasury"]),
+                    system_program: system_program::ID,
+                },
+            )])
+            .unwrap();
+    }
+
+    fn withdraw_fees(&mut self, lamports: u64) -> Result<u64, String> {
+        let payer = self.h.payer.pubkey();
+        self.h.send(&[Harness::ix(
+            pct_oracle::instruction::WithdrawFees { lamports },
+            pct_oracle::accounts::WithdrawFees { authority: payer, config: pda(&[b"config"]), treasury: pda(&[b"treasury"]) },
+        )])
+    }
+
+    fn treasury_lamports(&self) -> u64 {
+        self.h.svm.get_account(&pda(&[b"treasury"])).map(|a| a.lamports).unwrap_or(0)
     }
 
     fn prove_real(&mut self) -> Result<u64, String> {
@@ -280,4 +314,67 @@ fn the_same_proof_cannot_be_replayed() {
     s.challenge(nonce);
     s.prove_real().unwrap();
     assert!(s.prove_real().unwrap_err().contains("ZkStaleChallenge"));
+}
+
+const FEE: u64 = 1_300_000; // about $0.25 at $190/SOL
+
+#[test]
+fn proof_fee_is_charged_on_pass_and_can_be_withdrawn() {
+    let mut s = setup(120_000_000_000);
+    s.set_fee(FEE);
+    let rent = s.treasury_lamports();
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    s.prove_real().unwrap();
+    assert_eq!(s.treasury_lamports(), rent + FEE);
+    assert!(s.withdraw_fees(FEE + 1).unwrap_err().contains("InsufficientFees"), "the treasury keeps its rent");
+    s.withdraw_fees(FEE).unwrap();
+    assert_eq!(s.treasury_lamports(), rent);
+}
+
+#[test]
+fn proof_fee_is_charged_on_watch_too() {
+    let mut s = setup_with(include_str!("fixtures/covenant-strong-watch114-groth16.json"), 142_500_000_000, false, [0u8; 32]);
+    s.set_fee(FEE);
+    let rent = s.treasury_lamports();
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    s.prove_real().unwrap();
+    let z: ZkCovenant = s.h.account(&pda(&[b"zk_covenant", s.loan.as_ref()]));
+    assert_eq!((z.status, z.coverage_bps), (pct_oracle::instructions::ZK_WATCH, 11_403));
+    assert_eq!(s.treasury_lamports(), rent + FEE);
+    assert!(s.draw(SOL / 100).unwrap_err().contains("CovenantBreached"), "1.14x does not unlock a draw");
+}
+
+#[test]
+fn proof_is_refused_when_the_submitter_cannot_pay_the_fee() {
+    let mut s = setup(120_000_000_000);
+    s.set_fee(1_000_000 * SOL);
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    assert!(s.prove_real().is_err());
+    let z: ZkCovenant = s.h.account(&pda(&[b"zk_covenant", s.loan.as_ref()]));
+    assert_eq!(z.status, pct_oracle::instructions::ZK_NONE);
+}
+
+#[test]
+fn only_the_authority_sets_the_fee() {
+    let mut s = setup(120_000_000_000);
+    let other = Keypair::new();
+    s.h.svm.airdrop(&other.pubkey(), SOL).unwrap();
+    let ix = Harness::ix(
+        pct_oracle::instruction::SetProofFee { fee_lamports: 0 },
+        pct_oracle::accounts::SetProofFee {
+            authority: other.pubkey(),
+            config: pda(&[b"config"]),
+            zk_config: pda(&[b"zk_config"]),
+            treasury: pda(&[b"treasury"]),
+            system_program: system_program::ID,
+        },
+    );
+    let blockhash = s.h.svm.latest_blockhash();
+    let msg = solana_message::Message::new_with_blockhash(&[ix], Some(&other.pubkey()), &blockhash);
+    let tx = solana_transaction::versioned::VersionedTransaction::try_new(solana_message::VersionedMessage::Legacy(msg), &[&other]).unwrap();
+    let err = s.h.svm.send_transaction(tx).unwrap_err();
+    assert!(err.meta.logs.join("\n").contains("Unauthorized"));
 }

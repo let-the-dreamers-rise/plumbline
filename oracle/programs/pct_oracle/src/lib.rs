@@ -102,4 +102,12 @@ pub mod pct_oracle {
     pub fn draw_private(ctx: Context<DrawPrivate>, lamports: u64) -> Result<()> {
         instructions::zk::handle_draw_private(ctx, lamports)
     }
+
+    pub fn set_proof_fee(ctx: Context<SetProofFee>, fee_lamports: u64) -> Result<()> {
+        instructions::zk::handle_set_proof_fee(ctx, fee_lamports)
+    }
+
+    pub fn withdraw_fees(ctx: Context<WithdrawFees>, lamports: u64) -> Result<()> {
+        instructions::zk::handle_withdraw_fees(ctx, lamports)
+    }
 }

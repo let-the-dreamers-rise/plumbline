@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { discriminator, Writer } from "@pct/oracle";
 import { Keypair } from "@solana/web3.js";
-import { badge, covenantProvenLoans, decodeZkConfig, decodeZkCovenant, provedChallenge } from "./zk.js";
+import { badge, covenantProven, decodeZkConfig, decodeZkCovenant, provedChallenge } from "./zk.js";
 
 const PID = Keypair.generate().publicKey.toBase58();
 
@@ -39,19 +39,30 @@ describe("zk accounts", () => {
   });
 
   it("decodes ZkConfig and refuses other accounts", () => {
-    const data = new Writer().raw(discriminator("account", "ZkConfig")).raw(new Uint8Array(32).fill(9)).u8(2).u8(1).raw(new Uint8Array(32)).u8(254).bytes();
-    expect(decodeZkConfig(data)).toEqual({ imageId: "09".repeat(32), attestorThreshold: 2, requireVmBound: true, vmMeasurement: "00".repeat(32) });
+    const data = new Writer().raw(discriminator("account", "ZkConfig")).raw(new Uint8Array(32).fill(9)).u8(2).u8(1).raw(new Uint8Array(32)).u8(254).u64(1_300_000n).bytes();
+    expect(decodeZkConfig(data)).toEqual({ imageId: "09".repeat(32), attestorThreshold: 2, requireVmBound: true, vmMeasurement: "00".repeat(32), feeLamports: 1_300_000 });
     expect(() => decodeZkCovenant(data)).toThrow("not a ZkCovenant");
   });
 
-  it("finds the loan in CovenantProven, only when our program logged it", () => {
+  it("reads CovenantProven's loan and fee, only when our program logged it", () => {
     const loan = Keypair.generate().publicKey;
-    const ev = new Writer().raw(discriminator("event", "CovenantProven")).pubkey(loan).u8(2).bytes().toString("base64");
+    const ev = new Writer()
+      .raw(discriminator("event", "CovenantProven"))
+      .pubkey(loan)
+      .u8(2)
+      .u64(11_403n)
+      .u32(2961)
+      .u32(4)
+      .raw(new Uint8Array(64))
+      .u8(0)
+      .u64(1_300_000n)
+      .bytes()
+      .toString("base64");
     const ours = [`Program ${PID} invoke [1]`, `Program data: ${ev}`, `Program ${PID} success`];
     const other = Keypair.generate().publicKey.toBase58();
     const theirs = [`Program ${other} invoke [1]`, `Program data: ${ev}`, `Program ${other} success`];
-    expect(covenantProvenLoans(ours, PID)).toEqual([loan.toBase58()]);
-    expect(covenantProvenLoans(theirs, PID)).toEqual([]);
+    expect(covenantProven(ours, PID)).toEqual([{ loan: loan.toBase58(), feeLamports: 1_300_000 }]);
+    expect(covenantProven(theirs, PID)).toEqual([]);
   });
 });
 

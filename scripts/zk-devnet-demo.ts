@@ -78,6 +78,11 @@ const source: SourceArgs = {
 };
 await client.ensureSource(source);
 out.zkConfig = link(await client.send(client.ix.setZkConfig(payer.publicKey, imageId, 2)));
+// The product's price: every proof pays the treasury (default 0.0013 SOL, about $0.25), PASS or WATCH.
+const fee = BigInt(process.env.PCT_PROOF_FEE_LAMPORTS ?? 1_300_000);
+out.proofFee = { lamports: Number(fee), link: link(await client.send(client.ix.setProofFee(payer.publicKey, fee))) };
+const treasury = client.ix.pdas.treasury();
+const treasuryBefore = await connection.getBalance(treasury, "confirmed");
 
 // 2. Two lenders lend to the same operator; the loans differ only in weekly debt service.
 const borrower = Keypair.generate();
@@ -120,5 +125,6 @@ async function runLoan(name: string, debtServiceMicro: bigint, proof: { seal: st
 
 await runLoan("loan115", 141_300_000_000n, pass, true);
 await runLoan("loan114", 142_500_000_000n, watch, false);
+out.treasury = { address: treasury.toBase58(), feesCollectedLamports: (await connection.getBalance(treasury, "confirmed")) - treasuryBefore };
 writeFileSync("zk-devnet-demo.json", JSON.stringify(out, null, 2) + "\n");
 console.log("wrote zk-devnet-demo.json");

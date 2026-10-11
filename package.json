@@ -20,6 +20,7 @@
     "oracle:e2e": "tsx scripts/oracle-e2e.ts",
     "lending:e2e": "tsx scripts/lending-e2e.ts",
     "zk:devnet": "tsx scripts/zk-devnet-demo.ts",
+    "zk:submit": "tsx scripts/zk-submit.ts",
     "loan:open": "tsx packages/oracle/src/cli/loan.ts open",
     "loan:submit": "tsx packages/oracle/src/cli/loan.ts submit",
     "loan:draw": "tsx packages/oracle/src/cli/loan.ts draw",
