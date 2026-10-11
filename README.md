@@ -38,6 +38,24 @@ npm test
 
 Get the Reclaim keys by creating an app at https://dev.reclaimprotocol.org/.
 
+## Hosting the site
+
+The `Dockerfile` runs `packages/web` (site, verify pages, badges, lead form) on `$PORT`. On Railway, from the repo root:
+
+```bash
+npm i -g @railway/cli
+railway login
+railway init --name tessera
+railway up --detach                  # first deploy creates the service
+railway service                      # link it (pick the service just created)
+railway variables --set "SOLANA_RPC_URL=https://api.devnet.solana.com" --set "PCT_PROGRAM_ID=2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz" --set "PCT_EVIDENCE=public" --set "LEADS_FILE=/data/leads.jsonl"
+railway volume add --mount-path /data   # keeps leads.jsonl across deploys
+railway domain                       # prints the public URL
+railway up --detach                  # redeploy with the variables
+```
+
+`.railwayignore` and `.dockerignore` upload only the web workspace: no keys, `.env`, proofs or logs.
+
 ## Day 1 gating test
 
 1. **Smoke test (public data).** `npm run prove:list` proves the Azure East US 8x H100 list price

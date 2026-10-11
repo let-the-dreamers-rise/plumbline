@@ -1,0 +1,8 @@
+# Only the web workspace and its sources go into the image; never keys, .env, proofs or the laptop-only folders.
+*
+!package.json
+!package-lock.json
+!tsconfig.json
+!packages/
+packages/*/node_modules
+packages/**/*.test.ts
