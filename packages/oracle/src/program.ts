@@ -87,6 +87,20 @@ export class OraclePdas {
   zkCovenant(loan: PublicKey): PublicKey {
     return this.find(Buffer.from("zk_covenant"), loan.toBytes());
   }
+  /** Device registry entry for one GPU; `chipId` is journal word 0 (sha256 of the chip's id). */
+  device(chipId: Uint8Array): PublicKey {
+    if (chipId.length !== 32) throw new Error(`chip id must be 32 bytes, got ${chipId.length}`);
+    return this.find(Buffer.from("device"), chipId);
+  }
+  /** Claim on a GPU challenge nonce: the one loan allowed to bind a device with proofs for it. */
+  nonceClaim(nonce: Uint8Array): PublicKey {
+    if (nonce.length !== 32) throw new Error(`nonce must be 32 bytes, got ${nonce.length}`);
+    return this.find(Buffer.from("nonce"), nonce);
+  }
+  /** Device registry switch; prove_covenant always takes it as remaining account 0. */
+  registryConfig(): PublicKey {
+    return this.find(Buffer.from("registry_config"));
+  }
 
   loan(lender: PublicKey, operatorKey: Uint8Array): PublicKey {
     return this.find(Buffer.from("loan"), lender.toBytes(), operatorKey);
@@ -269,9 +283,20 @@ export class OracleInstructions {
     return this.ix("set_zk_config", keys, data);
   }
 
-  issueGpuChallenge(lender: PublicKey, operatorKey: Uint8Array, challenge: Uint8Array): TransactionInstruction {
+  /**
+   * The lender picks the nonce the operator's GPU must sign. With `claimNonce` it also claims the nonce for this
+   * loan (NonceClaim PDA, refused with NonceTaken if another loan holds it), which prove_covenant requires while
+   * the device registry is enforced. Claim in this same instruction, so nobody can claim the nonce once it is public.
+   */
+  issueGpuChallenge(
+    lender: PublicKey,
+    operatorKey: Uint8Array,
+    challenge: Uint8Array,
+    opts: { claimNonce?: boolean } = {},
+  ): TransactionInstruction {
     const loan = this.pdas.loan(lender, operatorKey);
     const keys = [signer(lender), readonly(loan), writable(this.pdas.zkCovenant(loan)), system];
+    if (opts.claimNonce) keys.push(writable(this.pdas.nonceClaim(challenge)));
     return this.ix("issue_gpu_challenge", keys, new Writer().fixed(challenge, 32));
   }
 
@@ -282,6 +307,7 @@ export class OracleInstructions {
     seal: Uint8Array,
     publicValues: Uint8Array,
     asOfPeriod: number,
+    opts: { deviceRegistry?: boolean } = {},
   ): TransactionInstruction {
     const l = this.pdas.loan(loan.lender, loan.operatorKey);
     const keys = [
@@ -293,8 +319,35 @@ export class OracleInstructions {
       writable(this.pdas.zkCovenant(l)),
       writable(this.pdas.treasury()),
       system,
+      // Remaining accounts: the registry config PDA, always (the program refuses the call without it, so
+      // enforcement cannot be skipped); while the registry is enforced, the GPU's Device PDA and the nonce claim.
+      readonly(this.pdas.registryConfig()),
+      ...(opts.deviceRegistry
+        ? [writable(this.pdas.device(journalChipId(publicValues))), readonly(this.pdas.nonceClaim(journalNonce(publicValues)))]
+        : []),
     ];
     return this.ix("prove_covenant", keys, new Writer().vec(seal).vec(publicValues).u32(asOfPeriod));
+  }
+
+  /** Turns the cross-lender device registry on or off (config authority only; creates the RegistryConfig PDA). */
+  setDeviceRegistry(authority: PublicKey, enforce: boolean): TransactionInstruction {
+    const keys = [signer(authority), readonly(this.pdas.config()), writable(this.pdas.registryConfig()), system];
+    return this.ix("set_device_registry", keys, new Writer().bool(enforce));
+  }
+
+  /**
+   * Frees a pledged GPU (loan repaid or closed). `releaser` is the bound loan's lender or borrower, or the config
+   * authority; `loan` is the loan the Device account names. Resets that loan's private covenant to NONE.
+   */
+  releaseDevice(releaser: PublicKey, chipId: Uint8Array, loan: PublicKey): TransactionInstruction {
+    const keys = [
+      signer(releaser, false),
+      readonly(this.pdas.config()),
+      writable(this.pdas.device(chipId)),
+      readonly(loan),
+      writable(this.pdas.zkCovenant(loan)),
+    ];
+    return this.ix("release_device", keys);
   }
 
   /** Fee every prove_covenant pays into the treasury (0 = free); creates the treasury on first use. */
@@ -316,6 +369,43 @@ export class OracleInstructions {
   crankIndex(sku: number, kind: number): TransactionInstruction {
     return this.ix("crank_index", [readonly(this.pdas.config()), writable(this.pdas.book(sku, kind))]);
   }
+}
+
+/** Journal word 0 of a covenant proof: sha256 of the GPU's per-chip id (zk/README.md, journal layout). */
+export function journalChipId(publicValues: Uint8Array): Uint8Array {
+  if (publicValues.length < 32) throw new Error("journal too short for a chip id");
+  return publicValues.slice(0, 32);
+}
+
+/** Journal word 1 of a covenant proof: the challenge nonce the GPU report signed. */
+export function journalNonce(publicValues: Uint8Array): Uint8Array {
+  if (publicValues.length < 64) throw new Error("journal too short for a nonce");
+  return publicValues.slice(32, 64);
+}
+
+export interface DeviceState {
+  chipId: Uint8Array;
+  /** null while the GPU is not pledged. */
+  loan: PublicKey | null;
+  lender: PublicKey | null;
+  firstSeenAt: bigint;
+  firstSeenPeriod: number;
+  boundAt: bigint;
+  boundPeriod: number;
+}
+
+/** Decodes a Device account (layout of `Device` in instructions/registry.rs). */
+export function decodeDevice(data: Uint8Array): DeviceState {
+  const r = new Reader(data);
+  if (!Buffer.from(r.take(8)).equals(Buffer.from(discriminator("account", "Device")))) throw new Error("not a Device account");
+  const chipId = r.take(32);
+  const key = (): PublicKey | null => {
+    const k = new PublicKey(r.take(32));
+    return k.equals(PublicKey.default) ? null : k;
+  };
+  const loan = key();
+  const lender = key();
+  return { chipId, loan, lender, firstSeenAt: r.i64(), firstSeenPeriod: r.u32(), boundAt: r.i64(), boundPeriod: r.u32() };
 }
 
 export function currencyBytes(code: string): Uint8Array {
