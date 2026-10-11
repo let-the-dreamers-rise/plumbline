@@ -82,7 +82,7 @@ fn setup() -> Setup {
         fleet_gpus: 8,
         period_s: fx["periodS"].as_u64().unwrap() as u32,
         debt_service_micro: 1_500_000_000, // $1,500 per week
-        min_coverage_bps: 11_500, // 1.15x, USD.AI's debt-service threshold
+        min_coverage_bps: 11_500, // 1.15x, the demo's coverage ratio (the lender sets it)
         currency: *b"USD",
         covenant_periods: 2,
     };

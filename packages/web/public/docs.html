@@ -117,13 +117,13 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 <ul>
   <li>Planned pricing: a facility fee plus 5 to 15 basis points a year on the loan, weekly proofs included, paid by the lender or passed to the borrower in the loan terms. Today the program charges one flat fee on every proof (0.0013 SOL of test SOL in the devnet demo). Verifying is free.</li>
   <li><b>In the program today:</b> one flat fee (<code>fee_lamports</code>, set by the program authority) on every proof, PASS or WATCH, collected into a treasury account at proof time. Facility fees and basis-point pricing are not in the program yet.</li>
-  <li><b>For scale:</b> on a $15.8M loan (USD.AI's average), 10 basis points is $15,800 a year plus the facility fee; a lender's warranty on the same collateral at 150 basis points is $237,000.</li>
+  <li><b>For scale:</b> on a $16.6M loan (USD.AI's first-year average: $265M over 16 loans, August 2026), 10 basis points is $16,600 a year plus the facility fee. The lender already pays for valuation cover on the same collateral (USD.AI's Barker policy, reinsured by Munich Re); that price is not public.</li>
   <li><b>Lenders, vault curators, GPU networks, clouds:</b> verify pages, badges and the read API are free.</li>
 </ul>
 
 <h2>Roadmap</h2>
 <ul>
-  <li>Own-enclave evidence: a report signed against our own challenge inside a Phala or NEAR AI confidential VM, bound in the proof.</li>
+  <li>Own-enclave evidence: a report signed against our own challenge inside a confidential VM (Phala Cloud dstack, or any Intel TDX host with the NVIDIA driver in CC mode), bound in the proof.</li>
   <li>Fleet Passport without a loan: prove hardware and enclave for a GPU network, no debt service.</li>
   <li>Fees in USDC and x402 for the read API; several lenders reading one fleet's proofs.</li>
   <li>Mainnet after the verifier audit; attestor set run with an independent operator.</li>

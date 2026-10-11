@@ -30,8 +30,7 @@
     }
   }
 
-  /* Pricing: planned facility fee plus 5 to 15 bps a year on the loan (not yet in the program, which
-     charges a flat fee per proof), shown at 10 bps against a 150 bps warranty. Slider is in $M. */
+  /* Pricing: a facility fee plus 5 to 15 bps a year (planned; the program charges a flat fee per proof), shown at 10 bps. Slider is in $M. */
   var loan = document.getElementById('loan');
   if (loan) {
     var usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
@@ -41,7 +40,6 @@
       var m = +loan.value, dollars = Math.round(m * 1e6);
       document.getElementById('loan-out').textContent = '$' + m.toFixed(1) + 'M';
       document.getElementById('bps').textContent = usd.format(dollars * .001);
-      document.getElementById('war').textContent = usd.format(dollars * .015);
       var on = Math.max(1, Math.ceil(16 * Math.sqrt(m / 100)));
       coins.forEach(function (c, k) { c.classList.toggle('off', k >= on); });
     };
