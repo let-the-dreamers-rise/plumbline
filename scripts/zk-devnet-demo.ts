@@ -20,8 +20,11 @@ import { clientFromEnv } from "../packages/oracle/src/env.js";
 // Needs the program deployed and SOLANA_RPC_URL / SOLANA_KEYPAIR as for the other CLIs (~1 SOL spare).
 const client = clientFromEnv();
 const { connection, payer } = client;
-const cluster = (process.env.SOLANA_RPC_URL ?? "").includes("devnet") || !process.env.SOLANA_RPC_URL ? "devnet" : "custom";
-const link = (sig: string) => `https://explorer.solana.com/tx/${sig}?cluster=${cluster}`;
+const rpcUrl = process.env.SOLANA_RPC_URL?.trim() ?? "";
+const cluster = !rpcUrl || rpcUrl.includes("devnet") ? "devnet" : "custom";
+// A local validator gets explorer links that read it directly (the explorer's custom-RPC mode).
+const link = (sig: string) =>
+  `https://explorer.solana.com/tx/${sig}?cluster=${cluster}${cluster === "custom" ? `&customUrl=${encodeURIComponent(rpcUrl)}` : ""}`;
 
 const fx = JSON.parse(readFileSync("zk/fixtures/revenue-claims.json", "utf8"));
 const load = (label: string) => JSON.parse(readFileSync(`zk/fixtures/covenant-${label}-groth16.json`, "utf8"));

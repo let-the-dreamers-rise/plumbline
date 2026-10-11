@@ -85,3 +85,7 @@ aggregating attestations and the median into one SP1 proof verified on Solana.
 
 GPU count per billed unit comes from the source spec, so a spec should also match the SKU text
 (for example `8x H100`) in the response rather than relying on the config alone.
+
+## License
+
+MIT, see [LICENSE](LICENSE). The H100 attestation verifier, the Groth16 verifier program and the guest are open source and reusable.

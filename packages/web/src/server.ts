@@ -12,7 +12,9 @@ import { badge } from "./zk.js";
 const rpc = process.env.SOLANA_RPC_URL?.trim() || "https://api.devnet.solana.com";
 const programId = process.env.PCT_PROGRAM_ID?.trim() ? new PublicKey(process.env.PCT_PROGRAM_ID.trim()) : DEFAULT_PROGRAM_ID;
 const connection = new Connection(rpc, "confirmed");
-const cluster = rpc.includes("devnet") ? "devnet" : rpc.includes("testnet") ? "testnet" : rpc.includes("mainnet") ? "mainnet-beta" : "custom";
+const cluster = rpc.includes("devnet") ? "devnet" : rpc.includes("testnet") ? "testnet" : rpc.includes("mainnet") ? "mainnet-beta" : /localhost|127\.0\.0\.1/.test(rpc) ? "localnet" : "custom";
+// Explorer query for a transaction or account link; a local or custom RPC uses the explorer's custom-RPC mode.
+const explorerQuery = cluster === "localnet" || cluster === "custom" ? `?cluster=custom&customUrl=${encodeURIComponent(rpc)}` : `?cluster=${cluster}`;
 const leadsFile = process.env.LEADS_FILE?.trim() || "leads.jsonl";
 const page = (f: string) => new URL(`../public/${f}`, import.meta.url);
 const pages: Record<string, URL> = {
@@ -90,7 +92,7 @@ createServer(async (req, res) => {
       const key = address(path.split("/")[3]);
       const loan = key && (await loadLoan(connection, programId, key));
       if (!loan) return json(res, 404, { error: "no loan of this program at that address" });
-      return json(res, 200, { cluster, explorer: "https://explorer.solana.com", programId: programId.toBase58(), fetchedAt: Math.floor(Date.now() / 1000), ...loan });
+      return json(res, 200, { cluster, explorer: "https://explorer.solana.com", explorerQuery, programId: programId.toBase58(), fetchedAt: Math.floor(Date.now() / 1000), ...loan });
     }
     if (kind === "loan" && address(arg)) {
       res.writeHead(200, { "content-type": "text/html; charset=utf-8" }).end(readFileSync(page("loan.html")));

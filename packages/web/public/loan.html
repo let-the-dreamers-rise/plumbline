@@ -126,8 +126,8 @@ $("addr").textContent = addr;
   try { const r = await fetch(`/api/loan/${addr}`, { cache: "no-store" }); if (!r.ok) throw new Error(await r.text()); l = await r.json(); }
   catch (e) { $("headline").textContent = "Loan not found"; $("lede").textContent = "No loan account at this address on the program, or the RPC is unreachable. " + (e.message || ""); return; }
   const z = l.zk || { status: "none" }; const s = z.status || "none";
-  const ex = (l.explorer || "https://explorer.solana.com") + "/", cl = `?cluster=${l.cluster || "devnet"}`;
-  $("meta").textContent = `Verify page · ${l.cluster || "devnet"} · program ${l.programId || ""}`;
+  const ex = (l.explorer || "https://explorer.solana.com") + "/", cl = l.explorerQuery || `?cluster=${l.cluster || "devnet"}`, net = l.cluster === "localnet" ? "local validator" : l.cluster || "devnet";
+  $("meta").textContent = `Verify page · ${net} · program ${l.programId || ""}`;
   const word = s === "pass" ? "This fleet proved its covenant." : s === "watch" ? "This fleet proved its covenant is breached." : "No zero-knowledge proof yet for this loan.";
   $("headline").textContent = word;
   $("lede").textContent = s === "none" ? "The lender can issue a challenge; the operator then has until it expires to submit one proof covering the period." :
@@ -140,7 +140,7 @@ $("addr").textContent = addr;
   $("t-when").textContent = z.provenAt ? ts(z.provenAt).slice(0, 10) : "–";
   $("t-when-sub").textContent = z.asOfPeriod ? `Covers period ${z.asOfPeriod} (${l.periodS === 604800 ? "week" : l.periodS + " s"}), ${z.claims ?? 0} payout claims.` : "";
   $("facts").innerHTML =
-    dd("Evidence", z.evidence === "own" ? "GPU report and enclave quote produced against this loan's own challenge" : z.evidence === "public" ? "Published NVIDIA sample H100 report and published H200 TDX quote, chain-verified to their roots (devnet demo; not signed against this challenge)" : "–") +
+    dd("Evidence", z.evidence === "own" ? "GPU report and enclave quote produced against this loan's own challenge" : z.evidence === "public" ? "Published NVIDIA sample H100 report and published H200 TDX quote, chain-verified to their roots (public demo evidence; not signed against this challenge)" : "–") +
     dd("GPU chip id (hash)", hex(z.chipId), true) + dd("Firmware measurements (hash)", hex(z.measurements), true) +
     dd("Enclave measurement", hex(z.vmMeasurement), true) + dd("GPU bound to enclave", z.vmBound ? "Yes: the TDX quote committed to this GPU report and challenge" : "No: quote verified, but not bound to this report") +
     dd("Challenge the GPU signed", hex(z.challenge), true) + dd("Attestors per claim", z.attestorThreshold ?? "–") + dd("Guest image id", hex(z.imageId), true) + dd("Proven at", ts(z.provenAt)) + (z.feeLamports ? dd("Proof fee paid", (z.feeLamports / 1e9) + " SOL") : "");
@@ -155,7 +155,7 @@ $("addr").textContent = addr;
   for (const p of l.proofs || []) rows.push({ t: p.blockTime || null, e: "Revenue proven (public path)", d: `${p.provider || ""} period ${p.period ?? ""}`, sig: p.signature });
   rows.sort((a, b) => (b.t || 0) - (a.t || 0));
   $("activity").innerHTML = rows.length ? rows.map(r => `<tr><td class="num">${r.t ? ts(r.t) : "–"}</td><td>${r.e}</td><td>${r.d}</td><td class="mono"><a href="${ex}tx/${r.sig}${cl}" target="_blank" rel="noopener">${r.sig.slice(0, 12)}…</a></td></tr>`).join("") : '<tr><td colspan="4" class="mutedc">No activity yet.</td></tr>';
-  $("foot").textContent = `Read straight from Solana ${l.cluster || "devnet"} at ${ts(l.fetchedAt)}; no database.`;
+  $("foot").textContent = `Read straight from Solana ${net} at ${ts(l.fetchedAt)}; no database.`;
 })();
 </script>
 </body>
