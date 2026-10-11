@@ -87,6 +87,11 @@ export class OraclePdas {
   zkCovenant(loan: PublicKey): PublicKey {
     return this.find(Buffer.from("zk_covenant"), loan.toBytes());
   }
+  /** Device registry entry for one GPU; `chipId` is journal word 0 (sha256 of the chip's id). */
+  device(chipId: Uint8Array): PublicKey {
+    if (chipId.length !== 32) throw new Error(`chip id must be 32 bytes, got ${chipId.length}`);
+    return this.find(Buffer.from("device"), chipId);
+  }
 
   loan(lender: PublicKey, operatorKey: Uint8Array): PublicKey {
     return this.find(Buffer.from("loan"), lender.toBytes(), operatorKey);
@@ -282,6 +287,7 @@ export class OracleInstructions {
     seal: Uint8Array,
     publicValues: Uint8Array,
     asOfPeriod: number,
+    opts: { deviceRegistry?: boolean } = {},
   ): TransactionInstruction {
     const l = this.pdas.loan(loan.lender, loan.operatorKey);
     const keys = [
@@ -293,8 +299,21 @@ export class OracleInstructions {
       writable(this.pdas.zkCovenant(l)),
       writable(this.pdas.treasury()),
       system,
+      // While the zk config enforces the device registry, the GPU's Device PDA rides as the first remaining account.
+      ...(opts.deviceRegistry ? [writable(this.pdas.device(journalChipId(publicValues)))] : []),
     ];
     return this.ix("prove_covenant", keys, new Writer().vec(seal).vec(publicValues).u32(asOfPeriod));
+  }
+
+  /** Turns the cross-lender device registry on or off (config authority only). */
+  setDeviceRegistry(authority: PublicKey, enforce: boolean): TransactionInstruction {
+    const keys = [signer(authority, false), readonly(this.pdas.config()), writable(this.pdas.zkConfig())];
+    return this.ix("set_device_registry", keys, new Writer().bool(enforce));
+  }
+
+  /** The lender of the loan a GPU is pledged to frees it (loan repaid or closed). */
+  releaseDevice(lender: PublicKey, chipId: Uint8Array): TransactionInstruction {
+    return this.ix("release_device", [signer(lender, false), writable(this.pdas.device(chipId))]);
   }
 
   /** Fee every prove_covenant pays into the treasury (0 = free); creates the treasury on first use. */
@@ -316,6 +335,37 @@ export class OracleInstructions {
   crankIndex(sku: number, kind: number): TransactionInstruction {
     return this.ix("crank_index", [readonly(this.pdas.config()), writable(this.pdas.book(sku, kind))]);
   }
+}
+
+/** Journal word 0 of a covenant proof: sha256 of the GPU's per-chip id (zk/README.md, journal layout). */
+export function journalChipId(publicValues: Uint8Array): Uint8Array {
+  if (publicValues.length < 32) throw new Error("journal too short for a chip id");
+  return publicValues.slice(0, 32);
+}
+
+export interface DeviceState {
+  chipId: Uint8Array;
+  /** null while the GPU is not pledged. */
+  loan: PublicKey | null;
+  lender: PublicKey | null;
+  firstSeenAt: bigint;
+  firstSeenPeriod: number;
+  boundAt: bigint;
+  boundPeriod: number;
+}
+
+/** Decodes a Device account (layout of `Device` in instructions/registry.rs). */
+export function decodeDevice(data: Uint8Array): DeviceState {
+  const r = new Reader(data);
+  if (!Buffer.from(r.take(8)).equals(Buffer.from(discriminator("account", "Device")))) throw new Error("not a Device account");
+  const chipId = r.take(32);
+  const key = (): PublicKey | null => {
+    const k = new PublicKey(r.take(32));
+    return k.equals(PublicKey.default) ? null : k;
+  };
+  const loan = key();
+  const lender = key();
+  return { chipId, loan, lender, firstSeenAt: r.i64(), firstSeenPeriod: r.u32(), boundAt: r.i64(), boundPeriod: r.u32() };
 }
 
 export function currencyBytes(code: string): Uint8Array {

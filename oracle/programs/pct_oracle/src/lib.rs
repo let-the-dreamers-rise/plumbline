@@ -95,7 +95,12 @@ pub mod pct_oracle {
         instructions::zk::handle_issue_gpu_challenge(ctx, challenge)
     }
 
-    pub fn prove_covenant(ctx: Context<ProveCovenant>, seal: Vec<u8>, public_values: Vec<u8>, as_of_period: u32) -> Result<()> {
+    pub fn prove_covenant<'info>(
+        ctx: Context<'info, ProveCovenant<'info>>,
+        seal: Vec<u8>,
+        public_values: Vec<u8>,
+        as_of_period: u32,
+    ) -> Result<()> {
         instructions::zk::handle_prove_covenant(ctx, seal, public_values, as_of_period)
     }
 
@@ -109,5 +114,13 @@ pub mod pct_oracle {
 
     pub fn withdraw_fees(ctx: Context<WithdrawFees>, lamports: u64) -> Result<()> {
         instructions::zk::handle_withdraw_fees(ctx, lamports)
+    }
+
+    pub fn set_device_registry(ctx: Context<SetDeviceRegistry>, enforce: bool) -> Result<()> {
+        instructions::registry::handle_set_device_registry(ctx, enforce)
+    }
+
+    pub fn release_device(ctx: Context<ReleaseDevice>) -> Result<()> {
+        instructions::registry::handle_release_device(ctx)
     }
 }

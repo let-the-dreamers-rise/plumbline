@@ -13,7 +13,7 @@ is unreachable, the same release is on GitHub:
 
 ```bash
 cargo build-sbf --manifest-path programs/pct_oracle/Cargo.toml   # writes target/deploy/pct_oracle.so
-cargo test -- --nocapture                                        # 25 unit tests + 29 LiteSVM tests (flow 4, lending 12, zk 13)
+cargo test -- --nocapture                                        # 25 unit tests + 37 LiteSVM tests (flow 4, lending 12, registry 8, zk 13)
 ```
 
 The flow tests load `target/deploy/pct_oracle.so`, so build first.
@@ -81,6 +81,30 @@ The CLIs read `SOLANA_RPC_URL` (default devnet), `SOLANA_KEYPAIR` (default
 
 A source is pinned to the exact claim parameters of the first proof `oracle:init` sees for it,
 so later proofs of that source must use the same URL and match rules (otherwise `ParamsMismatch`).
+
+## Device registry
+
+Stops one GPU from backing two loans, across lenders (`src/instructions/registry.rs`).
+
+- A `Device` PDA at `["device", chip_id]` per GPU, where `chip_id` is word 0 of the covenant proof's
+  journal (sha256 of the GPU's per-chip id, see `../zk/README.md`). It stores the loan the GPU is
+  pledged to, that loan's lender, and when it was first seen and last bound (unix time and period).
+- Opt-in: `set_device_registry(enforce)` (config authority) sets `ZkConfig.enforce_device_registry`,
+  default off, so existing flows are unchanged. While it is on, `prove_covenant` takes the writable
+  Device PDA as its first remaining account (`OracleInstructions.proveCovenant(..., { deviceRegistry: true })`)
+  and, after the proof checks pass: creates it and binds it to this loan if absent; accepts if it is
+  already bound to this loan; refuses with `DevicePledgedElsewhere` if it is bound to any other loan.
+  A missing, wrong or read-only device account is `BadDeviceAccount`. The submitter pays its rent;
+  lamports sent to the address beforehand cannot block the first pledge.
+- `release_device` (signed by the bound loan's lender) frees the GPU, e.g. once the loan is repaid,
+  so another loan can bind it. The program has no loan-close instruction, so releasing is the
+  lender's call.
+- Limits: the binding is only as strong as the chip id. With NVIDIA's sample report (the demo
+  fixtures) every proof carries the same chip, so with the registry on only one loan at a time can
+  use them. It only covers lenders that verify through this program.
+- LiteSVM tests: `tests/registry.rs` (same proof and a different proof of the same chip refused for a
+  second lender's loan, release then rebind, registry off unchanged, wrong device account, pre-funded
+  PDA, authority-only toggle). The first bind adds about 5k CU to `prove_covenant` (120.8k vs 115.4k in LiteSVM).
 
 ## Operator revenue proofs for GPU lenders
 

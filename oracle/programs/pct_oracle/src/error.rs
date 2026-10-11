@@ -68,6 +68,10 @@ pub enum OracleError {
     ZkVmNotBound,
     #[msg("Treasury holds fewer withdrawable fees than requested")]
     InsufficientFees,
+    #[msg("This GPU is already pledged to another loan")]
+    DevicePledgedElsewhere,
+    #[msg("Missing or wrong device registry account for this GPU")]
+    BadDeviceAccount,
 }
 
 impl From<crate::reclaim::ClaimError> for OracleError {

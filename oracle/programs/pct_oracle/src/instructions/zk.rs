@@ -6,7 +6,14 @@
 
 use anchor_lang::prelude::*;
 
-use crate::{constants::*, error::OracleError, reclaim::keccak, risc0_groth16, state::*};
+use crate::{
+    constants::*,
+    error::OracleError,
+    instructions::registry::{bind_device, Pledge},
+    reclaim::keccak,
+    risc0_groth16,
+    state::*,
+};
 
 pub const ZK_CONFIG_SEED: &[u8] = b"zk_config";
 pub const ZK_COVENANT_SEED: &[u8] = b"zk_covenant";
@@ -31,6 +38,9 @@ pub struct ZkConfig {
     pub bump: u8,
     /// Charged to the submitter on every proof, PASS or WATCH (the proving work was done either way); 0 = free.
     pub fee_lamports: u64,
+    /// Bind each proven GPU to its loan in the cross-lender device registry (instructions/registry.rs)
+    /// and refuse a GPU already pledged to another loan. Off by default; set_device_registry turns it on.
+    pub enforce_device_registry: bool,
 }
 
 /// Holds the proof fees until the authority withdraws them.
@@ -128,6 +138,8 @@ pub struct ProveCovenant<'info> {
     #[account(mut, seeds = [TREASURY_SEED], bump)]
     pub treasury: UncheckedAccount<'info>,
     pub system_program: Program<'info, System>,
+    // remaining_accounts[0]: the writable Device PDA ["device", chip_id], required only while
+    // zk_config.enforce_device_registry is set (kept out of the struct so existing clients still work).
 }
 
 #[event]
@@ -165,7 +177,12 @@ pub fn attestor_set_hash(threshold: u8, attestors: &[[u8; 20]]) -> [u8; 32] {
     keccak(&b)
 }
 
-pub fn handle_prove_covenant(ctx: Context<ProveCovenant>, seal: Vec<u8>, public_values: Vec<u8>, as_of_period: u32) -> Result<()> {
+pub fn handle_prove_covenant<'info>(
+    ctx: Context<'info, ProveCovenant<'info>>,
+    seal: Vec<u8>,
+    public_values: Vec<u8>,
+    as_of_period: u32,
+) -> Result<()> {
     let zk = &ctx.accounts.zk_config;
     let fee_lamports = zk.fee_lamports;
     if fee_lamports > 0 {
@@ -206,6 +223,12 @@ pub fn handle_prove_covenant(ctx: Context<ProveCovenant>, seal: Vec<u8>, public_
     let current = loan.period_of(now);
     require!(as_of_period <= current && as_of_period + 1 >= current, OracleError::NoRecentRevenue);
     require!(z.status == ZK_NONE || as_of_period >= z.as_of_period, OracleError::RevenueTooOld);
+
+    if zk.enforce_device_registry {
+        let device = ctx.remaining_accounts.first().ok_or(error!(OracleError::BadDeviceAccount))?;
+        let pledge = Pledge { chip_id, loan: loan.key(), lender: loan.lender, now, period: as_of_period };
+        bind_device(device, &ctx.accounts.submitter.to_account_info(), &pledge)?;
+    }
 
     z.status = if pass { ZK_PASS } else { ZK_WATCH };
     z.coverage_bps = coverage_bps;

@@ -45,6 +45,16 @@ impl Harness {
         result.map(|m| m.compute_units_consumed).map_err(|e| format!("{:?}\n{}", e.err, e.meta.logs.join("\n")))
     }
 
+    /// Like `send`, with `signer` as the only signer and fee payer.
+    pub fn send_as(&mut self, ixs: &[Instruction], signer: &Keypair) -> Result<u64, String> {
+        let blockhash = self.svm.latest_blockhash();
+        let msg = Message::new_with_blockhash(ixs, Some(&signer.pubkey()), &blockhash);
+        let tx = VersionedTransaction::try_new(VersionedMessage::Legacy(msg), &[signer]).unwrap();
+        let result = self.svm.send_transaction(tx);
+        self.svm.expire_blockhash();
+        result.map(|m| m.compute_units_consumed).map_err(|e| format!("{:?}\n{}", e.err, e.meta.logs.join("\n")))
+    }
+
     pub fn ix<D: InstructionData, A: ToAccountMetas>(data: D, accounts: A) -> Instruction {
         Instruction::new_with_bytes(pct_oracle::id(), &data.data(), accounts.to_account_metas(None))
     }
