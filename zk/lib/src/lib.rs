@@ -21,12 +21,14 @@ pub struct VmResult {
     /// sha256(mr_td || sha256(rtmr0..3)): which VM image and runtime the quote measured.
     pub measurement: [u8; 32],
     pub tee_tcb_svn: [u8; 16],
-    /// The VM vouched for this exact GPU report: report_data = sha256(GPU report) || GPU nonce.
+    /// The VM vouched for this exact GPU report: report_data = sha256(GPU report) || GPU nonce,
+    /// and it is not a debug TD.
     pub bound: bool,
 }
 
 /// Ties the TDX quote to the GPU report: the VM must have put sha256 of the very report the GPU
 /// signed in report_data[0..32], and the same challenge the GPU signed in report_data[32..64].
+/// A debug TD never binds: its host can write report_data.
 pub fn vm_result(gpu_report: &[u8], gpu: &GpuAttestation, vm: &TdxAttestation) -> VmResult {
     let mut h = Sha256::new();
     h.update(vm.mr_td);
@@ -35,7 +37,7 @@ pub fn vm_result(gpu_report: &[u8], gpu: &GpuAttestation, vm: &TdxAttestation) -
     VmResult {
         measurement: h.finalize().into(),
         tee_tcb_svn: vm.tee_tcb_svn,
-        bound: vm.report_data[..32] == report_hash && vm.report_data[32..] == gpu.nonce,
+        bound: !vm.debug() && vm.report_data[..32] == report_hash && vm.report_data[32..] == gpu.nonce,
     }
 }
 
@@ -93,6 +95,19 @@ mod tests {
         let mut other_report = rd;
         other_report[3] ^= 1;
         assert!(!vm_result(&report, &gpu, &vm_with(other_report)).bound);
+    }
+
+    #[test]
+    fn a_debug_td_never_vouches_for_a_gpu() {
+        // Red team: in a debug TD the host can write report_data itself, so the binding is forgeable.
+        let (report, chain) = sample_gpu();
+        let gpu = verify_gpu(&report, &chain).unwrap();
+        let mut rd = [0u8; 64];
+        rd[..32].copy_from_slice(&Sha256::digest(&report));
+        rd[32..].copy_from_slice(&gpu.nonce);
+        let mut vm = vm_with(rd);
+        vm.td_attributes[0] |= 1;
+        assert!(!vm_result(&report, &gpu, &vm).bound);
     }
 
     #[test]
