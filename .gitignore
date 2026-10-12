@@ -9,3 +9,4 @@ leads.jsonl
 devnet-go.log
 zk-devnet-demo.json
 sealed-eval-local/
+.cache/

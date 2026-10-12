@@ -3,6 +3,8 @@ FROM node:22-slim
 WORKDIR /app
 COPY package.json package-lock.json tsconfig.json ./
 COPY packages ./packages
+# GPU Credit Monitor snapshot served at /api/monitor (refresh with npm run monitor:snapshot and redeploy).
+COPY data ./data
 RUN npm ci --no-audit --no-fund
 ENV NODE_ENV=production
 EXPOSE 8787

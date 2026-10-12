@@ -4,5 +4,6 @@
 !package-lock.json
 !tsconfig.json
 !packages/
+!data/
 packages/*/node_modules
 packages/**/*.test.ts
