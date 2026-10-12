@@ -1,0 +1,48 @@
+{
+  "programId": "2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz",
+  "imageId": "0xbf16300e30e259e209e4ce657686ccd3cecc33abac275cd3d7450ce9a612bfe2",
+  "gpuReport": "NVIDIA's published sample H100 report (public), chain verified to NVIDIA's root",
+  "tdxQuote": "VoltageGPU's published H200 Confidential VM quote (public), chain verified to Intel's root; not bound to the sample GPU report (vm_bound = 0)",
+  "zkConfig": "https://explorer.solana.com/tx/2tPJRbkWgRFA5ekA5aCgrcvDoybvEoQ1rLqni7BbuUu72XaAeDNpDepcTHyCdZCaoAhVcuLN2tgrJFJexwpsjnCe?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
+  "proofFee": {
+    "lamports": 1300000,
+    "link": "https://explorer.solana.com/tx/b4Y16dPrmvLdyGNVm55NBqzz8SZhFVQQ9vwdKP6CzD3obxZvRVJqXMsc86GbigiBj9zeg5RdHk8umT8TEDMF52F?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899"
+  },
+  "loan115": {
+    "loan": "HEAoUZdZxZNcm2SmSscvE6mGPSYM4btoEWWLD8pEyxhq",
+    "debtServiceInrPerWeek": 141300,
+    "proofVerified": {
+      "link": "https://explorer.solana.com/tx/4s9HZmqJybof2baaEvGg61RWj22DdawfEVse8TDq33R5EUMH1dLXUcUXyP3pU1JWcF6gFr45EB2SJ74qo8p72wk9?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
+      "computeUnits": 117789,
+      "error": null
+    },
+    "draw": {
+      "link": "https://explorer.solana.com/tx/47MmyAhMfWQJW4VoxwUEQ4o6vs2N4r5fRd3ectyDyXkYCzhJRjm5R1YinMbtXXbkTMiVjpFxWbXpB4BcfZ413Zs3?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
+      "approved": true,
+      "error": null
+    },
+    "replay": {
+      "link": "https://explorer.solana.com/tx/qpmPxbrAfr9gsBpJG1Ce4UWSyFRjhqLrSfonqTuJPkTdw58evndrwytwB4wVoMp6vYGVAFzCDWyFLfzWNfFdupL?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
+      "rejected": true,
+      "error": "Program log: AnchorError thrown in programs/pct_oracle/src/instructions/zk.rs:198. Error Code: ZkStaleChallenge. Error Number: 6027. Error Message: GPU report was not made for the lender's current challenge."
+    }
+  },
+  "loan114": {
+    "loan": "8A2jkHggGbXTi7AVGVVxtLxCRjyRwzPpb55bFrh3VCHT",
+    "debtServiceInrPerWeek": 142500,
+    "proofVerified": {
+      "link": "https://explorer.solana.com/tx/2WdF7jwKRjwmd4KsxjWVQwyGPkTj2HHoqiPZTGy2fV2Tn7MFbs3mJqpnHnVXFSzJGpFoWzF1WBLarcdGVRtu6HT3?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
+      "computeUnits": 117790,
+      "error": null
+    },
+    "draw": {
+      "link": "https://explorer.solana.com/tx/226ygSMXHSNgRccz9a4qABjyaNwi8LSeRJ2PGEJd2Nw314GoFeijF4VTqzGZDu9PAZvYJ4sT1ccBy2qFvs5S2V4r?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
+      "approved": false,
+      "error": "Program log: AnchorError thrown in programs/pct_oracle/src/instructions/zk.rs:281. Error Code: CovenantBreached. Error Number: 6019. Error Message: Proven revenue does not cover debt service at the required ratio."
+    }
+  },
+  "treasury": {
+    "address": "r5taXLeZZ65Tj8warKdoCydRPt4qRkEWxxpfKa2gQpm",
+    "feesCollectedLamports": 2600000
+  }
+}

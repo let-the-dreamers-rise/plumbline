@@ -17,6 +17,19 @@ H100 price tape, which still exists as a by-product (`/tape`).
 
 Entry for the Colosseum Crypto World's Fair hackathon (submissions due 2026-10-12).
 
+## For judges (60 seconds)
+
+- **What ran:** the exact `oracle/dist/pct_oracle.so` on a local validator (Oct 12). Both Groth16 proofs verified onchain (117,789 and 117,790 CU), the draw at 1.15x was approved, the draw at 1.14x was refused (`CovenantBreached`, 6019), and the replayed proof was refused (`ZkStaleChallenge`, 6027). Output: [`demo/local-validator-run.json`](demo/local-validator-run.json) and [`.log`](demo/local-validator-run.log); their explorer links point at `127.0.0.1:8899`, so they open only on the machine that ran the validator. Devnet links replace this when the deploy lands.
+- **Check it without Solana:** `cd zk && cargo test` verifies NVIDIA's H100 certificate chain (P-384) and the TDX quote natively (20 tests, about 30 s once crates are cached); `npm install && npm test` runs the TypeScript suite.
+- **Read first:** [What runs on sample data](#what-runs-on-sample-data). Every input in the demo is a published sample or a test key; the verifier, the program and the proofs are real.
+- **Code worth reading:** `zk/lib/src/gpu.rs` (NVIDIA chain), `oracle/programs/pct_oracle/src/risc0_groth16.rs` (Groth16 on alt_bn128), `oracle/programs/pct_oracle/src/instructions/zk.rs` (challenge, covenant, fee, draw gate).
+
+| PASS loan, draw allowed | WATCH loan, draw refused |
+| --- | --- |
+| ![Verify page for the 1.15x loan: PASS](docs/img/verify-pass.png) | ![Verify page for the 1.14x loan: WATCH](docs/img/verify-watch.png) |
+
+![Embeddable badges for both loans](docs/img/badge.png)
+
 ## What is real today
 
 | Piece | Evidence |
@@ -24,10 +37,7 @@ Entry for the Colosseum Crypto World's Fair hackathon (submissions due 2026-10-1
 | RISC Zero guest that verifies an NVIDIA SPDM report to NVIDIA's root (P-384), a TDX v4 quote to Intel's root (P-256), and k-of-n Reclaim-format revenue claims, and computes the covenant | `zk/lib/src/{gpu,tdx,revenue}.rs`, guest `zk/risc0/methods/guest/src/main.rs`, see [`zk/README.md`](zk/README.md) |
 | Real Groth16 proofs of that guest, committed | `zk/fixtures/covenant-strong*-groth16.json` (image id `0xbf16300e…bfe2`) |
 | Groth16 verification inside the Anchor program, with challenge replay protection, terms/attestor/source pinning and a per-proof fee | `oracle/programs/pct_oracle/src/instructions/zk.rs`, `src/risc0_groth16.rs`, VK `src/risc0_vk.rs` (risc0-groth16 3.0.5) |
-| Opt-in cross-lender GPU registry: a `Device` PDA per chip id from the proof journal, so one GPU backs one loan at a time (`DevicePledgedElsewhere`), with per-loan challenge nonce claims against proof replay (`NonceTaken`), released by that loan's lender or borrower or the config authority | `oracle/programs/pct_oracle/src/instructions/registry.rs`; LiteSVM tests `tests/registry.rs` ([`oracle/README.md`](oracle/README.md#device-registry)). Off by default; demo flows do not turn it on |
-| Onchain Reclaim claim checking: secp256k1 signer recovery, canonical context parsing, nullifier PDAs, covenant-window math, a toy lending vault | `oracle/programs/pct_oracle/src/{reclaim.rs,instructions/lending.rs}`; LiteSVM tests `tests/{flow,lending,zk}.rs` |
-| Price oracle and lending flows driving a local validator end to end | `npm run oracle:e2e`, `npm run lending:e2e` ([`oracle/README.md`](oracle/README.md)) |
-| zkTLS revenue proofs from a real Razorpay or Stripe test account | `npm run prove:revenue`, `npm run loan:*` (walkthrough in `oracle/README.md`). No proof artifact is committed |
+| Opt-in cross-lender GPU registry: a `Device` PDA per chip id from the proof journal, so one GPU backs one loan at a time (`DevicePledgedElsewhere`), with per-loan challenge nonce claims against proof replay (`NonceTaken`), released by that loan's lender or borrower or the config authority | `oracle/programs/pct_oracle/src/instructions/registry.rs`; LiteSVM tests `tests/registry.rs` ([`oracle/README.md`](oracle/README.md#device-registry)). Off by default; demo flows do not turn it on. The prebuilt `oracle/dist/pct_oracle.so` predates it, so build from source to use it |
 | Web app reading straight from Solana: product site, lender view, verify page, badge, JSON API, lead form | `packages/web` (`npm run web`) |
 | TypeScript suite (index math, prover, oracle client, relayer, web) and clean typecheck | `npm test`, `npm run typecheck` |
 
@@ -90,6 +100,16 @@ Be clear about this before you judge the demo:
    revenue proofs, MAD outlier rejection, 25% per-provider cap, weighted median.
    `packages/relayer` can push it to a Hyperliquid HIP-3 market.
 
+## Read a covenant from your own program or client
+
+Each loan's latest result is one account: the `ZkCovenant` PDA at seeds `[b"zk_covenant", loan]`
+under program `2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz`
+(`oracle/programs/pct_oracle/src/instructions/zk.rs`). Its fields include `status` (1 PASS, 2 WATCH),
+`coverage_bps`, `as_of_period`, `claims`, `chip_id` (sha256 of the GPU's chip id), `measurements`,
+`vm_measurement`, `vm_bound` and `proven_at`. A vault, a curator's dashboard or another program can
+read it directly, with no API key and no oracle call. Without Solana tooling, use
+`GET /api/loan/<address>`.
+
 ## Quickstart
 
 ```bash
@@ -129,6 +149,7 @@ https://dev.reclaimprotocol.org/) and a Razorpay or Stripe test account; see `or
 | WATCH loan (1.14x, draw refused) | _pending_ |
 | Replay of the PASS proof (refused) | _pending_ |
 | Hosted site | _pending_ |
+| Local-validator rehearsal, same binary | see [`demo/`](demo/) |
 
 The committed proofs stop being accepted at 2026-10-15 00:00 UTC; a later deploy needs
 regenerated proofs first (`zk/README.md`).
@@ -195,6 +216,17 @@ out to the RPC on every request; server errors are logged and the client gets a 
 7. Second independent attestor (or Reclaim TEE mode), then an audit before mainnet.
 8. Hardening path for the tape: k-of-n independent provers, then aggregating attestations and the
    median into one RISC Zero proof verified on Solana with the same Groth16 verifier.
+
+## Also in this repository (earlier form of the project)
+
+The project started as a paid H100 price tape and a revenue-backed lending flow. That code still
+runs and is tested:
+
+| Piece | Evidence |
+| --- | --- |
+| Onchain Reclaim claim checking: secp256k1 signer recovery, canonical context parsing, nullifier PDAs, covenant-window math, a toy lending vault | `oracle/programs/pct_oracle/src/{reclaim.rs,instructions/lending.rs}`; LiteSVM tests `tests/{flow,lending,zk}.rs` |
+| Price oracle and lending flows driving a local validator end to end | `npm run oracle:e2e`, `npm run lending:e2e` ([`oracle/README.md`](oracle/README.md)) |
+| zkTLS revenue proofs from a real Razorpay or Stripe test account | `npm run prove:revenue`, `npm run loan:*` (walkthrough in `oracle/README.md`). No proof artifact is committed |
 
 ## License
 
