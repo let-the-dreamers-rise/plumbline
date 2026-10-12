@@ -4,7 +4,7 @@
 such as USD.AI, GAIB and Compute Labs) today relies on warranties, site audits and PDF revenue
 statements to know that the collateral is real hardware and that it earns enough to service the
 debt. With Ironproof an operator produces one zero-knowledge proof per period that says: the GPU that
-answered the lender's fresh challenge is a genuine NVIDIA H100 (its own attestation, chain-verified to NVIDIA's root), this is the Intel TDX
+answered the lender's challenge is a genuine NVIDIA H100 (its own attestation, chain-verified to NVIDIA's root), this is the Intel TDX
 confidential VM it reports from (the lender can require the two to be bound; the demo cannot, see
 below), and the fleet's revenue over the covenant window, proven from the
 payment processor with zkTLS (Reclaim), covers debt service by at least the loan's minimum coverage
@@ -162,7 +162,7 @@ https://dev.reclaimprotocol.org/) and a Razorpay or Stripe test account; see `or
 | --- | --- |
 | Target program id | `2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz` (fixed by `declare_id!`) |
 | Prebuilt binary | `oracle/dist/pct_oracle.so`, sha256 `380f715eb19584078348d325b434c9000c20cf5eef45550b49c47ee4d9e5d4ea` |
-| Deploy and demo script | `scripts/devnet-go.ps1` (needs about 8 SOL at peak), then `npm run zk:devnet` |
+| Deploy and demo script | `scripts/devnet-go.ps1` (waits for the SOL the binary's size needs, about 8 at peak), then `npm run zk:devnet` |
 | Program explorer link | _pending deploy_ |
 | PASS loan (1.15x, draw approved) | _pending: written to `zk-devnet-demo.json`_ |
 | WATCH loan (1.14x, draw refused) | _pending_ |

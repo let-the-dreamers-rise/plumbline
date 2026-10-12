@@ -13,7 +13,7 @@ is unreachable, the same release is on GitHub:
 
 ```bash
 cargo build-sbf --manifest-path programs/pct_oracle/Cargo.toml   # writes target/deploy/pct_oracle.so
-cargo test -- --nocapture                                        # 26 unit tests + 43 LiteSVM tests (flow 4, lending 12, registry 14, zk 13)
+cargo test -- --nocapture                                        # 26 unit tests + 48 LiteSVM tests (flow 4, lending 14, registry 14, zk 16)
 ```
 
 The flow tests load `target/deploy/pct_oracle.so`, so build first.
@@ -64,7 +64,8 @@ solana program deploy dist/pct_oracle.so --program-id target/deploy/pct_oracle-k
 
 SOL needed: `dist/pct_oracle.so` is 563,432 bytes, so the program data account alone holds about
 3.9 SOL of rent, and the upload buffer needs the same again while the deploy runs (about 7.5 to 8 SOL
-at peak; the buffer's share comes back afterwards). `scripts/devnet-go.ps1` waits for 8 SOL.
+at peak; the buffer's share comes back afterwards). `scripts/devnet-go.ps1` computes the amount from the
+size of the `.so` it deploys (8.05 SOL for this one, about 9.1 SOL for a 640 KB source build) and waits for it.
 As of 2026-10-12 the program is **not yet deployed on devnet** (the faucet rate-limited the deploy key).
 
 ## Feed it real proofs (from the repo root)
