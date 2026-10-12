@@ -145,12 +145,10 @@ fn submit(s: &mut Setup, name: &str, loan: Pubkey, receipt_operator: [u8; 32]) -
 
 fn draw(s: &mut Setup, lamports: u64) -> Result<u64, String> {
     let blockhash = s.h.svm.latest_blockhash();
-    let mut ix = Harness::ix(
+    let ix = Harness::ix(
         pct_oracle::instruction::Draw { lamports },
-        pct_oracle::accounts::Draw { borrower: s.borrower.pubkey(), loan: s.loan },
+        pct_oracle::accounts::Draw { borrower: s.borrower.pubkey(), loan: s.loan, zk_covenant: pda(&[b"zk_covenant", s.loan.as_ref()]) },
     );
-    // The loan's private covenant PDA: a public draw is refused once the lender has opted into it.
-    ix.accounts.push(anchor_lang::solana_program::instruction::AccountMeta::new_readonly(pda(&[b"zk_covenant", s.loan.as_ref()]), false));
     let msg = solana_message::Message::new_with_blockhash(&[ix], Some(&s.borrower.pubkey()), &blockhash);
     let tx = solana_transaction::versioned::VersionedTransaction::try_new(solana_message::VersionedMessage::Legacy(msg), &[&s.borrower]).unwrap();
     let r = s.h.svm.send_transaction(tx);
@@ -293,7 +291,7 @@ fn only_the_borrower_draws_and_only_what_is_funded() {
     let payer = s.h.payer.pubkey();
     let err = s
         .h
-        .send(&[Harness::ix(pct_oracle::instruction::Draw { lamports: 1 }, pct_oracle::accounts::Draw { borrower: payer, loan })])
+        .send(&[Harness::ix(pct_oracle::instruction::Draw { lamports: 1 }, pct_oracle::accounts::Draw { borrower: payer, loan, zk_covenant: pda(&[b"zk_covenant", loan.as_ref()]) })])
         .unwrap_err();
     assert!(err.contains("NotBorrower"), "{err}");
 }

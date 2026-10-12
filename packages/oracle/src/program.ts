@@ -267,7 +267,9 @@ export class OracleInstructions {
   }
 
   draw(borrower: PublicKey, loan: { lender: PublicKey; operatorKey: Uint8Array }, lamports: bigint | number): TransactionInstruction {
-    return this.ix("draw", [signer(borrower), writable(this.pdas.loan(loan.lender, loan.operatorKey))], new Writer().u64(lamports));
+    const l = this.pdas.loan(loan.lender, loan.operatorKey);
+    // The loan's private covenant PDA: the program refuses a public draw once it exists.
+    return this.ix("draw", [signer(borrower), writable(l), readonly(this.pdas.zkCovenant(l))], new Writer().u64(lamports));
   }
 
   /** vmMeasurement all zero = accept any VM image; requireVmBound = the TDX quote must vouch for the GPU report. */

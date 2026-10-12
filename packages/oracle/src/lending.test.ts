@@ -29,6 +29,21 @@ const loanAccount = (history: [number, bigint, bigint, number][]): Buffer => {
 };
 
 describe("loans", () => {
+  it("passes the loan's private covenant PDA to a public draw, so the program can refuse it", () => {
+    const ix = new OracleInstructions();
+    const borrower = Keypair.generate().publicKey;
+    const loan = { lender: Keypair.generate().publicKey, operatorKey: new Uint8Array(32).fill(7) };
+    const draw = ix.draw(borrower, loan, 1n);
+    const l = ix.pdas.loan(loan.lender, loan.operatorKey);
+    expect(draw.keys.map((k) => [k.isSigner, k.isWritable])).toEqual([
+      [true, true],
+      [false, true],
+      [false, false],
+    ]);
+    expect(draw.keys[1]!.pubkey.equals(l)).toBe(true);
+    expect(draw.keys[2]!.pubkey.equals(ix.pdas.zkCovenant(l))).toBe(true);
+  });
+
   it("decodes a Loan and keeps proven periods in order", () => {
     const loan = decodeLoan(
       loanAccount([

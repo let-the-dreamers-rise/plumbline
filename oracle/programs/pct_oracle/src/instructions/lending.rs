@@ -49,6 +49,9 @@ pub fn handle_open_loan(ctx: Context<OpenLoan>, terms: LoanTerms) -> Result<()> 
             && terms.debt_service_micro > 0
             && terms.currency.iter().all(u8::is_ascii_uppercase)
             && !NON_CENT_CURRENCIES.contains(&&terms.currency)
+            // Below 1.00x the covenant is met by revenue that does not even cover debt service
+            // (0 makes an empty proof a PASS).
+            && terms.min_coverage_bps >= 10_000
             && terms.covenant_periods >= 1
             && terms.covenant_periods as usize <= LOAN_HISTORY,
         OracleError::BadLoanTerms
@@ -275,6 +278,11 @@ pub struct Draw<'info> {
     pub borrower: Signer<'info>,
     #[account(mut, seeds = [LOAN_SEED, loan.lender.as_ref(), loan.operator_key.as_ref()], bump = loan.bump, has_one = borrower @ OracleError::NotBorrower)]
     pub loan: Account<'info, Loan>,
+    /// CHECK: the loan's private covenant PDA, by address. Once the lender has issued a GPU challenge
+    /// it exists and the loan draws only through `draw_private`, so the public revenue path cannot
+    /// sidestep the GPU attestation or the device registry.
+    #[account(seeds = [crate::instructions::zk::ZK_COVENANT_SEED, loan.key().as_ref()], bump)]
+    pub zk_covenant: UncheckedAccount<'info>,
 }
 
 #[event]
@@ -287,6 +295,7 @@ pub struct DrawApproved {
 /// Toy facility: the borrower can draw undrawn funds only while proven revenue covers debt
 /// service at the loan's minimum coverage ratio.
 pub fn handle_draw(ctx: Context<Draw>, lamports: u64) -> Result<()> {
+    require!(ctx.accounts.zk_covenant.owner != &crate::ID, OracleError::PrivateCovenantRequired);
     let now = Clock::get()?.unix_timestamp;
     let coverage_bps = ctx.accounts.loan.covenant(now).map_err(|f| match f {
         CovenantFailure::NoRecentRevenue => error!(OracleError::NoRecentRevenue),
