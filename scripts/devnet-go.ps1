@@ -1,14 +1,23 @@
 # One-shot devnet deploy + demo for Plumbline. Safe to re-run: each step skips what is already done.
-# Run from PowerShell, in the repo:  powershell -ExecutionPolicy Bypass -File scripts\devnet-go.ps1
+# Run from PowerShell, in the repo:  powershell -ExecutionPolicy Bypass -File scripts\devnet-go.ps1 [-Branch <name>]
+# Deploys oracle\dist\pct_oracle.so from the branch that is checked out, or from -Branch if given.
+param([string]$Branch = "")
 $ErrorActionPreference = "Stop"
 $root = Split-Path $PSScriptRoot -Parent
 Set-Location $root
 Start-Transcript -Path "$root\devnet-go.log" -Force | Out-Null
 try {
-  Write-Host "== 1/5 Update the code (branch claude/oracle-cloud-build)"
-  git fetch origin claude/oracle-cloud-build
-  git checkout claude/oracle-cloud-build
-  git merge --ff-only origin/claude/oracle-cloud-build
+  if (-not $Branch) { $Branch = (git rev-parse --abbrev-ref HEAD).Trim() }
+  if ($Branch -eq "HEAD") {
+    Write-Host "== 1/5 Detached checkout: deploying it as is"
+  } else {
+    Write-Host "== 1/5 Update the code (branch $Branch)"
+    git fetch origin $Branch
+    git checkout $Branch
+    git merge --ff-only "origin/$Branch"
+  }
+  $sha = (Get-FileHash oracle\dist\pct_oracle.so -Algorithm SHA256).Hash.ToLower()
+  Write-Host "deploying oracle\dist\pct_oracle.so sha256 $sha"
   npm install --no-audit --no-fund | Out-Null
 
   Write-Host "== 2/5 Solana CLI"

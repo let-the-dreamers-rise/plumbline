@@ -69,7 +69,8 @@ SOL needed: `dist/pct_oracle.so` is 640,496 bytes, so the program data account a
 4.5 SOL of rent, and the upload buffer needs the same again while the deploy runs (about 9 SOL
 at peak; the buffer's share comes back afterwards). `scripts/devnet-go.ps1` computes the amount from the
 size of the `.so` it deploys (9.12 SOL for this one) and waits for it.
-As of 2026-10-12 the program is **not yet deployed on devnet** (the faucet rate-limited the deploy key).
+Deployed on devnet on 2026-10-12 from this binary; links are in the
+[root README](../README.md#devnet-deployment).
 
 ## Feed it real proofs (from the repo root)
 
