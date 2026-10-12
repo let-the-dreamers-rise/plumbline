@@ -68,7 +68,9 @@ Be clear about this before you judge the demo:
   the journal carries the total window revenue in plaintext (`zk/lib/src/lib.rs:61`) and it is sent
   as instruction data.
 - **Pricing in the program is a flat `fee_lamports` per proof** (`zk.rs`), charged on every proof.
-  There is no per-GPU fee and no free tier in code.
+  There is no per-GPU fee and no free tier in code. Planned pricing for design partners (lender pays:
+  onboarding from $15k per facility, then 10 bps a year on outstanding principal, minimum $1 per GPU
+  per month; operators prove free; first facility free during the pilot) is not in the program yet.
 - **The demo fixtures expire.** They cover week 2961. The program accepts them only until
   **2026-10-15 00:00 UTC**; after that they must be regenerated (exact steps in
   [`zk/README.md`](zk/README.md#fixture-expiry-read-before-a-demo)).
@@ -239,7 +241,8 @@ out to the RPC on every request; server errors are logged and the client gets a 
 3. Operator-input host mode: own GPU report, TDX quote bound to it (`vm_bound = 1`), real Reclaim claims.
 4. TDX collateral checks (TCB status, QE identity, CRLs) and NVIDIA RIM checks in the guest.
 5. Commit only the PASS bit or a salted revenue hash instead of the plaintext total.
-6. Loan-based pricing in the program (a facility fee plus 5 to 15 basis points a year on the loan), matching the site.
+6. Loan-based pricing in the program (10 basis points a year on outstanding principal, minimum $1 per GPU
+   per month, paid by the lender; operators prove free), matching the site. Onboarding (from $15k per facility) is billed off-chain.
 7. Second independent attestor (or Reclaim TEE mode), then an audit before mainnet.
 8. Hardening path for the tape: k-of-n independent provers, then aggregating attestations and the
    median into one RISC Zero proof verified on Solana with the same Groth16 verifier.
