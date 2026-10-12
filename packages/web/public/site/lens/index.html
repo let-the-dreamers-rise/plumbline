@@ -37,7 +37,7 @@
     <p class="eyebrow">For lenders financing GPU fleets, and the operators who borrow against them</p>
     <h1 id="hero-h" class="display reveal">Release the draw on a proof, not a PDF.</h1>
     <p class="lede">A lender funding a GPU fleet cannot check the collateral or the revenue behind the loan: it gets a telemetry box, a monthly PDF and a spreadsheet. With Ironproof the operator submits one zero-knowledge proof per period that its GPUs are real NVIDIA hardware, run in a measured enclave, and earned enough to cover debt service. A Solana program checks the proof and approves or refuses the next draw. Anyone can verify the result; individual payouts stay private.</p>
-    <p class="hook">A $16.6M loan, one proof a week: <em>$16,600 a year at 10 bps plus a facility fee.</em> Verifying is free.</p>
+    <p class="hook">A $16.6M loan, one proof a week: <em>$16,600 a year at 10 bps plus a facility fee.</em> USD.AI already pays 150 bps, $249,000 a year, for the warranty on the same loan. Verifying is free.</p>
     <p class="fine">Status: runs end to end on a local Solana validator; devnet deploy pending. The demo uses NVIDIA's public sample GPU report and revenue signed by test attestor keys.</p>
     <div class="row">
       <a class="btn btn-gold" href="#request">Prove your fleet</a>
@@ -159,6 +159,7 @@
       <div class="stack" id="stack" aria-hidden="true"></div>
       <dl>
         <div><dt>At 10 bps, per year, plus the facility fee</dt><dd id="bps">$16,600</dd></div>
+        <div><dt>USD.AI's value warranty on the same loan, 150 bps a year (its published cost)</dt><dd id="war">$249,000</dd></div>
         <div><dt>Verify pages, badges, read API</dt><dd>Free</dd></div>
       </dl>
     </div>
@@ -173,7 +174,7 @@
     <li><b class="num" data-to="118" data-suffix="k">118k</b><span>compute units to verify on Solana, approximately</span></li>
     <li><b class="num" data-to="10.75" data-dec="2" data-suffix="M">10.75M</b><span>guest cycles for P-384, the certificate chains and a structural TDX quote check</span></li>
     <li><b class="num" data-to="108" data-from="97" data-prefix="97–">97–108</b><span>minutes to prove on a 4-core, 15 GB cloud VM</span></li>
-    <li><b class="num" data-to="1.15" data-dec="2" data-suffix="x">1.15x</b><span>minimum coverage in the demo, configurable per loan and checked inside the proof</span></li>
+    <li><b class="num" data-to="1.15" data-dec="2" data-suffix="x">1.15x</b><span>USD.AI's own coverage floor: the lender tests it quarterly, the proof re-checks it weekly; configurable per loan</span></li>
     <li><b class="num" data-to="0.0013" data-dec="4">0.0013</b><span>SOL flat fee per proof that the devnet demo sets</span></li>
   </ul>
 </section>

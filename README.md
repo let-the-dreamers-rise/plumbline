@@ -7,7 +7,7 @@ debt. With Ironproof an operator produces one zero-knowledge proof per period th
 genuine NVIDIA H100 (its own attestation, chain-verified to NVIDIA's root), it runs in a measured
 Intel TDX confidential VM, and the fleet's revenue over the covenant window, proven from the
 payment processor with zkTLS (Reclaim), covers debt service by at least the loan's minimum coverage
-(a configurable minimum, 1.15x in the demo). A Solana program verifies the 256-byte Groth16 proof,
+(a configurable minimum; 1.15x in the demo, which is USD.AI's own published quarterly floor). A Solana program verifies the 256-byte Groth16 proof,
 records PASS or WATCH on the loan, and gates draws on it. Anyone can check a loan at
 `/loan/<address>`, embed `/badge/<address>.svg`, or read `/api/loan/<address>`.
 
