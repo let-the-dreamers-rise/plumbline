@@ -48,7 +48,10 @@ math with the onchain config) that must match the onchain value.
 `dist/pct_oracle.so` is a prebuilt copy of the program for id `2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz`
 (Agave 3.1.14, platform-tools v1.52), so a machine with only the Solana CLI can deploy it without
 compiling. Rebuild and recopy it whenever the program changes. sha256:
-`380f715eb19584078348d325b434c9000c20cf5eef45550b49c47ee4d9e5d4ea`.
+`89edffd1a1e9e3cd84e9a3c079a30c02c934e0a3bde3458d2d6c75d1aa4f5b8e`.
+It is reproducible: two separate `cargo build-sbf` runs of this source, in different containers with
+Agave 3.1.14 and platform-tools v1.52 (rustc 1.89.0), produced this same hash. Check it with
+`cargo build-sbf && sha256sum target/deploy/pct_oracle.so dist/pct_oracle.so`.
 
 The program id is fixed by `declare_id!` in `src/lib.rs`, so deploying needs the keypair whose
 public key is `2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz` (Anchor created it where the program
@@ -62,11 +65,11 @@ solana airdrop 2   # repeat or use https://faucet.solana.com; see the SOL note b
 solana program deploy dist/pct_oracle.so --program-id target/deploy/pct_oracle-keypair.json
 ```
 
-SOL needed: `dist/pct_oracle.so` is 563,432 bytes, so the program data account alone holds about
-3.9 SOL of rent, and the upload buffer needs the same again while the deploy runs (about 7.5 to 8 SOL
+SOL needed: `dist/pct_oracle.so` is 640,496 bytes, so the program data account alone holds about
+4.5 SOL of rent, and the upload buffer needs the same again while the deploy runs (about 9 SOL
 at peak; the buffer's share comes back afterwards). `scripts/devnet-go.ps1` computes the amount from the
-size of the `.so` it deploys (8.05 SOL for this one, about 9.1 SOL for a 640 KB source build) and waits for it.
-Deployed on devnet on 2026-10-12 from the source-built binary (sha256 `89edffd1…5b8e`); links are in the
+size of the `.so` it deploys (9.12 SOL for this one) and waits for it.
+Deployed on devnet on 2026-10-12 from this binary; links are in the
 [root README](../README.md#devnet-deployment).
 
 ## Feed it real proofs (from the repo root)
@@ -182,7 +185,7 @@ zkTLS pipeline, and a lender reads a per-borrower feed and gates draws on it.
   then `extractedParameters`) instead of searching for a key, so a value cannot smuggle in a fake
   parameter; values with escapes are refused.
 
-CU on a local validator: `submit_revenue` 78k-82k, `draw` 8.8k.
+CU on a local validator: `submit_revenue` 79k-94k, `draw` 12.3k.
 
 ### Real proof from a Razorpay test account (laptop, works from India)
 

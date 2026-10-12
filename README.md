@@ -22,8 +22,8 @@ Entry for the Colosseum Crypto World's Fair hackathon (submissions due 2026-10-1
 
 ![Card, PASS verify page, WATCH verify page and badges from the local-validator run](docs/img/demo.gif)
 
-- **Live on Solana devnet (Oct 12):** program [`2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz`](https://explorer.solana.com/address/2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz?cluster=devnet), deployed in [this transaction](https://explorer.solana.com/tx/3BbBX4diKE6MdinjzwDDynpHLne3bpErvFQoATY3JBPPXnHgvJLZ35vKP6RJviF6vB8d5UYqV85F6CBpMpkk1FN1?cluster=devnet). The 1.15x loan's proof verified ([proof](https://explorer.solana.com/tx/41ZoCoxTFb1MqUQKu5Qa1bRwEUch77nEUXmihPCCckvDjR52mhnAvgAQ4LqtnJZ7sjHjLFwg2Zb6yfat6RUJ7Nb7?cluster=devnet)) and its draw was approved ([draw](https://explorer.solana.com/tx/5DWV6UU7jTPem7HDUtrHrmLqeGvM3x7UzMe1XHALoXdT6ZTEoKGYS5BbbfKicrfJZLhuWbo4fpa16hUhhCyFs1er?cluster=devnet)). The 1.14x loan's proof verified ([proof](https://explorer.solana.com/tx/59nKZTGUKSDV7R57ZAf49vMCEqEPf2yjvhHy5Qd7XdPLJebJiaPkBn7pnVfWzBR4uXVJzC2r2h62mTJQQdSbHtmV?cluster=devnet)) and its draw was refused with `CovenantBreached` (6019) ([draw](https://explorer.solana.com/tx/5kV48qNZNwMfrVrxsq33qtj3QQSPtkRLqmZegw9QxoxoEDuW2birgnDJMaUnsN5U9cvN32tJZDcB7YdjRs7g1AYA?cluster=devnet)). Replaying the 1.15x proof was refused with `ZkStaleChallenge` (6027) ([replay](https://explorer.solana.com/tx/4W46GmRQ5YWZj6HsGe4jz5KKUvDDwxyeBXLSdo1eP4zf9NT25QGH5y783RZDHpXFPJYK19JQMKBYzYRUJzHnvFvq?cluster=devnet)). Each verify took about 119.7k CU. Devnet runs the fixed build, sha256 `89edffd1…5b8e` (PR #5). PR #5 is pending merge, so until then `oracle/dist` on `claude/oracle-cloud-build` is the older `380f715e…` build; on `claude/dist-rebuild`, and after the merge, it is the deployed one.
-- **Local rehearsal of this branch's binary:** `oracle/dist/pct_oracle.so` on a local validator (Oct 12). Both Groth16 proofs verified onchain (117,789 and 117,790 CU), the draw at 1.15x was approved, the draw at 1.14x was refused (`CovenantBreached`, 6019), and the replayed proof was refused (`ZkStaleChallenge`, 6027). Output: [`demo/local-validator-run.json`](demo/local-validator-run.json) and [`.log`](demo/local-validator-run.log); their explorer links point at `127.0.0.1:8899`, so they open only on the machine that ran the validator.
+- **What ran (Solana devnet, Oct 12):** the exact `oracle/dist/pct_oracle.so`, as program [`2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz`](https://explorer.solana.com/address/2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz?cluster=devnet), deployed in [this transaction](https://explorer.solana.com/tx/3BbBX4diKE6MdinjzwDDynpHLne3bpErvFQoATY3JBPPXnHgvJLZ35vKP6RJviF6vB8d5UYqV85F6CBpMpkk1FN1?cluster=devnet). The 1.15x loan's proof verified ([proof](https://explorer.solana.com/tx/41ZoCoxTFb1MqUQKu5Qa1bRwEUch77nEUXmihPCCckvDjR52mhnAvgAQ4LqtnJZ7sjHjLFwg2Zb6yfat6RUJ7Nb7?cluster=devnet)) and its draw was approved ([draw](https://explorer.solana.com/tx/5DWV6UU7jTPem7HDUtrHrmLqeGvM3x7UzMe1XHALoXdT6ZTEoKGYS5BbbfKicrfJZLhuWbo4fpa16hUhhCyFs1er?cluster=devnet)). The 1.14x loan's proof verified ([proof](https://explorer.solana.com/tx/59nKZTGUKSDV7R57ZAf49vMCEqEPf2yjvhHy5Qd7XdPLJebJiaPkBn7pnVfWzBR4uXVJzC2r2h62mTJQQdSbHtmV?cluster=devnet)) and its draw was refused with `CovenantBreached` (6019) ([draw](https://explorer.solana.com/tx/5kV48qNZNwMfrVrxsq33qtj3QQSPtkRLqmZegw9QxoxoEDuW2birgnDJMaUnsN5U9cvN32tJZDcB7YdjRs7g1AYA?cluster=devnet)). Replaying the 1.15x proof was refused with `ZkStaleChallenge` (6027) ([replay](https://explorer.solana.com/tx/4W46GmRQ5YWZj6HsGe4jz5KKUvDDwxyeBXLSdo1eP4zf9NT25QGH5y783RZDHpXFPJYK19JQMKBYzYRUJzHnvFvq?cluster=devnet)). Each verify took about 119.7k CU. That binary is this branch's `oracle/dist/pct_oracle.so`, sha256 `89edffd1…5b8e`.
+- **Local rehearsal, same binary:** on a local validator the proofs took 119,701 and 119,702 CU with the same three outcomes. Output: [`demo/local-validator-run.json`](demo/local-validator-run.json) and [`.log`](demo/local-validator-run.log); their explorer links point at `127.0.0.1:8899`, so they open only on the machine that ran the validator.
 - **Run it yourself:** one command, `npm run zk:local`, against a local validator with the same binary, then `npm run web` to see the pages ([Quickstart](#quickstart), about 5 minutes, no keypair or SOL).
 - **Check it without Solana:** `cd zk && cargo test` verifies NVIDIA's H100 certificate chain (P-384) and the TDX quote natively, and parses a raw H200 report without verifying its signature (23 tests, about 30 s once crates are cached); `npm install && npm test` runs the TypeScript suite.
 - **Read first:** [What runs on sample data](#what-runs-on-sample-data). Every input in the demo is a published sample or a test key; the verifier, the program and the proofs are real.
@@ -43,7 +43,7 @@ Entry for the Colosseum Crypto World's Fair hackathon (submissions due 2026-10-1
 | RISC Zero guest that verifies an NVIDIA SPDM report to NVIDIA's root (P-384), a TDX v4 quote to Intel's root (P-256), and k-of-n Reclaim-format revenue claims, and computes the covenant | `zk/lib/src/{gpu,tdx,revenue}.rs`, guest `zk/risc0/methods/guest/src/main.rs`, see [`zk/README.md`](zk/README.md) |
 | Real Groth16 proofs of that guest, committed | `zk/fixtures/covenant-strong*-groth16.json` (image id `0xbf16300e…bfe2`) |
 | Groth16 verification inside the Anchor program, with challenge replay protection, terms/attestor/source pinning and a per-proof fee | `oracle/programs/pct_oracle/src/instructions/zk.rs`, `src/risc0_groth16.rs`, VK `src/risc0_vk.rs` (risc0-groth16 3.0.5) |
-| Opt-in cross-lender GPU registry: a `Device` PDA per chip id from the proof journal, so one GPU backs one loan at a time (`DevicePledgedElsewhere`), with per-loan challenge nonce claims against proof replay (`NonceTaken`), released by that loan's lender or borrower or the config authority | `oracle/programs/pct_oracle/src/instructions/registry.rs`; LiteSVM tests `tests/registry.rs` ([`oracle/README.md`](oracle/README.md#device-registry)). Off by default; demo flows do not turn it on. The prebuilt `oracle/dist/pct_oracle.so` predates it, so build from source to use it |
+| Opt-in cross-lender GPU registry: a `Device` PDA per chip id from the proof journal, so one GPU backs one loan at a time (`DevicePledgedElsewhere`), with per-loan challenge nonce claims against proof replay (`NonceTaken`), released by that loan's lender or borrower or the config authority | `oracle/programs/pct_oracle/src/instructions/registry.rs`; LiteSVM tests `tests/registry.rs` ([`oracle/README.md`](oracle/README.md#device-registry)). Off by default; demo flows do not turn it on. Included in the prebuilt `oracle/dist/pct_oracle.so` |
 | Web app reading straight from Solana: product site, lender view, verify page, badge, JSON API, lead form | `packages/web` (`npm run web`) |
 | TypeScript suite (index math, prover, oracle client, relayer, web) and clean typecheck | `npm test`, `npm run typecheck` |
 
@@ -136,7 +136,7 @@ solana-test-validator --reset --limit-ledger-size 50000000 \
   --bpf-program 2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz oracle/dist/pct_oracle.so
 
 # terminal 2, from the repo root
-npm run zk:local         # the product: two Groth16 proofs verified (~118k CU each), 1.15x draw approved,
+npm run zk:local         # the product: two Groth16 proofs verified (~120k CU each), 1.15x draw approved,
                          # 1.14x draw refused (CovenantBreached), replayed proof refused (ZkStaleChallenge)
 npm run lending:e2e      # optional, the earlier transparent flow: per-claim revenue proofs gate draws
 npm run oracle:e2e       # optional, the H100 price tape: fixture claims, replay refused, index $2.49
@@ -156,13 +156,13 @@ https://dev.reclaimprotocol.org/) and a Razorpay or Stripe test account; see `or
 
 ## Devnet deployment
 
-> **Deployed on 2026-10-12.** Devnet runs the fixed build, sha256 `89edffd1…5b8e` (PR #5). PR #5 is pending merge, so until then `oracle/dist` on `claude/oracle-cloud-build` is the older `380f715e…` build; on `claude/dist-rebuild`, and after the merge, it is the deployed one.
+> **Deployed on 2026-10-12** from this branch's `oracle/dist/pct_oracle.so` (sha256 `89edffd1…5b8e`).
 
 | Item | Value |
 | --- | --- |
 | Target program id | `2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz` (fixed by `declare_id!`) |
-| Prebuilt binary | `oracle/dist/pct_oracle.so`, sha256 `380f715eb19584078348d325b434c9000c20cf5eef45550b49c47ee4d9e5d4ea` |
-| Deploy and demo script | `scripts/devnet-go.ps1` (waits for the SOL the binary's size needs, about 8 at peak), then `npm run zk:devnet` |
+| Prebuilt binary | `oracle/dist/pct_oracle.so`, sha256 `89edffd1a1e9e3cd84e9a3c079a30c02c934e0a3bde3458d2d6c75d1aa4f5b8e`, reproducible from source with Agave 3.1.14 and platform-tools v1.52 |
+| Deploy and demo script | `scripts/devnet-go.ps1` (deploys the checked-out branch's binary and waits for the SOL its size needs, 9.12 for this one), then `npm run zk:devnet` |
 | Program explorer link | [2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz](https://explorer.solana.com/address/2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz?cluster=devnet) (ProgramData `DVRJ7wEJf3MZyTb1sGEoYQxRwFs2J686jkWjBRcsEagu`, 640,496 bytes; [deploy tx](https://explorer.solana.com/tx/3BbBX4diKE6MdinjzwDDynpHLne3bpErvFQoATY3JBPPXnHgvJLZ35vKP6RJviF6vB8d5UYqV85F6CBpMpkk1FN1?cluster=devnet)) |
 | PASS loan (1.15x, draw approved) | [proof](https://explorer.solana.com/tx/41ZoCoxTFb1MqUQKu5Qa1bRwEUch77nEUXmihPCCckvDjR52mhnAvgAQ4LqtnJZ7sjHjLFwg2Zb6yfat6RUJ7Nb7?cluster=devnet), [draw](https://explorer.solana.com/tx/5DWV6UU7jTPem7HDUtrHrmLqeGvM3x7UzMe1XHALoXdT6ZTEoKGYS5BbbfKicrfJZLhuWbo4fpa16hUhhCyFs1er?cluster=devnet) |
 | WATCH loan (1.14x, draw refused, 6019) | [proof](https://explorer.solana.com/tx/59nKZTGUKSDV7R57ZAf49vMCEqEPf2yjvhHy5Qd7XdPLJebJiaPkBn7pnVfWzBR4uXVJzC2r2h62mTJQQdSbHtmV?cluster=devnet), [draw](https://explorer.solana.com/tx/5kV48qNZNwMfrVrxsq33qtj3QQSPtkRLqmZegw9QxoxoEDuW2birgnDJMaUnsN5U9cvN32tJZDcB7YdjRs7g1AYA?cluster=devnet) |
@@ -223,7 +223,7 @@ out to the RPC on every request; server errors are logged and the client gets a 
   re-proven each week; that is planned, not built.
 - **Cross-lender registry is off by default.** Until the authority turns the device registry on, one
   GPU can back loans from more than one lender: each lender issues its own challenge and the operator
-  answers each. The prebuilt `oracle/dist/pct_oracle.so` predates the registry.
+  answers each.
 - **Privacy.** The window revenue total is public in the journal.
 - **Security.** The guest, the hand-written Groth16 verifier and the program are unaudited. The
   lending vault is a toy SOL vault with debt terms in the loan currency.
