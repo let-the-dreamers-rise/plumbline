@@ -24,7 +24,7 @@ Entry for the Colosseum Crypto World's Fair hackathon (submissions due 2026-10-1
 
 - **What ran:** the exact `oracle/dist/pct_oracle.so` on a local validator (Oct 12). Both Groth16 proofs verified onchain (119,701 and 119,702 CU), the draw at 1.15x was approved, the draw at 1.14x was refused (`CovenantBreached`, 6019), and the replayed proof was refused (`ZkStaleChallenge`, 6027). Output: [`demo/local-validator-run.json`](demo/local-validator-run.json) and [`.log`](demo/local-validator-run.log); their explorer links point at `127.0.0.1:8899`, so they open only on the machine that ran the validator. Devnet links replace this when the deploy lands.
 - **Run it yourself:** one command, `npm run zk:local`, against a local validator with the same binary, then `npm run web` to see the pages ([Quickstart](#quickstart), about 5 minutes, no keypair or SOL).
-- **Check it without Solana:** `cd zk && cargo test` verifies NVIDIA's H100 certificate chain (P-384) and the TDX quote natively (22 tests, about 30 s once crates are cached); `npm install && npm test` runs the TypeScript suite.
+- **Check it without Solana:** `cd zk && cargo test` verifies NVIDIA's H100 certificate chain (P-384) and the TDX quote natively, and parses a raw H200 report without verifying its signature (23 tests, about 30 s once crates are cached); `npm install && npm test` runs the TypeScript suite.
 - **Read first:** [What runs on sample data](#what-runs-on-sample-data). Every input in the demo is a published sample or a test key; the verifier, the program and the proofs are real.
 - **Who it is for:** [First facility](docs/first-facility.md) maps USD.AI's public GPU loan book to what a weekly proof would add, including the 92% of it on Blackwell that Ironproof has not tested.
 - **Code worth reading:** `zk/lib/src/gpu.rs` (NVIDIA chain), `oracle/programs/pct_oracle/src/risc0_groth16.rs` (Groth16 on alt_bn128), `oracle/programs/pct_oracle/src/instructions/zk.rs` (challenge, covenant, fee, draw gate).
@@ -179,13 +179,14 @@ regenerated proofs first (`zk/README.md`).
 | --- | --- |
 | `zk/` | RISC Zero guest, shared verification library, host, fixtures and committed Groth16 proofs. [`zk/README.md`](zk/README.md) |
 | `oracle/` | Anchor program `pct_oracle` (oracle, lending, Groth16 verifier), LiteSVM tests, prebuilt `dist/pct_oracle.so`. [`oracle/README.md`](oracle/README.md) |
-| `packages/web` | Site and dashboard read straight from Solana: product page (`/`), prove (`/prove`), docs (`/docs`), lender view (`/lender`), price tape (`/tape`), verify page (`/loan/<address>`), badge (`/badge/<address>.svg`), JSON (`/api/loan/<address>`, `/api/loans`, `/api/state`), lead form (`POST /api/lead`). Set `PCT_EVIDENCE=public` when proofs use the published sample evidence. |
+| `packages/web` | Site and dashboard read straight from Solana: product page (`/`), prove (`/prove`), docs (`/docs`), lender view (`/lender`), price tape (`/tape`), verify page (`/loan/<address>`), badge (`/badge/<address>.svg`), JSON (`/api/loan/<address>`, `/api/loans`, `/api/state`), lead form (`POST /api/lead`). `PCT_EVIDENCE` defaults to `public` (proofs use the published sample evidence); set `own` only for proofs made against the loan's own challenge. |
 | `packages/oracle` | TS client for the program: price proofs, loans, revenue proofs, zk instructions, draws; CLIs `oracle:*`, `loan:*`. |
 | `packages/prover` | zkFetch source specs and request builder (secrets stay private, only the captured spans are revealed, account ids OPRF-hashed), proof checks, CLIs. |
 | `packages/core` | Price index math, the reference for the onchain books. |
 | `packages/relayer` | Pushes the onchain index to a Hyperliquid HIP-3 market (`hl:deploy`, `hl:relay`). |
 | `sources/` | One JSON spec per provable price source; `example-invoice.json` shows the format. |
 | `scripts/` | Fixture generators (`make-*-fixtures.ts`), local e2e runs, the devnet demo (`zk-devnet-demo.ts`), `devnet-go.ps1`. |
+| `integrations/swarm-sn124/` | Pilot patch for Swarm's (Bittensor SN124) validator, against upstream commit `38b36a2`: with `SWARM_IRONPROOF=1` the seed key is sealed to an attested TDX enclave that scores. Tested against a mock backend, not live. [`RUN.md`](integrations/swarm-sn124/RUN.md) |
 | `proofs/` | Generated proofs (git-ignored). |
 
 ## Hosting the site

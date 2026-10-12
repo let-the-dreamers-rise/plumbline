@@ -236,6 +236,19 @@ mod tests {
         assert_eq!(verify_gpu(&report, &chain), Err(GpuError::BadReportSignature));
     }
 
+    /// VoltageGPU's raw H200 report (fixtures/tdx/README.txt, round B) gets through every structural
+    /// check and stops only at the signature, which cannot verify here: its own certificate chain was
+    /// not published, so the H100 sample chain stands in. This shows the H200 report format parses and
+    /// carries the requester's nonce. It does not show that the H200 report's signature verifies.
+    #[test]
+    fn h200_report_format_parses() {
+        const H200_REPORT: &[u8] = include_bytes!("../../fixtures/tdx/gpu_report.bin");
+        const H200_NONCE: &str = include_str!("../../fixtures/tdx/nonce.txt");
+        assert_eq!(&H200_REPORT[4..36], &hex::decode(H200_NONCE.trim()).unwrap()[..]);
+        let (_, h100_chain) = sample();
+        assert_eq!(verify_gpu(H200_REPORT, &h100_chain), Err(GpuError::BadReportSignature));
+    }
+
     #[test]
     fn tampered_nonce_is_refused() {
         let (mut report, chain) = sample();

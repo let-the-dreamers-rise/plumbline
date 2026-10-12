@@ -1,0 +1,488 @@
+diff --git a/swarm/ironproof/__init__.py b/swarm/ironproof/__init__.py
+new file mode 100644
+index 0000000..fcf3286
+--- /dev/null
++++ b/swarm/ironproof/__init__.py
+@@ -0,0 +1,28 @@
++"""Opt-in Ironproof attested scoring for Swarm (off unless SWARM_IRONPROOF=1).
++
++With it on, the epoch key is sealed by the backend to the validator's measured Intel TDX scorer enclave
++instead of being handed to a whitelisted validator. Seeds are derived and the benchmark is flown inside
++the enclave, and every result the validator submits is bound into a TDX quote the backend verifies.
++
++The Ironproof side (key server, enclave app, sandbox, quote verifier) is imported from Ironproof's
++subnet-scorer at IRONPROOF_SCORER_PATH. Swarm supplies only the benchmark adapter (bench.py).
++"""
++
++import os
++import sys
++
++
++def enabled() -> bool:
++    """Whether this process runs Swarm's validator flow through Ironproof."""
++    return os.environ.get("SWARM_IRONPROOF", "") == "1"
++
++
++def use_scorer() -> None:
++    """Import path for subnet-scorer, with Swarm's benchmark registered as its `swarm_sim` module."""
++    root = os.environ["IRONPROOF_SCORER_PATH"]
++    for path in (root, os.path.join(root, "enclave")):
++        if path not in sys.path:
++            sys.path.append(path)
++    from swarm.ironproof import bench
++
++    sys.modules["swarm_sim"] = bench
+diff --git a/swarm/ironproof/backend.py b/swarm/ironproof/backend.py
+new file mode 100644
+index 0000000..d3b9a54
+--- /dev/null
++++ b/swarm/ironproof/backend.py
+@@ -0,0 +1,64 @@
++"""Backend side of the Ironproof flow, for Swarm's (private) backend to call from its existing routes.
++
++    GET  /validators/sync               -> add  ib.sync_fields(hotkey)            (instead of "epoch_keys")
++    POST /validators/key-release        -> ib.key_release(hotkey, body)            (new route)
++    GET  /validators/next-task          -> task = ib.attach_task(task, hotkey)
++    POST /validators/tasks/{id}/result  -> ib.accept_result(hotkey, id, body)      before recording; its
++                                           per-seed scores replace the /seed-scores rows for this task
++
++`hotkey` is the one the existing request-signature check already authenticated.
++"""
++
++import secrets
++
++from swarm.ironproof import use_scorer
++from swarm.validator import seed_scheme
++
++
++class IronproofBackend:
++    """Ironproof's KeyServer, keyed with Swarm's existing epoch keys and task rows."""
++
++    def __init__(self, policy, subtensor, verify_hotkey_sig, task_signing_key=None):
++        """policy pins the published scorer build (MRTD, RTMR0-2, compose hash), netuid and min_stake."""
++        use_scorer()
++        import swarm_keyserver
++
++        from swarm.ironproof import bench
++
++        self.bench = bench
++        self.ks = swarm_keyserver.KeyServer(policy, subtensor, verify_hotkey_sig, task_signing_key)
++
++    def set_epoch_key(self, epoch: int, key_hex: str) -> str:
++        """Hand over the key Swarm's backend already generates; returns its commitment, which is unchanged."""
++        fingerprint = self.ks.new_epoch(int(epoch), bytes.fromhex(key_hex))
++        assert fingerprint == seed_scheme.key_fingerprint(key_hex)
++        return fingerprint
++
++    def sync_fields(self, hotkey: str) -> dict:
++        """A fresh single-use challenge for this validator's enclave, in place of the key itself."""
++        return {"key_challenge": self.ks.challenge(hotkey), "epoch_keys": {}}
++
++    def key_release(self, hotkey: str, body: dict) -> dict:
++        """Quote, measurement, hotkey signature, permit and stake checked; the key sealed to the enclave."""
++        epochs = [int(e) for e in body["epochs"]]
++        return {"sealed_keys": self.ks.release(hotkey, body["attestation"], body["signature"], epochs)}
++
++    def attach_task(self, task: dict, hotkey: str) -> dict:
++        """The owner-signed task the enclave will run: this seed range, this model, this validator only."""
++        start = int(task.get("seeds_from") or 0)
++        signed = {
++            "task_id": str(task["task_id"]), "epoch": int(task["epoch_number"]), "family": task["family_id"],
++            "benchmark_version": self.bench.SIM_VERSION, "model_sha256": task["model_hash"],
++            "seed_start": start, "seed_count": int(task["seeds_to"]) - start, "validator_hotkey": hotkey,
++            "nonce": secrets.token_hex(8),
++        }
++        return dict(task, ironproof={"task": signed, "task_sig": self.ks.sign_task(signed)})
++
++    def accept_result(self, hotkey: str, task_id, body: dict) -> list:
++        """Only a quoted report from an enclave this backend keyed counts. Returns [(seed index, score)]."""
++        from attest import need
++
++        statement = self.ks.accept_report(body["ironproof_report"])
++        need(statement["task"]["task_id"] == str(task_id), "report is for another task")
++        need(statement["validator_hotkey"] == hotkey, "report is from another validator")
++        return [(int(i), float(s)) for i, s in statement["scores"]]
+diff --git a/swarm/ironproof/bench.py b/swarm/ironproof/bench.py
+new file mode 100644
+index 0000000..a464b95
+--- /dev/null
++++ b/swarm/ironproof/bench.py
+@@ -0,0 +1,94 @@
++"""Swarm's benchmark as Ironproof's enclave sees it (the `swarm_sim` interface of subnet-scorer).
++
++Runs inside the scorer enclave, and in anyone's audit once the epoch key is revealed:
++  derive_seed      Swarm's own seed_scheme.derive_seed, unchanged
++  key_fingerprint  Swarm's own published commitment, sha256(key)
++  mission          Swarm's own family task templates (screening below index 300, benchmark above)
++  run              flies one seed with the miner policy in Ironproof's sandbox, scored by the family's evaluate_rollout
++
++The flight itself is FLY. fly_standin below is a point-mass stand-in for Swarm's PyBullet rollout,
++which needs pybullet and gym_pybullet_drones inside the enclave image; a pilot replaces FLY with it.
++"""
++
++import math
++
++from swarm.constants import BENCHMARK_VERSION, LANDING_PLATFORM_RADIUS
++from swarm.validator import seed_scheme
++
++SIM_VERSION = f"swarm-{BENCHMARK_VERSION}+standin-flight-1"
++CONTROL_DT = 0.1  # stand-in control step, seconds
++
++
++class Seed(int):
++    """A derived seed that remembers its family and index, which pick the task template."""
++
++    def __new__(cls, value: int, family: str, index: int):
++        """Plain int value, with the family and list index attached."""
++        seed = super().__new__(cls, value)
++        seed.family, seed.index = family, index
++        return seed
++
++
++def derive_seed(key: bytes, family: str, epoch: int, index: int) -> Seed:
++    """HMAC-SHA256(key, "v1|<family>|<epoch>|<index>"), first 4 bytes, exactly as Swarm validators do today."""
++    return Seed(seed_scheme.derive_seed(key.hex(), int(epoch), family, int(index)), family, int(index))
++
++
++def key_fingerprint(key: bytes) -> str:
++    """The commitment Swarm's backend already publishes for each epoch key."""
++    return seed_scheme.key_fingerprint(key.hex())
++
++
++def mission(seed: Seed):
++    """The MapTask a Swarm validator would fly for this seed (same template rule as _run_full_benchmark)."""
++    from swarm.challenge_families import build_benchmark_tasks, build_screening_tasks
++    from swarm.constants import BENCHMARK_FULL_SEED_COUNT, BENCHMARK_SCREENING_SEED_COUNT, SIM_DT
++
++    if seed.index < BENCHMARK_SCREENING_SEED_COUNT:
++        return build_screening_tasks(sim_dt=SIM_DT, seeds=[int(seed)], family_id=seed.family,
++                                     offset=seed.index, total_seed_count=BENCHMARK_SCREENING_SEED_COUNT)[0]
++    return build_benchmark_tasks(sim_dt=SIM_DT, seeds=[int(seed)], family_id=seed.family,
++                                 offset=seed.index - BENCHMARK_SCREENING_SEED_COUNT,
++                                 total_seed_count=BENCHMARK_FULL_SEED_COUNT)[0]
++
++
++def _clip(action):
++    """Three finite numbers in [-1, 1]; anything else is zero thrust."""
++    try:
++        out = [max(-1.0, min(1.0, float(action[i]))) for i in range(3)]
++        return out if all(math.isfinite(v) for v in out) else [0.0, 0.0, 0.0]
++    except Exception:
++        return [0.0, 0.0, 0.0]
++
++
++def fly_standin(task, act):
++    """Point-mass flight from task.start to task.goal. The policy sees position, velocity and the goal pad."""
++    pos, goal = [float(v) for v in task.start], [float(v) for v in task.goal]
++    vel = [0.0, 0.0, 0.0]
++    steps = int(float(task.horizon) / CONTROL_DT)
++    for step in range(steps):
++        obs = {"t": round(step * CONTROL_DT, 3), "pos": [round(v, 4) for v in pos],
++               "vel": [round(v, 4) for v in vel], "goal": [round(v, 4) for v in goal]}
++        accel = _clip(act(obs))
++        vel = [v * 0.9 + 6.0 * a * CONTROL_DT for v, a in zip(vel, accel)]
++        pos = [p + v * CONTROL_DT for p, v in zip(pos, vel)]
++        if math.dist(pos, goal) < LANDING_PLATFORM_RADIUS and math.hypot(*vel) < 0.6:
++            return {"success": True, "t": round((step + 1) * CONTROL_DT, 3), "failure_reason": "NONE"}
++    return {"success": False, "t": float(task.horizon), "failure_reason": "TIMEOUT"}
++
++
++FLY = fly_standin
++
++
++def run(seed: Seed, act) -> float:
++    """One seed, scored by the family's own evaluate_rollout; rounded so the audit can match it exactly."""
++    from swarm.challenge_families import require_runtime_family
++
++    task = mission(seed)
++    flight = FLY(task, act)
++    result = require_runtime_family(seed.family).evaluate_rollout(
++        task=task, success=flight["success"], t=flight["t"], horizon=float(task.horizon),
++        min_clearance=flight.get("min_clearance"), collision=bool(flight.get("collision", False)),
++        failure_reason=flight["failure_reason"],
++    )
++    return round(float(result.score), 6)
+diff --git a/swarm/ironproof/enclave.py b/swarm/ironproof/enclave.py
+new file mode 100644
+index 0000000..a55e235
+--- /dev/null
++++ b/swarm/ironproof/enclave.py
+@@ -0,0 +1,30 @@
++"""Entry point of the scorer enclave: Ironproof's swarm_scorer app with Swarm's benchmark plugged in.
++
++    IRONPROOF_SCORER_PATH=... OWNER_TASK_PUBKEY=... python -m swarm.ironproof.enclave
++"""
++
++import importlib.util
++import os
++
++from swarm.ironproof import use_scorer
++
++
++def load_scorer(name: str = "swarm_scorer"):
++    """A fresh instance of subnet-scorer's enclave app (fresh enclave key) running Swarm's benchmark."""
++    use_scorer()
++    path = os.path.join(os.environ["IRONPROOF_SCORER_PATH"], "enclave", "swarm_scorer.py")
++    spec = importlib.util.spec_from_file_location(name, path)
++    module = importlib.util.module_from_spec(spec)
++    spec.loader.exec_module(module)
++    return module
++
++
++def main() -> None:
++    """Boot the sandbox and serve /attest, /key, /evaluate, /health on port 8080."""
++    scorer = load_scorer()
++    scorer.boot()
++    scorer.ThreadingHTTPServer(("0.0.0.0", 8080), scorer.H).serve_forever()
++
++
++if __name__ == "__main__":
++    main()
+diff --git a/swarm/ironproof/validator.py b/swarm/ironproof/validator.py
+new file mode 100644
+index 0000000..271ab1f
+--- /dev/null
++++ b/swarm/ironproof/validator.py
+@@ -0,0 +1,115 @@
++"""Validator side of the Ironproof flow, called from forward.py and run_task.py when SWARM_IRONPROOF=1.
++
++Per sync: if the enclave lacks this epoch's key, it attests to the backend's challenge and the backend
++seals the key to it (subnet-scorer swarm_validator.get_epoch_keys). Per task: the model goes to the
++enclave with the backend-signed task, and the quoted per-seed report goes back with the result.
++This process never holds the epoch key or a seed.
++"""
++
++import asyncio
++import json
++import os
++import urllib.request
++
++import bittensor as bt
++
++from swarm.ironproof import use_scorer
++from swarm.utils.hash import sha256sum
++from swarm.validator.backend_api import BackendRejectedError, BackendTransportError
++from swarm.validator.utils_parts.model_fetch import ensure_model_dir, stored_model_path
++
++
++def _enclave() -> str:
++    """Base URL of this validator's scorer enclave."""
++    return os.environ.get("IRONPROOF_ENCLAVE_URL", "http://127.0.0.1:8080").rstrip("/")
++
++
++def _held_epochs() -> list:
++    """Epochs whose keys the enclave holds (it never says more than that)."""
++    with urllib.request.urlopen(_enclave() + "/health", timeout=10) as resp:
++        return [int(e) for e in json.loads(resp.read())["epochs"]]
++
++
++class _Backend:
++    """The two key-release calls swarm_validator.get_epoch_keys makes, on Swarm's signed backend client."""
++
++    def __init__(self, api, challenge, loop):
++        """Keep the client, the challenge from this sync and the loop the client lives on."""
++        self.api, self.key_challenge, self.loop = api, challenge, loop
++
++    def challenge(self, hotkey):
++        """The single-use challenge /validators/sync handed out."""
++        return self.key_challenge
++
++    def release(self, hotkey, attestation, signature, epochs):
++        """POST /validators/key-release; returns {epoch: key sealed to the enclave}."""
++        call = self.api.ironproof_key_release(attestation, signature, epochs)
++        return asyncio.run_coroutine_threadsafe(call, self.loop).result()["sealed_keys"]
++
++
++async def on_sync(self, sync_data: dict) -> None:
++    """Get the current epoch's key sealed into the enclave, if it is not there yet."""
++    use_scorer()
++    import swarm_validator
++
++    epoch = int(sync_data.get("benchmark_epoch") or sync_data.get("current_epoch") or 0)
++    held = await asyncio.to_thread(_held_epochs)
++    self._ironproof_epochs = held
++    challenge = sync_data.get("key_challenge")
++    if epoch <= 0 or epoch in held or not challenge:
++        return
++    hotkey = self.wallet.hotkey
++    backend = _Backend(self.backend_api, challenge, asyncio.get_running_loop())
++    try:
++        self._ironproof_att = await asyncio.to_thread(
++            swarm_validator.get_epoch_keys, _enclave(), backend, hotkey.ss58_address,
++            lambda msg: hotkey.sign(msg).hex(), [epoch],
++        )
++        self._ironproof_epochs = await asyncio.to_thread(_held_epochs)
++        bt.logging.info(f"Ironproof: epoch {epoch} key sealed into the scorer enclave")
++    except Exception as exc:
++        bt.logging.warning(f"Ironproof: key release for epoch {epoch} failed: {exc}")
++
++
++def seeds_ready(self) -> bool:
++    """Whether the enclave holds the current epoch's key."""
++    return int(getattr(self.seed_manager, "epoch_number", 0)) in getattr(self, "_ironproof_epochs", [])
++
++
++async def run_task(self, task: dict) -> None:
++    """Fetch the model, have the enclave fly the backend-signed seed range, submit the quoted report."""
++    use_scorer()
++    import swarm_validator
++
++    signed, uid, task_id = task.get("ironproof") or {}, int(task["uid"]), int(task["task_id"])
++    att = getattr(self, "_ironproof_att", None)
++    if not signed or att is None:
++        bt.logging.warning(f"Ironproof: task {task_id} has no signed task or no key release yet; skipping")
++        return
++    ensure_model_dir()
++    path = stored_model_path(uid)
++    try:
++        if not await self.backend_api.fetch_private_artifact(task["model_hash"], path) or \
++                sha256sum(path) != task["model_hash"]:
++            bt.logging.warning(f"Ironproof: model for UID {uid} missing or hash mismatch")
++            return
++        model = path.read_text()
++    finally:
++        path.unlink(missing_ok=True)
++    try:
++        bundle = await asyncio.to_thread(
++            swarm_validator.run_task, _enclave(), signed["task"], signed["task_sig"], model, att)
++    except Exception as exc:
++        bt.logging.warning(f"Ironproof: enclave refused task {task_id}: {exc}")
++        return
++    statement, ip_task = bundle["statement"], signed["task"]
++    try:
++        reply = await self.backend_api.submit_task_result(
++            task_id=task_id, score=float(statement["mean"]), per_type_scores={},
++            seeds_evaluated=int(ip_task["seed_start"]) + int(ip_task["seed_count"]),
++            early_failed=False, epoch_number=int(ip_task["epoch"]), ironproof_report=bundle,
++        )
++    except (BackendRejectedError, BackendTransportError) as exc:
++        bt.logging.warning(f"Ironproof: result for UID {uid} not accepted: {exc}")
++        return
++    bt.logging.info(f"Ironproof: UID {uid} mean {statement['mean']} recorded={reply.get('recorded')}")
+diff --git a/swarm/validator/backend_api.py b/swarm/validator/backend_api.py
+index e93fd54..7a191bf 100644
+--- a/swarm/validator/backend_api.py
++++ b/swarm/validator/backend_api.py
+@@ -422,6 +422,7 @@ class BackendApiClient:
+                     "current_epoch": benchmark_epoch,
+                     "seed_scheme_min_version": data.get("seed_scheme_min_version"),
+                     "epoch_keys": data.get("epoch_keys", {}),
++                    "key_challenge": data.get("key_challenge"),
+                     "latest_reported_epoch": data.get("latest_reported_epoch"),
+                     "kings": data.get("kings", []),
+                     "kings_by_family": data.get("kings_by_family", {}),
+@@ -627,6 +628,13 @@ class BackendApiClient:
+     # Task lease and seed upload endpoints
+     # ──────────────────────────────────────────────────────────────────────
+ 
++    async def ironproof_key_release(self, attestation: dict, signature: str, epochs: list) -> Dict[str, Any]:
++        """SWARM_IRONPROOF=1: have the backend seal epoch keys to this validator's attested scorer enclave."""
++        return await self._post_signed(
++            "/validators/key-release",
++            {"attestation": attestation, "signature": signature, "epochs": list(epochs)},
++        )
++
+     async def claim_seeds(self, task_id: int, count: int = 1) -> Dict[str, Any]:
+         """Lease up to ``count`` seeds for the task.
+ 
+@@ -739,6 +747,7 @@ class BackendApiClient:
+         seeds_evaluated: int,
+         early_failed: bool,
+         epoch_number: int,
++        ironproof_report: Optional[Dict[str, Any]] = None,
+     ) -> Dict[str, Any]:
+         """Submit a task result. Backend recomputes the authoritative score.
+ 
+@@ -755,6 +764,8 @@ class BackendApiClient:
+             "benchmark_version": BENCHMARK_VERSION,
+             "epoch_number": epoch_number,
+         }
++        if ironproof_report is not None:
++            data["ironproof_report"] = ironproof_report  # quoted per-seed report (SWARM_IRONPROOF=1)
+         delay = RESULT_SUBMIT_BASE_DELAY_SEC
+         for attempt in range(RESULT_SUBMIT_ATTEMPTS):
+             try:
+diff --git a/swarm/validator/forward.py b/swarm/validator/forward.py
+index 552c27f..3e602cd 100644
+--- a/swarm/validator/forward.py
++++ b/swarm/validator/forward.py
+@@ -35,6 +35,7 @@ import traceback
+ 
+ import bittensor as bt
+ 
++from swarm import ironproof
+ from swarm.constants import FORWARD_SLEEP_SEC, N_DOCKER_WORKERS
+ from swarm.validator.calibration import baseline_model_available
+ 
+@@ -100,7 +101,11 @@ async def _forward_iteration(self) -> None:
+ 
+         # Before aligning: a rollover has to find the new epoch's key already in hand.
+         apply_scheme = getattr(self.seed_manager, "apply_backend_scheme", None)
+-        if apply_scheme is not None:
++        if ironproof.enabled():
++            # The key is sealed into the attested scorer enclave; this process never holds it.
++            from swarm.ironproof import validator as ironproof_validator
++            await ironproof_validator.on_sync(self, sync_data)
++        elif apply_scheme is not None:
+             apply_scheme(
+                 sync_data.get("seed_scheme_min_version"),
+                 sync_data.get("epoch_keys"),
+@@ -132,12 +137,15 @@ async def _forward_iteration(self) -> None:
+ 
+         await _publish_pending_epoch_seeds(self)
+ 
+-        if not await _host_may_score(self):
++        if not ironproof.enabled() and not await _host_may_score(self):
+             await _idle_until_wake(self, FORWARD_SLEEP_SEC)
+             tracker_call(self, "mark_forward_completed", forward_count=self.forward_count)
+             return
+ 
+         seeds_ready = getattr(self.seed_manager, "seeds_ready", None)
++        if ironproof.enabled():
++            from swarm.ironproof import validator as ironproof_validator
++            seeds_ready = lambda: ironproof_validator.seeds_ready(self)  # noqa: E731
+         if seeds_ready is not None and not seeds_ready():
+             # Taking a task without the seeds to fly it wastes a lease and reports nothing.
+             bt.logging.info("No seeds for this epoch yet; not taking work this cycle")
+@@ -193,6 +201,8 @@ async def _cleanup_off_loop(self, *, reason: str, prune: bool = False) -> None:
+     The event loop keeps serving heartbeats, SSE events and uploads while Docker works;
+     the caller still waits, so a cleanup never overlaps the next task's containers.
+     """
++    if ironproof.enabled():
++        return  # no miner containers on this host; they run in the enclave
+     started = time.monotonic()
+     await asyncio.to_thread(self.docker_evaluator.cleanup, prune=prune)
+     tracker_call(
+@@ -218,7 +228,9 @@ async def _ensure_components(self) -> None:
+             bt.logging.error("Set SWARM_BACKEND_API_URL")
+             raise
+         await self.backend_api.announce_startup()
+-    if not hasattr(self, "docker_evaluator") or not DockerSecureEvaluator._base_ready:
++    if not ironproof.enabled() and (
++        not hasattr(self, "docker_evaluator") or not DockerSecureEvaluator._base_ready
++    ):
+         tracker_call(self, "mark_forward_failed", error="Docker evaluator not ready")
+         raise RuntimeError("Docker evaluator not ready")
+     if hasattr(self, "docker_evaluator"):
+diff --git a/swarm/validator/utils_parts/run_task.py b/swarm/validator/utils_parts/run_task.py
+index 3d67aa1..9981655 100644
+--- a/swarm/validator/utils_parts/run_task.py
++++ b/swarm/validator/utils_parts/run_task.py
+@@ -37,6 +37,7 @@ from typing import Any, Dict
+ import bittensor as bt
+ import numpy as np
+ 
++from swarm import ironproof
+ from swarm.challenge_families import DEFAULT_RUNTIME_FAMILY_ID
+ from swarm.constants import CLAIM_GIVE_UP_SEC
+ from swarm.core.submission_policy import SUBMISSION_INTERFACE_VERSION
+@@ -114,6 +115,9 @@ async def run_task(
+     if uid < 0 or not phase or task_id is None:
+         bt.logging.warning(f"run_task: malformed task payload {task}")
+         return
++    if ironproof.enabled():
++        from swarm.ironproof import validator as ironproof_validator
++        return await ironproof_validator.run_task(self, task)
+ 
+     seed_manager = getattr(self, "seed_manager", None)
+     epoch = _task_epoch(seed_manager, task)
