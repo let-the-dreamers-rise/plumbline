@@ -23,6 +23,11 @@ the enclave. Seeds are derived, flown and scored with Swarm's own `evaluate_roll
 and each result goes back with a quote-bound per-seed report. Weights still come from Swarm's own KotH
 combine and `set_weights`.
 
+**Not runnable from this repository alone.** The patch imports Ironproof's scorer package
+(`subnet-scorer`: the key server, the enclave app, the quote and report verifiers) from
+`IRONPROOF_SCORER_PATH`. That package is the attested-scoring prototype, and it is not in this
+repository yet, so a reviewer can read the patch and its tests but cannot rerun them from here.
+
 ## How it was tested, and what was mocked
 - Swarm's real `forward()` loop and `BackendApiClient` ran over HTTP against a **mock backend** (Swarm's
   backend is private), with two validators scoring and a third refused for low stake.
@@ -30,9 +35,6 @@ combine and `set_weights`.
   rejected, and a post-reveal audit reproduced every score.
 - The flight is a point-mass stand-in, not Swarm's PyBullet simulator.
 - Swarm's own validator tests gave identical per-test outcomes before and after the patch with the flag off.
-
-The enclave, key server and quote verifier the patch imports live in a separate scorer codebase that is
-not in this repository, so the patch cannot be run from here alone.
 
 ## Still needed for a live pilot
 A real TDX host, PyBullet and the miner policy format inside the enclave image, the matching routes in
