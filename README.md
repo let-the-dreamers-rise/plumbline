@@ -12,7 +12,7 @@ payment processor with zkTLS (Reclaim), covers debt service by at least the loan
 records PASS or WATCH on the loan, and gates draws on it. Anyone can check a loan at
 `/loan/<address>`, embed `/badge/<address>.svg`, or read `/api/loan/<address>`.
 
-Naming: the product is **Plumbline**. `paid-compute-tape` (repo), `PCT` (`@pct/*` packages,
+Naming: the product and repo are **Plumbline** (the repo was `paid-compute-tape`; old links redirect). `PCT` (`@pct/*` packages,
 `pct_oracle`, `PCT_*` env vars) is the internal code prefix from the project's first form, an
 H100 price tape, which still exists as a by-product (`/tape`).
 
