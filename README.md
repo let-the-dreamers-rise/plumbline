@@ -3,9 +3,10 @@
 **Ironproof verifies GPU fleets for the lenders who finance them.** GPU-backed private credit (lenders
 such as USD.AI, GAIB and Compute Labs) today relies on warranties, site audits and PDF revenue
 statements to know that the collateral is real hardware and that it earns enough to service the
-debt. With Ironproof an operator produces one zero-knowledge proof per period that says: this is a
-genuine NVIDIA H100 (its own attestation, chain-verified to NVIDIA's root), it runs in a measured
-Intel TDX confidential VM, and the fleet's revenue over the covenant window, proven from the
+debt. With Ironproof an operator produces one zero-knowledge proof per period that says: this GPU is a
+genuine NVIDIA H100 (its own attestation, chain-verified to NVIDIA's root), this is the Intel TDX
+confidential VM it reports from (the lender can require the two to be bound; the demo cannot, see
+below), and the fleet's revenue over the covenant window, proven from the
 payment processor with zkTLS (Reclaim), covers debt service by at least the loan's minimum coverage
 (a configurable minimum; 1.15x in the demo, which is USD.AI's own published quarterly floor). A Solana program verifies the 256-byte Groth16 proof,
 records PASS or WATCH on the loan, and gates draws on it. Anyone can check a loan at
