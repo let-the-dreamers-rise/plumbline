@@ -79,7 +79,7 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 <div class="wrap">
 <header>
   <div><h1>Ironproof</h1><div class="meta">Docs · how it works, trust model, API, pricing</div></div>
-  <nav aria-label="Site"><a href="/">Home</a><a href="/prove">Prove</a><a href="/docs" aria-current="page">Docs</a><a href="/lender">Lender</a><a href="/tape">Tape</a></nav>
+  <nav aria-label="Site"><a href="/">Home</a><a href="/prove">Prove</a><a href="/docs" aria-current="page">Docs</a><a href="/lender">Lender</a><a href="/tape">Tape</a><a href="https://github.com/let-the-dreamers-rise/paid-compute-tape" rel="noopener">Source</a></nav>
 </header>
 
 <h2>What the proof says</h2>
@@ -87,14 +87,14 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 <div class="grid">
   <div class="card"><h3>Root 1: the GPU is real</h3><p>NVIDIA's SPDM attestation report, signed by the H100 with ECDSA P-384, and its five-certificate chain to the NVIDIA Device Identity CA. The report's nonce must equal the lender's challenge. The guest outputs hashes of the chip id and the firmware measurements.</p></div>
   <div class="card"><h3>Root 2: the enclave is the expected one</h3><p>An Intel TDX DCAP v4 quote: PCK chain to Intel's SGX Root CA, QE report, attestation-key binding and the quote signature. When its <code>report_data</code> commits to the GPU report and the challenge, the GPU is bound to the enclave; the guest outputs the VM measurement and this bound flag, and the program can be configured to require it (the devnet demo does not). Intel TCB status, QE identity and CRLs are not yet checked.</p></div>
-  <div class="card"><h3>Root 3: the revenue is real</h3><p>Reclaim zkTLS claims of the period's payouts (Razorpay, Stripe, marketplace APIs), each signed by at least two attestors from the set hashed onchain. The guest sums the period, removes duplicate payout ids, and tests revenue against debt service at the minimum coverage. Individual payout amounts and ids never leave the guest; the window's total is in the public journal.</p></div>
+  <div class="card"><h3>Root 3: the revenue is real</h3><p>Reclaim zkTLS claims of the period's payouts (Razorpay, Stripe, marketplace APIs), each signed by at least the threshold of attestors from the set hashed onchain (two test keys in the demo). The guest sums the period, removes duplicate payout ids, and tests revenue against debt service at the minimum coverage. Individual payout amounts and ids never leave the guest; the window's total is in the public journal.</p></div>
 </div>
 <p style="margin-top:12px">Journal (public values, fixed layout): chip-id hash, the GPU nonce (the challenge), measurements hash, attestor-set hash, revenue source parameters hash, loan terms hash (which covers the period), total window revenue in micro-units, coverage in basis points, claim count, pass flag, VM measurement, TDX TCB SVN, bound flag. The Solana program checks the challenge, attestor set, source and terms against onchain state before accepting the seal.</p>
 
 <h2>Trust model</h2>
 <div class="grid">
-  <div class="card"><h3>Removed</h3><ul><li>Trusted telemetry (the GPU signs its own report)</li><li>Single attestor (a threshold per claim, from a set the program pins; the demo uses two test keys)</li><li>Admin key on the covenant (the program decides from the proof)</li><li>Public payout detail (individual payouts, ids and tenants stay private; the window's total revenue and coverage are published)</li></ul></div>
-  <div class="card"><h3>Remaining</h3><ul><li>NVIDIA's and Intel's root certificates</li><li>The attestors not colluding; Reclaim's proxy model (an attestor can still fabricate a session with the operator's cooperation)</li><li>The RISC Zero prover and our own Groth16 verifier program and TDX quote verifier (written in the window, not yet audited; the TDX check is structural, without TCB status, QE identity or CRLs; mainnet after audit)</li><li>Freshness: a proof must cover the current period or the previous one, and the program clears the challenge once a proof lands, so the same proof cannot be submitted twice</li></ul></div>
+  <div class="card"><h3>Removed</h3><ul><li>Trusted telemetry (the GPU signs its own report)</li><li>Human sign-off on each draw (the program decides from the proof; one config authority still sets the guest image, attestor set and fee)</li><li>Public payout detail (individual payouts, ids and tenants stay private; the window's total revenue and coverage are published)</li></ul></div>
+  <div class="card"><h3>Remaining</h3><ul><li>NVIDIA's and Intel's root certificates</li><li>The config authority, one key that sets the accepted guest image, the attestor set and threshold (the demo uses two test keys), the revenue sources and the fee</li><li>The attestors not colluding; Reclaim's proxy model (an attestor can still fabricate a session with the operator's cooperation)</li><li>The RISC Zero prover and our own Groth16 verifier program and TDX quote verifier (written in the window, not yet audited; the TDX check is structural, without TCB status, QE identity or CRLs; mainnet after audit)</li><li>Freshness: a proof must cover the current period or the previous one, and the program clears the challenge once a proof lands, so the same proof cannot be submitted twice</li></ul></div>
 </div>
 
 <h2>Demo evidence</h2>
@@ -106,7 +106,7 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
   <tbody>
     <tr><td class="mono">GET /api/loans</td><td>The newest loans with terms, trailing coverage, proofs, draws and the zk covenant block.</td></tr>
     <tr><td class="mono">GET /api/loan/&lt;address&gt;</td><td>One loan. <code>zk.status</code> is <code>pass</code>, <code>watch</code> or <code>none</code>; <code>zk.coverageBps</code>, <code>zk.asOfPeriod</code>, <code>zk.chipId</code>, <code>zk.measurements</code>, <code>zk.vmMeasurement</code>, <code>zk.vmBound</code>, <code>zk.challenge</code>, <code>zk.provenAt</code>, <code>zk.imageId</code>, <code>zk.attestorThreshold</code>, <code>zk.proofTx</code>, <code>zk.feeLamports</code>, <code>zk.evidence</code>. The challenge is read from the proof transaction's public values; the program clears it from the account after a proof.</td></tr>
-    <tr><td class="mono">GET /badge/&lt;address&gt;.svg</td><td>An embeddable badge: PASS 1.15x · wk 2960, WATCH, or UNPROVEN.</td></tr>
+    <tr><td class="mono">GET /badge/&lt;address&gt;.svg</td><td>An embeddable badge: PASS 1.15x · wk 2961, WATCH, or UNPROVEN.</td></tr>
     <tr><td class="mono">GET /api/state</td><td>The Tape: paid and list books, accepted price proofs, and the off-chain recomputation of the index.</td></tr>
     <tr><td class="mono">POST /api/lead</td><td>Request a proof: <code>{email, fleetGpus, lender, note}</code>.</td></tr>
   </tbody>
@@ -132,7 +132,7 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 <h2>Questions a careful reader asks</h2>
 <div class="grid">
   <div class="card"><h3>Why a chain at all?</h3><p>Because the readers are not one lender. Vault curators and depositors in onchain credit can read PASS or WATCH without asking anyone, and the program can gate a draw on it directly. A signed PDF from a verification service cannot be composed into a draw gate.</p></div>
-  <div class="card"><h3>Why zero knowledge?</h3><p>The GPU signs with P-384, which no chain verifies natively, and the evidence is megabytes. The proof makes it fit in one transaction, and it is what lets individual payouts stay private while the result is public.</p></div>
+  <div class="card"><h3>Why zero knowledge?</h3><p>The GPU signs with P-384, which no chain verifies natively, and the evidence (GPU report, certificate chain, TDX quote and payout claims) is about 32 KB against a 1,232-byte Solana transaction. The proof makes it fit in one transaction, and it is what lets individual payouts stay private while the result is public.</p></div>
   <div class="card"><h3>Does this replace the lender's monitoring vendor?</h3><p>Partly. Telemetry vendors see serials, health and temperature but not revenue, and their data is trusted, not signed by the GPU. The proof covers identity, enclave and coverage; it does not cover physical custody or power.</p></div>
   <div class="card"><h3>What if the attestors collude?</h3><p>Then a fake payout can be proven. That is the weakest root and it is named as such. The attestor set is pinned onchain and can be replaced by the lender's own bank-feed attestor without changing the program.</p></div>
 </div>

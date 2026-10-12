@@ -9,6 +9,9 @@ export function clientFromEnv(): OracleClient {
   const rpc = process.env.SOLANA_RPC_URL?.trim() || "https://api.devnet.solana.com";
   const keypairPath = (process.env.SOLANA_KEYPAIR?.trim() || "~/.config/solana/id.json").replace(/^~/, homedir());
   const secret = Uint8Array.from(JSON.parse(readFileSync(keypairPath, "utf8")) as number[]);
-  const programId = process.env.PCT_PROGRAM_ID?.trim() ? new PublicKey(process.env.PCT_PROGRAM_ID.trim()) : DEFAULT_PROGRAM_ID;
-  return new OracleClient(new Connection(rpc, "confirmed"), Keypair.fromSecretKey(secret), programId);
+  return new OracleClient(new Connection(rpc, "confirmed"), Keypair.fromSecretKey(secret), programIdFromEnv());
 }
+
+/** PCT_PROGRAM_ID, or the program's declared id. */
+export const programIdFromEnv = (): PublicKey =>
+  process.env.PCT_PROGRAM_ID?.trim() ? new PublicKey(process.env.PCT_PROGRAM_ID.trim()) : DEFAULT_PROGRAM_ID;

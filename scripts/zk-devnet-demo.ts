@@ -1,6 +1,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import {
   ComputeBudgetProgram,
+  Connection,
   Keypair,
   LAMPORTS_PER_SOL,
   SystemProgram,
@@ -9,7 +10,8 @@ import {
 } from "@solana/web3.js";
 import { getBytes, keccak256, toUtf8Bytes } from "ethers";
 import { DEFAULT_INDEX_PARAMS, OracleClient, type SourceArgs } from "../packages/oracle/src/index.js";
-import { clientFromEnv } from "../packages/oracle/src/env.js";
+import { clientFromEnv, programIdFromEnv } from "../packages/oracle/src/env.js";
+import { localE2eAuthority } from "../packages/oracle/src/fixtures.js";
 
 // Private covenant on a public chain: two real RISC Zero Groth16 proofs (NVIDIA's sample H100 report,
 // VoltageGPU's public Intel TDX quote, a month of Razorpay revenue signed by two test attestors) are
@@ -18,9 +20,14 @@ import { clientFromEnv } from "../packages/oracle/src/env.js";
 // on chain (failures too, sent without preflight) and its explorer link is written to zk-devnet-demo.json.
 //
 // Needs the program deployed and SOLANA_RPC_URL / SOLANA_KEYPAIR as for the other CLIs (~1 SOL spare).
-const client = clientFromEnv();
+// On a local validator (`npm run zk:local`) it signs with the same fixed authority as oracle:e2e and
+// lending:e2e and airdrops to it, so the three local demos run in any order with no keypair to make.
+const rpcUrl = process.env.SOLANA_RPC_URL?.trim() || (process.argv.includes("--local") ? "http://127.0.0.1:8899" : "");
+const local = /^https?:\/\/(127\.0\.0\.1|localhost)(:|\/|$)/.test(rpcUrl);
+const envClient = local ? null : clientFromEnv();
+const client = envClient ?? new OracleClient(new Connection(rpcUrl, "confirmed"), localE2eAuthority(), programIdFromEnv());
 const { connection, payer } = client;
-const rpcUrl = process.env.SOLANA_RPC_URL?.trim() ?? "";
+if (local) await connection.confirmTransaction(await connection.requestAirdrop(payer.publicKey, 5 * LAMPORTS_PER_SOL), "confirmed");
 const cluster = !rpcUrl || rpcUrl.includes("devnet") ? "devnet" : "custom";
 // A local validator gets explorer links that read it directly (the explorer's custom-RPC mode).
 const link = (sig: string) =>

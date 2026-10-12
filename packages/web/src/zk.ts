@@ -104,8 +104,10 @@ async function proofTx(connection: Connection, covenant: PublicKey, loan: string
   return null;
 }
 
+// Defaults to "public": the host has no operator-input mode yet, so every proof it can make uses the
+// published sample evidence. Set PCT_EVIDENCE=own only for proofs made against the loan's own challenge.
 const evidence = (): ZkView["evidence"] => {
-  const e = process.env.PCT_EVIDENCE?.trim();
+  const e = process.env.PCT_EVIDENCE?.trim() || "public";
   return e === "public" || e === "own" ? e : null;
 };
 
