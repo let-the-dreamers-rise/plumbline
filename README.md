@@ -1,10 +1,10 @@
 # Ironproof
 
-**Ironproof verifies GPU fleets for the lenders who finance them.** GPU-backed private credit (lenders
+**Ironproof gives lenders who finance GPU fleets a checkable proof behind each draw.** GPU-backed private credit (lenders
 such as USD.AI, GAIB and Compute Labs) today relies on warranties, site audits and PDF revenue
 statements to know that the collateral is real hardware and that it earns enough to service the
-debt. With Ironproof an operator produces one zero-knowledge proof per period that says: this GPU is a
-genuine NVIDIA H100 (its own attestation, chain-verified to NVIDIA's root), this is the Intel TDX
+debt. With Ironproof an operator produces one zero-knowledge proof per period that says: the GPU that
+answered the lender's fresh challenge is a genuine NVIDIA H100 (its own attestation, chain-verified to NVIDIA's root), this is the Intel TDX
 confidential VM it reports from (the lender can require the two to be bound; the demo cannot, see
 below), and the fleet's revenue over the covenant window, proven from the
 payment processor with zkTLS (Reclaim), covers debt service by at least the loan's minimum coverage
@@ -212,6 +212,14 @@ out to the RPC on every request; server errors are logged and the client gets a 
   to a third-party system of record (Razorpay, Stripe, a marketplace payout API), never the
   operator's own server.
 - **Hardware.** Sample GPU report, unbound TDX quote, no TCB/QE/CRL collateral checks (above).
+- **One GPU per proof, not ownership.** A proof shows that one specific attested GPU answered a fresh
+  challenge. It does not show that the operator owns that GPU (a rented one answers just as well), nor
+  anything about the rest of the fleet: `fleet_gpus` in the loan terms is the lender's number, not a
+  proven one. Fleet coverage needs every GPU proven once against a lender-held chip list and a sample
+  re-proven each week; that is planned, not built.
+- **Cross-lender registry is off by default.** Until the authority turns the device registry on, one
+  GPU can back loans from more than one lender: each lender issues its own challenge and the operator
+  answers each. The prebuilt `oracle/dist/pct_oracle.so` predates the registry.
 - **Privacy.** The window revenue total is public in the journal.
 - **Security.** The guest, the hand-written Groth16 verifier and the program are unaudited. The
   lending vault is a toy SOL vault with debt terms in the loan currency.

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Ironproof · Verified collateral for GPU-backed loans</title>
-<meta name="description" content="For lenders financing GPU fleets and the operators who borrow against them. One zero-knowledge proof says a fleet is real NVIDIA hardware, runs in a measured enclave, and earned enough to cover its debt service; a Solana program gates each draw on it.">
+<meta name="description" content="For lenders financing GPU fleets and the operators who borrow against them. One zero-knowledge proof says the GPU that answered the lender's challenge is genuine NVIDIA hardware, and that the operator earned enough to cover its debt service; a Solana program gates each draw on it.">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Ironproof">
 <meta property="og:title" content="Ironproof · Verified collateral for GPU-backed loans">
@@ -36,7 +36,7 @@
   <div class="hero-copy">
     <p class="eyebrow">For lenders financing GPU fleets, and the operators who borrow against them</p>
     <h1 id="hero-h" class="display reveal">Release the draw on a proof, not a PDF.</h1>
-    <p class="lede">A lender funding a GPU fleet cannot check the collateral or the revenue behind the loan: it gets a telemetry box, a monthly PDF and a spreadsheet. With Ironproof the operator submits one zero-knowledge proof per period that its GPUs are real NVIDIA hardware, run in a measured enclave, and earned enough to cover debt service. A Solana program checks the proof and approves or refuses the next draw. Anyone can verify the result; individual payouts stay private.</p>
+    <p class="lede">A lender funding a GPU fleet cannot check the collateral or the revenue behind the loan: it gets a telemetry box, a monthly PDF and a spreadsheet. With Ironproof the operator submits one zero-knowledge proof per period: the GPU that answered the lender's fresh challenge is genuine NVIDIA hardware, and the operator's revenue covers debt service. A Solana program checks the proof and approves or refuses the next draw. Anyone can verify the result; individual payouts stay private.</p>
     <p class="hook">A $16.6M loan, one proof a week: <em>$16,600 a year at 10 bps plus a facility fee.</em> USD.AI already pays 150 bps, $249,000 a year, for the warranty on the same loan. Verifying is free.</p>
     <p class="fine">Status: runs end to end on a local Solana validator; devnet deploy pending. The demo uses NVIDIA's public sample GPU report and revenue signed by test attestor keys.</p>
     <div class="row">
@@ -132,7 +132,7 @@
   <h2 id="bento-h" class="display-2 reveal">Prove. Verify. Read the tape.</h2>
   <div class="bento">
     <article class="tile t-prove"><div class="loop l-nonce" aria-hidden="true"><span>7f3a</span><span>c91e</span><span>04bd</span><span>e2a8</span><span>7f3a</span></div>
-      <h3><a href="/prove">Prove</a></h3><p>Each week, one proof that your GPUs are real, run in a measured enclave, and earned enough to cover debt service. Individual payouts, tenants and prices never go onchain; the period total does.</p></article>
+      <h3><a href="/prove">Prove</a></h3><p>Each week, one proof that a GPU answering your lender's challenge is genuine NVIDIA hardware, and that your revenue covers debt service. Proving every GPU in the fleet is planned. Individual payouts, tenants and prices never go onchain; the period total does.</p></article>
     <article class="tile t-verify"><div class="loop l-badge" aria-hidden="true"><span class="badge">PASS</span></div>
       <h3><a href="/lender">Verify</a></h3><p>For lenders: a public page per loan with PASS or WATCH, the coverage figure, the chip and enclave measurements and the proof transaction. Free.</p></article>
     <article class="tile t-tape"><div class="loop l-tape" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -174,7 +174,7 @@
     <li><b class="num" data-to="118" data-suffix="k">118k</b><span>compute units to verify on Solana, approximately</span></li>
     <li><b class="num" data-to="10.75" data-dec="2" data-suffix="M">10.75M</b><span>guest cycles for the whole guest: GPU chain (P-384), TDX quote and revenue checks</span></li>
     <li><b class="num" data-to="108" data-from="97" data-prefix="97–">97–108</b><span>minutes to prove on a 4-core, 15 GB cloud VM</span></li>
-    <li><b class="num" data-to="1.15" data-dec="2" data-suffix="x">1.15x</b><span>USD.AI's own coverage floor: the lender tests it quarterly, the proof re-checks it weekly; configurable per loan</span></li>
+    <li><b class="num" data-to="1.15" data-dec="2" data-suffix="x">1.15x</b><span>USD.AI's own coverage floor: the lender tests it quarterly, the proof can re-check it weekly; configurable per loan</span></li>
     <li><b class="num" data-to="0.0013" data-dec="4">0.0013</b><span>SOL flat fee per proof in the demo</span></li>
   </ul>
 </section>
