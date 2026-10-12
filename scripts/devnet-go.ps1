@@ -30,11 +30,27 @@ try {
   $me = solana address
   Write-Host "payer: $me"
 
-  Write-Host "== 3/5 Devnet SOL (deploy needs about 7.5 SOL at peak, about half comes back)"
+  Write-Host "== 3/5 Devnet SOL"
   $prog = "2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz"
   $deployed = $false
-  try { solana program show $prog 2>$null | Out-Null; if ($LASTEXITCODE -eq 0) { $deployed = $true } } catch {}
-  $need = if ($deployed) { 0.6 } else { 8 }
+  $curLen = 0
+  try {
+    $show = solana program show $prog 2>$null
+    if ($LASTEXITCODE -eq 0) {
+      $deployed = $true
+      $m = [regex]::Match(($show -join "`n"), "Data Length:\s*(\d+)")
+      if ($m.Success) { $curLen = [int64]$m.Groups[1].Value }
+    }
+  } catch {}
+  # Rent-exempt minimum in SOL for an account of $bytes data bytes (3,480 lamports per byte-year, 2 years, 128-byte header).
+  function RentSol([int64]$bytes) { (($bytes + 128) * 3480 * 2) / 1e9 }
+  # Peak need follows the size of the binary being deployed: the upload buffer (size + 37 bytes, refunded after),
+  # plus the program data account (size + 45) on a first deploy, or only its growth on an upgrade, plus fees.
+  $size = (Get-Item oracle\dist\pct_oracle.so).Length
+  $buffer = RentSol ($size + 37)
+  $data = if ($deployed) { [math]::Max(0, (RentSol ($size + 45)) - (RentSol ($curLen + 45))) } else { RentSol ($size + 45) }
+  $need = [math]::Round($buffer + $data + 0.2, 2)
+  Write-Host ("binary {0:N0} bytes: deploy needs about {1} SOL at peak, {2:N2} SOL of it comes back" -f $size, $need, $buffer)
   for ($i = 0; $i -lt 6; $i++) {
     $bal = [double]((solana balance) -split " ")[0]
     if ($bal -ge $need) { break }
