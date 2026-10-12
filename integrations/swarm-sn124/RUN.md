@@ -23,6 +23,11 @@ the enclave. Seeds are derived, flown and scored with Swarm's own `evaluate_roll
 and each result goes back with a quote-bound per-seed report. Weights still come from Swarm's own KotH
 combine and `set_weights`.
 
+**Not runnable from this repository alone.** The patch imports Ironproof's scorer package
+(`subnet-scorer`: the key server, the enclave app, the quote and report verifiers) from
+`IRONPROOF_SCORER_PATH`. That package is the attested-scoring prototype, and it is not in this
+repository yet, so a reviewer can read the patch and its tests but cannot rerun them from here.
+
 ## How it was tested, and what was mocked
 - Swarm's real `forward()` loop and `BackendApiClient` ran over HTTP against a **mock backend** (Swarm's
   backend is private), with two validators scoring and a third refused for low stake.
