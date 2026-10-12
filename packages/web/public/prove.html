@@ -89,7 +89,7 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 
 <h2>What you need</h2>
 <div class="grid">
-  <div class="card"><h3>Hardware</h3><p>NVIDIA H100 or H200 with confidential computing enabled, inside an Intel TDX confidential VM (for example Phala Cloud dstack, or any Intel TDX host with the NVIDIA driver in CC mode; not yet run on one).</p></div>
+  <div class="card"><h3>Hardware</h3><p>NVIDIA H100 with confidential computing enabled (H200 untested), inside an Intel TDX confidential VM (for example Phala Cloud dstack, or any Intel TDX host with the NVIDIA driver in CC mode; not yet run on one).</p></div>
   <div class="card"><h3>A payout record</h3><p>A Razorpay, Stripe or marketplace payout account that pays you for GPU time. The prover reads it over zkTLS; only amount, date and a payout id are extracted. Individual payouts stay on your machine; the proof publishes only the window's total revenue, the coverage ratio and the number of claims.</p></div>
   <div class="card"><h3>Loan terms</h3><p>Your lender opens the loan on the program with debt service, period and the minimum coverage (11,500 basis points is 1.15x). No lender yet? Request a proof below and we open a self-declared term sheet for the first proofs.</p></div>
 </div>
@@ -122,7 +122,7 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 <p>Tell us the fleet and the lender, and we set up the terms and walk the first proof with you.</p>
 <div class="row"><a class="btn primary" href="/#request">Request a proof</a><a class="btn" href="/docs">Read the docs</a></div>
 
-<footer><div>Runs on a local Solana validator today; devnet deploy pending. Mainnet after the verifier audit. Fees are collected onchain at proof time; the devnet demo sets a flat 0.0013 SOL per proof.</div></footer>
+<footer><div>Runs on a local Solana validator today; devnet deploy pending. Mainnet after the verifier audit. Fees are collected onchain at proof time; the demo sets a flat 0.0013 SOL per proof.</div></footer>
 </div>
 </body>
 </html>

@@ -136,7 +136,7 @@ $("addr").textContent = addr;
   const z = l.zk || { status: "none" }; const s = z.status || "none";
   const ex = (l.explorer || "https://explorer.solana.com") + "/", cl = l.explorerQuery || `?cluster=${l.cluster || "devnet"}`, net = l.cluster === "localnet" ? "local validator" : l.cluster || "devnet";
   $("meta").textContent = `Verify page · ${net} · program ${l.programId || ""}`;
-  const word = s === "pass" ? "This fleet proved its covenant." : s === "watch" ? "This fleet's proof shows the covenant breached." : "No zero-knowledge proof yet for this loan.";
+  const word = s === "pass" ? "This loan's proof shows the covenant met." : s === "watch" ? "This fleet's proof shows the covenant breached." : "No zero-knowledge proof yet for this loan.";
   $("headline").textContent = word;
   $("lede").textContent = s === "none" ? "The lender issues a challenge; the operator then submits one proof, made against it, covering the period." :
     `One proof verified onchain says ${z.evidence === "public" ? "the GPU report is a genuine NVIDIA H100 report (NVIDIA's published sample, for this demo)" : "the GPU is genuine NVIDIA hardware"}${z.vmBound ? ", runs inside the measured enclave," : ","} and the revenue over the covenant window ${s === "pass" ? "covers" : "does not cover"} debt service at the minimum coverage. Individual payout amounts, payout ids and the GPU report never went onchain.`;

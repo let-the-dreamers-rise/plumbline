@@ -54,8 +54,8 @@
       </ul>
       <div class="lens" id="lens" aria-hidden="true">
         <ul class="claims proven" id="proven">
-          <li>GPU signed · NVIDIA root ✓</li><li>chip id · hashed ✓</li><li>challenge · signed ✓</li><li>revenue · 2-of-n attestors ✓</li>
-          <li>firmware · measured ✓</li><li>enclave · Intel root ✓</li><li>coverage · ≥ 1.15x ✓</li><li>payouts · stay private ✓</li>
+          <li>GPU signed · NVIDIA root ✓</li><li>chip id · hashed ✓</li><li>challenge · signed ✓</li><li>revenue · k-of-n attestors ✓</li>
+          <li>firmware · hashed ✓</li><li>enclave · Intel root ✓</li><li>coverage · ≥ 1.15x ✓</li><li>payouts · stay private ✓</li>
         </ul>
         <i class="lens-rim"></i>
       </div>
@@ -96,7 +96,7 @@
       <ul>
         <li>The GPU signs its own report, chain-verified to NVIDIA's root.</li>
         <li>The enclave is verified to Intel's root.</li>
-        <li>Each payout signed by at least two attestors from a set pinned onchain (the demo uses test keys).</li>
+        <li>Each payout signed by k attestors from a set pinned onchain (two test keys in the demo).</li>
         <li>Individual payouts stay off chain; the period total, coverage and PASS or WATCH are public.</li>
         <li>The program decides from the proof alone.</li>
       </ul>
@@ -120,7 +120,7 @@
       <h2 id="st-h" class="display-2 reveal">Three elements, one focal point.</h2>
       <ol>
         <li class="step"><h3>The lender issues a challenge</h3><p>A 32-byte nonce goes into the loan account. The GPU must sign it, so an old report cannot be replayed.</p></li>
-        <li class="step"><h3>The operator runs one prover</h3><p>Inside a RISC Zero guest: NVIDIA's attestation report and its certificate chain to NVIDIA's root, an Intel TDX quote verified to Intel's root, and zkTLS payout claims, each signed by at least two attestors. The guest tests coverage and outputs pass or fail.</p></li>
+        <li class="step"><h3>The operator runs one prover</h3><p>Inside a RISC Zero guest: NVIDIA's attestation report and its certificate chain to NVIDIA's root, an Intel TDX quote verified to Intel's root, and zkTLS payout claims, each signed by k attestors from a pinned set. The guest tests coverage and outputs pass or fail.</p></li>
         <li class="step"><h3>Solana verifies and gates the draw</h3><p>The program checks the proof, the challenge, the guest image and the attestor set, then records PASS or WATCH. A draw is approved or refused with no human sign-off.</p></li>
       </ol>
     </div>
@@ -167,15 +167,15 @@
 </section>
 
 <section class="sec stats" aria-labelledby="sx-h">
-  <p class="eyebrow">Measured on the build</p>
+  <p class="eyebrow">From the author's runs</p>
   <h2 id="sx-h" class="display-2 reveal">Small enough for one transaction.</h2>
   <ul class="stat-grid">
     <li><b class="num" data-to="256">256</b><span>byte proof, Groth16 over a RISC Zero guest</span></li>
     <li><b class="num" data-to="118" data-suffix="k">118k</b><span>compute units to verify on Solana, approximately</span></li>
-    <li><b class="num" data-to="10.75" data-dec="2" data-suffix="M">10.75M</b><span>guest cycles for P-384, the certificate chains and a structural TDX quote check</span></li>
+    <li><b class="num" data-to="10.75" data-dec="2" data-suffix="M">10.75M</b><span>guest cycles for the whole guest: GPU chain (P-384), TDX quote and revenue checks</span></li>
     <li><b class="num" data-to="108" data-from="97" data-prefix="97–">97–108</b><span>minutes to prove on a 4-core, 15 GB cloud VM</span></li>
     <li><b class="num" data-to="1.15" data-dec="2" data-suffix="x">1.15x</b><span>USD.AI's own coverage floor: the lender tests it quarterly, the proof re-checks it weekly; configurable per loan</span></li>
-    <li><b class="num" data-to="0.0013" data-dec="4">0.0013</b><span>SOL flat fee per proof that the devnet demo sets</span></li>
+    <li><b class="num" data-to="0.0013" data-dec="4">0.0013</b><span>SOL flat fee per proof in the demo</span></li>
   </ul>
 </section>
 
