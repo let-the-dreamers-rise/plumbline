@@ -1,0 +1,1 @@
+G86RoeNmR7dTKjxsqhZZBnh15mvQgfU7W3BCnCcS3dfk  test payout pubkey (localnet only) bound in statement-v1-payout.json

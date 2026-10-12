@@ -1,0 +1,17 @@
+[package]
+name = "tessera-zk-lib"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+base64 = { version = "0.22", default-features = false, features = ["alloc"] }
+hex = { version = "0.4", default-features = false, features = ["alloc"] }
+p256 = { version = "0.13", default-features = false, features = ["ecdsa", "std"] }
+serde_json = { version = "1", default-features = false, features = ["std"] }
+sha2 = { version = "0.10", default-features = false }
+x509-cert = { version = "0.2", default-features = false }
+
+[features]
+# Pin the synthetic test root in tests/fixtures instead of Intel's. Only for the localnet test image.
+test-root = []

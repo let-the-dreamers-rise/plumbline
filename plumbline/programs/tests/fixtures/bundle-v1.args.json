@@ -1,0 +1,10 @@
+{
+ "statement_hash": "f0a1e1dbf40530928100479e3531e5bdd90fc241027f19617145508e1e1a41c8",
+ "model_id_hash": "fc31632087f8bcd2c787fc0cbe91d938a017a9a0998689ad029eec112611c416",
+ "suite_commitment": "7c61b2c569373cc02173b1cb25b5faf850d5da78649dbb112ee753d83a2a5a8e",
+ "quote_hash": "29385006dee0d9a6dd62e73d1e003371e4e689d386387facfb8615db48aa9992",
+ "mr_td": "eea8b6a814569a52bd1e12f6b869bb2d9c0c8a7a43e658ffc3b42c199f116157ea7f04d359c7fdfd8ac483152cc13542",
+ "correct": 4,
+ "total": 6,
+ "binding_version": 1
+}

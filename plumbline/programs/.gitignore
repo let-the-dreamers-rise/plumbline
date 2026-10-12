@@ -1,0 +1,17 @@
+# The repo root ignores target/; keep the program keypairs, IDLs and TS types of this workspace.
+!target/
+.anchor
+target/debug
+target/release
+target/sbpf-solana-solana
+target/sbf-solana-solana
+target/test-ledger
+target/deploy/*.so
+target/.rustc_info.json
+target/CACHEDIR.TAG
+node_modules
+test-ledger
+.lane-status
+
+# program deploy keypairs stay local
+target/deploy/*-keypair.json

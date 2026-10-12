@@ -1,0 +1,37 @@
+[
+ {
+  "imr": 3,
+  "event_type": 134217729,
+  "digest": "",
+  "event": "system-preparing",
+  "event_payload": ""
+ },
+ {
+  "imr": 3,
+  "event_type": 134217729,
+  "digest": "",
+  "event": "app-id",
+  "event_payload": "0000000000000000000000000000000000000000"
+ },
+ {
+  "imr": 3,
+  "event_type": 134217729,
+  "digest": "",
+  "event": "compose-hash",
+  "event_payload": "6e4be83aed1f0847c7bc0f938b7fd17638e3ad931a5058010b9c1086a8d356a2"
+ },
+ {
+  "imr": 3,
+  "event_type": 134217729,
+  "digest": "",
+  "event": "instance-id",
+  "event_payload": "0000000000000000000000000000000000000000"
+ },
+ {
+  "imr": 3,
+  "event_type": 134217729,
+  "digest": "",
+  "event": "boot-mr-done",
+  "event_payload": ""
+ }
+]

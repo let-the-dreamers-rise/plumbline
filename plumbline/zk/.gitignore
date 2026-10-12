@@ -1,0 +1,3 @@
+# The repo root ignores proofs/ and target/; this folder's proofs are fixtures and are kept.
+!proofs/
+target/

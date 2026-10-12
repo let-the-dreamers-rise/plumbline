@@ -1,0 +1,37 @@
+[
+ {
+  "imr": 3,
+  "event_type": 134217729,
+  "digest": "f9974020ef507068183313d0ca808e0d1ca9b2d1ad0c61f5784e7157c362c06536f5ddacdad4451693f48fcc72fff624",
+  "event": "system-preparing",
+  "event_payload": ""
+ },
+ {
+  "imr": 3,
+  "event_type": 134217729,
+  "digest": "16071467e8927d30048d38d882b08bdc8853c8dec44b3e275d3b1bddd84cc290ea350b7bfed20a1d81952c8e614eae43",
+  "event": "app-id",
+  "event_payload": "0000000000000000000000000000000000000000"
+ },
+ {
+  "imr": 3,
+  "event_type": 134217729,
+  "digest": "2ca6aafcab6f4f66da8558c1f832961fd342c066b3066f50b8f4fbe22b447bdc6725cf6cb5bcbf4b1cc58173befa7dc9",
+  "event": "compose-hash",
+  "event_payload": "6e4be83aed1f0847c7bc0f938b7fd17638e3ad931a5058010b9c1086a8d356a2"
+ },
+ {
+  "imr": 3,
+  "event_type": 134217729,
+  "digest": "4bc36dd889629878e0222cfba786d3ad1498049357871c91499d17f1adb9ff256f7c125622b62f4d8b6c839935670f07",
+  "event": "instance-id",
+  "event_payload": "0000000000000000000000000000000000000000"
+ },
+ {
+  "imr": 3,
+  "event_type": 134217729,
+  "digest": "98bd7e6bd3952720b65027fd494834045d06b4a714bf737a06b874638b3ea00ff402f7f583e3e3b05e921c8570433ac6",
+  "event": "boot-mr-done",
+  "event_payload": ""
+ }
+]
