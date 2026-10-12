@@ -1,0 +1,14 @@
+{
+  "name": "plumbline-app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Static site, no build step. package.json exists only for the headless page test.",
+  "scripts": {
+    "serve": "node test/serve.mjs",
+    "test": "node --test test/*.test.mjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.56.1"
+  }
+}

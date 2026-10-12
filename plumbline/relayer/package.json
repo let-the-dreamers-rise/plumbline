@@ -1,0 +1,16 @@
+{
+  "name": "plumbline-relayer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "watch -> prove -> record_verified_score -> claim. Reuses ../cli/src for chain and bundle code (run npm install in ../cli first).",
+  "scripts": {
+    "start": "tsx src/main.ts",
+    "once": "tsx src/main.ts --once",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "tsx": "^4.19.0",
+    "vitest": "^3.2.0"
+  }
+}

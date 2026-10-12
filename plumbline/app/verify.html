@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Verify a Bundle</title>
+<meta name="description" content="Check a Plumbline score bundle in your browser: Intel TDX quote, statement binding, and whether the payout in the statement matches.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="wrap">
+  <h1>Verify a score bundle</h1>
+  <p class="lede">Drop a <span class="mono">bundle-*.json</span> from <span class="mono">plumbline enter</span>. Everything runs in this tab: the TDX quotes are
+    checked against Intel's root with WebCrypto, the statement binding is recomputed, and the payout written into the attested statement is shown
+    and compared with the onchain record. Nothing is uploaded.</p>
+  <div id="drop" class="drop">
+    <p><strong>Drop a bundle here</strong> or <label style="color:var(--accent);text-decoration:underline;cursor:pointer">choose a file<input id="file" type="file" accept=".json,application/json" hidden></label></p>
+    <details><summary class="muted">or paste JSON</summary><textarea id="paste" aria-label="Bundle JSON" placeholder='{"statement": {...}, "score": {...}, ...}'></textarea>
+      <p><button id="check-paste" type="button" class="primary">Check pasted bundle</button></p></details>
+  </div>
+  <p style="margin-top:1rem"><label for="expect">Expected payout (optional): </label>
+    <input id="expect" type="text" placeholder="your Solana address" style="width:min(100%,28rem)" autocomplete="off" spellcheck="false"></p>
+  <div id="want" class="muted"></div>
+  <section id="result" aria-live="polite"></section>
+</main>
+<script type="module" src="js/verify.js"></script>
+</body>
+</html>

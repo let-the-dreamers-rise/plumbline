@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plumbline Bounties</title>
+<meta name="description" content="Open Plumbline bounties: rewards locked onchain, paid to the entrant whose verified score meets the target.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="wrap">
+  <h1>Open bounties</h1>
+  <p class="lede">Each bounty locks a reward against a sealed test set. A model's score is computed inside a TDX enclave, proven on Solana,
+    and the escrow pays the entrant's own address the moment a verified score meets the target.</p>
+  <div style="display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-top:1rem">
+    <label><input type="checkbox" id="show-paid"> show paid bounties</label>
+    <span id="slot" class="muted"></span>
+  </div>
+  <div id="status" role="status"></div>
+  <div id="list" class="cards"></div>
+  <h2>Post a bounty</h2>
+  <p class="muted">v0 has no wallet signing in the browser. Sponsors use the CLI (<a href="howto.html#sponsor">full steps</a>):</p>
+  <div id="sponsor-cmd"></div>
+</main>
+<script type="module" src="js/bounties.js"></script>
+</body>
+</html>

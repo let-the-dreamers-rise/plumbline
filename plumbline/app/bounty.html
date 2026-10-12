@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plumbline Bounty</title>
+<meta name="description" content="One Plumbline bounty: its terms and the leaderboard of verified scores on its suite.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="wrap">
+  <p><a href="index.html">← all bounties</a></p>
+  <div id="status" role="status"></div>
+  <section id="terms"></section>
+  <section id="board-section" hidden>
+    <h2>Leaderboard</h2>
+    <p class="muted">Every <span class="mono">VerifiedScore</span> on this suite, best first (ties: earlier slot first). Each one exists only because a
+      Groth16 proof of a TDX quote was checked onchain. The payout column is the address inside the attested statement: the only place the reward can go.</p>
+    <div id="board"></div>
+  </section>
+  <section id="actions" hidden>
+    <h2>Commands</h2>
+    <div id="cmds"></div>
+  </section>
+</main>
+<script type="module" src="js/bounty.js"></script>
+</body>
+</html>

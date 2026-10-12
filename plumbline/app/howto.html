@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How Plumbline Works</title>
+<meta name="description" content="Step-by-step for sponsors and entrants: seal a test set, lock a reward, enter a model, get paid by proof.">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<main class="wrap howto">
+  <h1>How it works</h1>
+  <p class="lede">A sponsor locks a reward against a test set nobody else can read. An entrant submits a model. A TDX enclave scores the model on the
+    sealed test set, a zero-knowledge proof checks the enclave's Intel quote on Solana, and the escrow pays the entrant's own address as soon as a
+    verified score meets the target. Nobody, including us, sees the questions, and nobody can redirect the money.</p>
+  <div class="banner">v0 runs on localnet and devnet. The browser only reads the chain; every action below is a <span class="mono">plumbline</span> CLI command
+    (<span class="mono">plumbline/cli</span>, run <span class="mono">npm install</span> there, then <span class="mono">bin/plumbline</span>). Add
+    <span class="mono">--cluster devnet</span> for devnet. Mainnet is refused.</div>
+
+  <div class="cols">
+  <section id="sponsor">
+    <h2>Sponsor: post a bounty</h2>
+    <ol>
+      <li><strong>Write your test set</strong> as a JSON suite file. Keep it on your machine. Its commitment (a SHA-256 of its canonical JSON) is
+        what goes onchain; the questions never do.</li>
+      <li><strong>Seal it to the competition enclave.</strong> The CLI asks the enclave for a fresh attestation, checks the Intel quote and that it binds
+        the enclave's key, then encrypts the suite to that key. It prints only the commitment, never the contents.
+        <pre class="cmd"><code>plumbline seal my-suite.json --enclave https://&lt;enclave&gt; \
+  --enclave-pubkey &lt;key from /health&gt; -o sealed-suite.json</code></pre>
+        Publish <span class="mono">sealed-suite.json</span>: it is ciphertext only the enclave can open. The enclave key lives only as long as that enclave
+        instance, so re-seal if it restarts.</li>
+      <li><strong>Register the suite</strong> (optional, lets bounties require a registered suite):
+        <pre class="cmd"><code>plumbline suite register sealed-suite.json</code></pre></li>
+      <li><strong>Lock the reward.</strong> The SOL moves into the bounty account, not to us.
+        <pre class="cmd"><code>plumbline bounty create --suite sealed-suite.json \
+  --reward 1 --target 2/3 --deadline-slots 216000</code></pre>
+        Optional: <span class="mono">--pin-compose</span> / <span class="mono">--pin-image</span> to accept only one enclave build;
+        <span class="mono">--grace-slots</span> for how long after the deadline a late-recorded score can still claim.</li>
+      <li><strong>Wait.</strong> The first verified score that meets the target is paid automatically. Watch the bounty's leaderboard here.</li>
+      <li><strong>No winner?</strong> After the deadline plus grace, take the reward back:
+        <pre class="cmd"><code>plumbline bounty refund &lt;bounty address&gt;</code></pre></li>
+    </ol>
+  </section>
+
+  <section id="entrant">
+    <h2>Entrant: enter a model</h2>
+    <ol>
+      <li><strong>Pick a bounty</strong> on <a href="index.html">the list</a> and get the sponsor's <span class="mono">sealed-suite.json</span>.</li>
+      <li><strong>Pin your model</strong>: a public repo id, the 40-hex commit, and the SHA-256 of each weights file.</li>
+      <li><strong>Enter</strong>, naming the Solana address that should receive the prize. The enclave downloads the pinned weights, checks every hash,
+        scores the model on the sealed suite, and signs a statement that includes your payout address.
+        <pre class="cmd"><code>plumbline enter --enclave https://&lt;enclave&gt; \
+  --sealed sealed-suite.json --model org/name \
+  --revision &lt;40-hex&gt; \
+  --shard model.safetensors=&lt;sha256&gt; \
+  --payout &lt;your address&gt;</code></pre>
+        You get <span class="mono">bundle-&lt;hash&gt;.json</span>. The CLI refuses a bundle whose payout is not the one you asked for.</li>
+      <li><strong>Check it</strong> yourself, here on the <a href="verify.html">verify page</a> or with
+        <pre class="cmd"><code>plumbline verify bundle-&lt;hash&gt;.json</code></pre></li>
+      <li><strong>Hand it to a relayer</strong> (drop it in its inbox or <span class="mono">POST /bundles</span>). The relayer proves the quote with a
+        Groth16 proof, records the verified score onchain, and claims every bounty it meets. It pays the fees; it cannot change where the money goes,
+        because your payout is inside the proof.</li>
+      <li><strong>Or claim yourself</strong> once the score is recorded:
+        <pre class="cmd"><code>plumbline claim --bundle bundle-&lt;hash&gt;.json</code></pre></li>
+    </ol>
+  </section>
+  </div>
+
+  <h2>Why nobody can take your prize</h2>
+  <p>The payout address is a field of the statement the enclave signs. The quote's report data is a hash of that statement, the zk proof checks the
+    quote and outputs the payout, the registry stores it in the <span class="mono">VerifiedScore</span>, and the escrow pays only that address. Registering
+    someone else's public model first gets you nothing: there is no registration step to front-run.</p>
+  <h2>What is real today</h2>
+  <p>The programs, the escrow and the payout binding are tested on localnet with a proof from a test-root guest. A devnet bounty paid from a real
+    Phala TDX quote needs one Phala run; see <span class="mono">plumbline/docs/REAL-VS-PENDING.md</span>.</p>
+</main>
+<script type="module">import { chrome } from './js/ui.js'; chrome('howto');</script>
+</body>
+</html>

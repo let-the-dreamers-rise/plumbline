@@ -1,0 +1,4 @@
+#!/bin/sh
+# plumbline CLI launcher: runs the TypeScript entry with the package's own tsx.
+DIR="$(cd "$(dirname "$0")/.." && pwd)"
+exec "$DIR/node_modules/.bin/tsx" "$DIR/src/main.ts" "$@"
