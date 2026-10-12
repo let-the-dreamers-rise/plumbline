@@ -72,10 +72,11 @@ doesn't answer can't be counted.
 | The borrower's own GPU report and TDX quote, signed against the lender's challenge | Not built (host mode) |
 | Enclave binding (Intel TDX quote) | Structural checks built; off in the demo (`vm_bound = 0`) |
 | Revenue from USD.AI's covenant source (offtake receipts) | Not built; the demo uses Razorpay-shaped payouts signed by test attestor keys |
-| Covenant test and draw gate (PASS at 1.15x, WATCH and refusal at 1.14x, replay refused) | Built; runs on a local validator with the shipped binary ([`demo/`](../demo/)) |
+| Covenant test and draw gate (PASS at 1.15x, WATCH and refusal at 1.14x, replay refused) | Built; runs on devnet ([links](../README.md#devnet-deployment)) and on a local validator ([`demo/`](../demo/)) |
 | One GPU per loan across lenders (device registry) | Built in source, off by default; not in the prebuilt binary |
 | Every GPU in the facility, not one per proof | Planned: each GPU proven once against a lender-held chip list, then a weekly sample |
-| Devnet or mainnet deployment, audit | Not done |
+| Devnet deployment | Done Oct 12 (the source-built program, [links](../README.md#devnet-deployment)) |
+| Mainnet deployment, audit | Not done |
 
 **What a proof cannot show, whatever is built:** title and off-chain liens (USD.AI's SPV and Loan NFT
 cover that), GPU location and health (telemetry covers that), revenue outside the pinned source, and
