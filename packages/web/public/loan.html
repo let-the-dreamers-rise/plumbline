@@ -155,8 +155,9 @@ $("addr").textContent = addr;
   $("terms").innerHTML = dd("Lender", l.lender, true) + dd("Borrower", l.borrower, true) + dd("Operator key (hash)", hex(l.operatorKey), true) +
     dd("Fleet", `${l.fleetGpus} GPUs`) + dd("Period", l.periodS === 604800 ? "1 week" : `${l.periodS} s`) + dd("Minimum coverage", bps(l.minCoverageBps || 0)) +
     dd("Currency", l.currency || "USD") + dd("Drawn / available", `${l.drawnSol ?? 0} / ${l.availableSol ?? 0} SOL`);
-  $("badge").src = `/badge/${addr}.svg`;
-  $("embed").textContent = `<a href="${location.origin}/loan/${addr}"><img src="${location.origin}/badge/${addr}.svg" alt="GPU verified"></a>`;
+  const alt = z.evidence === "public" ? "Sample GPU evidence" : "GPU verified";
+  $("badge").src = `/badge/${addr}.svg`; $("badge").alt = `${alt} badge`;
+  $("embed").textContent = `<a href="${location.origin}/loan/${addr}"><img src="${location.origin}/badge/${addr}.svg" alt="${alt}"></a>`;
   const rows = [];
   if (z.proofTx) rows.push({ t: z.provenAt, e: "Covenant proven", d: `${s.toUpperCase()} ${z.coverageBps ? bps(z.coverageBps) : ""}`, sig: z.proofTx });
   for (const d of l.draws || []) rows.push({ t: d.blockTime, e: "Draw approved", d: `${(d.lamports || 0) / 1e9} SOL`, sig: d.signature });

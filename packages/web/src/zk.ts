@@ -138,15 +138,19 @@ export async function loadZk(connection: Connection, programId: PublicKey, loan:
   };
 }
 
-/** Shields-style "GPU VERIFIED | PASS 1.15x · wk 2961" badge. */
-export function badge(status: ZkStatus, coverageBps: number, asOf: number): string {
+/**
+ * Shields-style "GPU VERIFIED | PASS 1.15x · wk 2961" badge. With PCT_EVIDENCE=public the proofs use
+ * NVIDIA's published sample report, so the left side reads "SAMPLE GPU" instead.
+ */
+export function badge(status: ZkStatus, coverageBps: number, asOf: number, sample = evidence() === "public"): string {
   const label = status === "pass" ? `PASS ${(coverageBps / 10000).toFixed(2)}x` : status === "watch" ? `WATCH ${(coverageBps / 10000).toFixed(2)}x` : "UNPROVEN";
   const color = status === "pass" ? "#24733f" : status === "watch" ? "#8a6500" : "#63666b";
   const right = status === "none" ? label : `${label} · wk ${asOf}`;
-  const w1 = 112,
+  const left = sample ? "SAMPLE GPU" : "GPU VERIFIED";
+  const w1 = Math.round(26 + left.length * 7.2),
     w2 = Math.round(14 + right.length * 7.2);
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w1 + w2}" height="22" role="img" aria-label="GPU verified: ${right}">
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${w1 + w2}" height="22" role="img" aria-label="${sample ? "Sample GPU evidence" : "GPU verified"}: ${right}">
 <rect width="${w1}" height="22" fill="#1b1d20"/><rect x="${w1}" width="${w2}" height="22" fill="${color}"/>
 <g fill="#fff" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="11" font-weight="600">
-<text x="8" y="15">GPU VERIFIED</text><text x="${w1 + 7}" y="15">${right}</text></g></svg>`;
+<text x="8" y="15">${left}</text><text x="${w1 + 7}" y="15">${right}</text></g></svg>`;
 }

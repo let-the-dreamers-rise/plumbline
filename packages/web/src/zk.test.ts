@@ -72,6 +72,11 @@ describe("badge", () => {
     expect(badge("watch", 11_403, 2961)).toContain("WATCH 1.14x · wk 2961");
     expect(badge("none", 0, 0)).toContain(">UNPROVEN<");
   });
+  it("says SAMPLE GPU when the proofs use published sample evidence", () => {
+    expect(badge("pass", 11_500, 2961, true)).toContain(">SAMPLE GPU<");
+    expect(badge("pass", 11_500, 2961, true)).not.toContain("GPU VERIFIED");
+    expect(badge("pass", 11_500, 2961, false)).toContain(">GPU VERIFIED<");
+  });
 });
 
 describe("provedChallenge", () => {
