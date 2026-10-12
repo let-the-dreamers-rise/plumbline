@@ -68,8 +68,8 @@ These are not set by env:
 - At most 200 suite items.
 
 ## Compose hash
-- `sha256(docker-compose.compete.yml)` = `a1053c26510c98c206255dba1b5dbe3e364dbba172f3ccb3ca1f70b78e532736`
-- `sha256(enclave/server.py)` = `83f70c89a6ab06445b759ebe10a44587f4fe76e6658ff17129615dc708fa16a0`
+- `sha256(docker-compose.compete.yml)` = `eb4eba790a10fdd4b3371932135c404b292fa5046d836ad37bd97ed744e023b8`
+- `sha256(enclave/server.py)` = `5bbec0abbd3a0fc39d0e02a6e4314b2a16c7961fc2187b7f804b3a7229cf4361`
 
 `make_compose_compete.py` writes `docker-compose.compete.yml`. It embeds `enclave/server.py` verbatim as a heredoc and puts the limits in `environment`.
 - The image line and pip pins are byte-for-byte the board's.

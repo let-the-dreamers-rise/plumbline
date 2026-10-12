@@ -1,7 +1,7 @@
 """Competition flow end to end with the mocked enclave: sponsor seals once, entrants enter arbitrary models with
 their own payout, bundles verify; and the limits that guard the enclave (payout format, host allowlist, size,
 per-shard sha256, architecture, one evaluation at a time, suite decrypted only after the weights are ready)."""
-import os, copy, json, base64, hashlib, threading, time, types, urllib.request, urllib.error
+import os, copy, json, base64, hashlib, threading, types, urllib.request, urllib.error
 from _mocks import *
 install_fake_dstack()
 from _e2e_compete import *
@@ -55,7 +55,7 @@ check(not os.listdir(server.WORK_DIR), 'weights deleted after the entry')
 print('entrant B (two shards, board "shards" form, weights_sha256 given)')
 dB = hashlib.sha256(''.join(f"{s['sha256']}  {s['file']}\n" for s in WB).encode()).hexdigest()
 code, res = compete_client.post(base + '/enter', {'challenge': S['challenge'], 'sealed': S['sealed'], 'model_id': B,
-                                'revision': RB, 'shards': WB, 'dtype': 'float32', 'weights_sha256': dB, 'payout': PAY2}, 60)
+                                'revision': RB, 'shards': WB, 'dtype': 'float32', 'weights_sha256': dB, 'payout': PAY2}, 300)
 check(code == 200 and res['statement']['weights_sha256'] == dB and res['statement']['payout'] == PAY2 and res['statement']['correct'] == 5,
       'two shards: weights_sha256 = sha256 of the manifest (as the board); score 5/6')
 
@@ -109,8 +109,12 @@ def entry(**k):
 def refused(body, want, msg, contains=None):
     n_q, n_d, n_o = len(DSTACK_CALLS), len(DECRYPTS), len(OPEN_CALLS)
     code, res = post(body)
-    check(code == want and len(DSTACK_CALLS) == n_q and len(DECRYPTS) == n_d and (contains is None or contains in res['error']),
-          f'{msg}: HTTP {code}, no quote, suite not decrypted')
+    ok = code == want and len(DSTACK_CALLS) == n_q and len(DECRYPTS) == n_d and (contains is None or contains in res.get('error', ''))
+    if not ok:
+        print(f'  FAILED {msg}: want HTTP {want}{" containing " + repr(contains) if contains else ""}, got HTTP {code} {res!r}; '
+              f'quotes {n_q}->{len(DSTACK_CALLS)}, decrypts {n_d}->{len(DECRYPTS)}, '
+              f'state busy={server.STATE["busy"]} stage={server.STATE["stage"]!r} lock_held={server.EVAL_LOCK.locked()}', flush=True)
+    check(ok, f'{msg}: HTTP {code}, no quote, suite not decrypted')
     return n_o
 
 
@@ -219,21 +223,18 @@ rejects(lambda: fresh.load_weights('/nowhere', {'dtype': 'float32'}), 'loaded cl
 del sys.modules['torch'], sys.modules['transformers']
 
 print('one evaluation at a time')
-gate = threading.Event()
-GATES[url_a] = gate
+gate, reached = threading.Event(), threading.Event()
+GATES[url_a], REACHED[url_a] = gate, reached
 out = {}
 t = threading.Thread(target=lambda: out.update(r=post(entry())))
 t.start()
-for _ in range(200):
-    if server.STATE['busy']:
-        break
-    time.sleep(0.01)
-check(server.STATE['busy'], 'first entry is running')
+check(reached.wait(300) and server.EVAL_LOCK.locked() and server.STATE['busy'], 'first entry is running (inside its download, lock held)')
 code, res = post(entry(payout=PAY2))
 check(code == 409 and 'busy' in res['error'], 'concurrent /enter gets 409')
 h = json.loads(urllib.request.urlopen(base + '/health').read())
 check(h['busy'] is True and not any(it['q'] in json.dumps(h) for it in items), '/health reports busy, nothing about the suite')
-gate.set(); t.join(30); del GATES[url_a]
+gate.set(); t.join(300); del GATES[url_a], REACHED[url_a]
+check(not t.is_alive(), 'first entry returned')
 check(out['r'][0] == 200 and out['r'][1]['statement']['payout'] == PAY1, 'first entry finishes with its own payout')
 code, res = post(entry(payout=PAY2))
 check(code == 200 and res['statement']['payout'] == PAY2, 'next entry is accepted once the enclave is free')

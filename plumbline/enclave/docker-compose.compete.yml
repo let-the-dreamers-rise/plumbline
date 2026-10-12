@@ -261,7 +261,7 @@ services:
                 h, n = hashlib.sha256(), 0
                 with open(dest, 'wb') as f:
                     while True:
-                        if time.monotonic() > deadline:
+                        if time.monotonic() >= deadline:
                             raise Reject(504, f'{label}: download timed out')
                         chunk = body.read(1 << 20)
                         if not chunk:
@@ -418,11 +418,13 @@ services:
                 correct = 0
                 marks = []
                 for it in items:
-                    if time.monotonic() > deadline:
+                    if time.monotonic() >= deadline:
                         raise TimeoutError
                     ok = answer(it['q']) == str(it['a']).strip()
                     correct += ok
                     marks.append('1' if ok else '0')
+                if time.monotonic() >= deadline:  # the last answer may have run past it
+                    raise TimeoutError
                 statement = {
                     'v': 'tessera-score-1',
                     'suite_id': suite.get('suite_id', ''),
@@ -493,20 +495,22 @@ services:
                     return self._send(400, {'error': 'body must be JSON'})
                 if not EVAL_LOCK.acquire(blocking=False):
                     return self._send(409, {'error': 'busy: one evaluation at a time, retry later'})
+                # The lock is released before the response is written: once a client has its answer, the enclave is
+                # already free, so an immediate next /enter is never refused with a stale 409.
                 try:
                     STATE.update(busy=True, last_error=None)
-                    res = evaluate(spec)
+                    code, out = 200, evaluate(spec)
                     STATE['entries'] += 1
-                    return self._send(200, res)
                 except Reject as e:  # raised only before the suite is decrypted
                     STATE['last_error'] = e.msg
                     print('entry refused:', e.msg, flush=True)
-                    return self._send(e.code, {'error': e.msg})
+                    code, out = e.code, {'error': e.msg}
                 except Exception as e:
-                    return self._send(500, {'error': type(e).__name__})  # no detail: it could echo suite content
+                    code, out = 500, {'error': type(e).__name__}  # no detail: it could echo suite content
                 finally:
                     STATE.update(busy=False, stage=None)
                     EVAL_LOCK.release()
+                return self._send(code, out)
 
             def log_message(self, *a):
                 pass

@@ -10,25 +10,28 @@ WORK = tempfile.mkdtemp(prefix='plumbline-compete-test-')
 os.environ['WORK_DIR'] = os.path.join(WORK, 'weights')
 WEB = {}          # url -> (status, headers, body bytes)
 GATES = {}        # url -> threading.Event that the fake download waits on before serving
+REACHED = {}      # url -> threading.Event set when a download of that url has started (the enclave is busy)
 OPEN_CALLS = []
 CFG = {'model_type': 'llama', 'architectures': ['LlamaForCausalLM']}
 
 
 class Body(io.BytesIO):
-    def __init__(self, data, gate=None):
+    def __init__(self, data, gate=None, reached=None):
         super().__init__(data)
-        self.gate = gate
+        self.gate, self.reached = gate, reached
 
     def read(self, n=-1):
-        if self.gate is not None:
-            self.gate.wait(30)
+        if self.reached is not None:
+            self.reached.set()
+        if self.gate is not None and not self.gate.wait(300):
+            raise TimeoutError('test gate never opened')
         return super().read(n)
 
 
 def fake_open(url):
     OPEN_CALLS.append(url)
     status, headers, data = WEB.get(url, (404, {}, b'not found'))
-    return status, dict(headers), Body(data, GATES.get(url))
+    return status, dict(headers), Body(data, GATES.get(url), REACHED.get(url))
 
 
 def hf(model_id, rev, name):
