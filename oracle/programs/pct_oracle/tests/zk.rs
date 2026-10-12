@@ -59,6 +59,10 @@ fn setup_vm(debt_service_micro: u64, require_vm_bound: bool, vm_measurement: [u8
 }
 
 fn setup_with(proof: &str, debt_service_micro: u64, require_vm_bound: bool, vm_measurement: [u8; 32]) -> Setup {
+    setup_sku(proof, debt_service_micro, require_vm_bound, vm_measurement, 0)
+}
+
+fn setup_sku(proof: &str, debt_service_micro: u64, require_vm_bound: bool, vm_measurement: [u8; 32], sku: u8) -> Setup {
     let fx = json(include_str!("fixtures/zk-revenue-claims.json"));
     let proof = json(proof);
     let t = &fx["terms"];
@@ -87,7 +91,7 @@ fn setup_with(proof: &str, debt_service_micro: u64, require_vm_bound: bool, vm_m
     let terms = LoanTerms {
         operator_key,
         borrower: borrower.pubkey(),
-        sku: 0,
+        sku,
         fleet_gpus: 1,
         period_s: period_s as u32,
         debt_service_micro,
@@ -150,6 +154,11 @@ impl Setup {
     }
 
     fn prove(&mut self, seal: Vec<u8>, journal: Vec<u8>) -> Result<u64, String> {
+        let source_id = self.source_id;
+        self.prove_with_source(seal, journal, source_id)
+    }
+
+    fn prove_with_source(&mut self, seal: Vec<u8>, journal: Vec<u8>, source_id: [u8; 32]) -> Result<u64, String> {
         let payer = self.h.payer.pubkey();
         let mut ix = Harness::ix(
             pct_oracle::instruction::ProveCovenant { seal, public_values: journal, as_of_period: self.as_of },
@@ -157,7 +166,7 @@ impl Setup {
                 submitter: payer,
                 config: pda(&[b"config"]),
                 zk_config: pda(&[b"zk_config"]),
-                source: pda(&[b"source", &self.source_id]),
+                source: pda(&[b"source", &source_id]),
                 loan: self.loan,
                 zk_covenant: pda(&[b"zk_covenant", self.loan.as_ref()]),
                 treasury: pda(&[b"treasury"]),
@@ -244,6 +253,66 @@ fn real_proof_flips_the_loan_to_pass_and_unlocks_a_draw() {
 }
 
 #[test]
+fn an_h100_proof_cannot_back_a_b200_loan() {
+    // Red team: the guest only accepts GH100 (H100/H200) reports, so a B200 loan must not take one.
+    let mut s = setup_sku(include_str!("fixtures/covenant-strong-groth16.json"), 120_000_000_000, false, [0u8; 32], 2);
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    let err = s.prove_real().unwrap_err();
+    assert!(err.contains("GpuSkuMismatch"), "{err}");
+}
+
+#[test]
+fn the_journal_pins_the_one_revenue_source_its_claims_came_from() {
+    // Red team (source not pinned per loan): prove_covenant takes any active revenue source the
+    // authority registered, but the journal commits to the claims' params hash, so a proof only
+    // counts under a source with exactly those params, and only while that source is active.
+    let mut s = setup(120_000_000_000);
+    let payer = s.h.payer.pubkey();
+    let other_id = keccak(b"other-revenue-source");
+    let mut weaker_params = field(&json(include_str!("fixtures/zk-revenue-claims.json")), "paramsHash");
+    weaker_params[0] ^= 1;
+    let set_active = |source_id: [u8; 32], active: bool| {
+        Harness::ix(
+            pct_oracle::instruction::SetSourceActive { active },
+            pct_oracle::accounts::SetSourceActive { authority: payer, config: pda(&[b"config"]), source: pda(&[b"source", &source_id]) },
+        )
+    };
+    s.h.send(&[Harness::ix(
+        pct_oracle::instruction::RegisterSource {
+            args: SourceArgs {
+                source_id: other_id,
+                params_hash: weaker_params.try_into().unwrap(),
+                provider_id: 8,
+                sku: 0,
+                kind: 2,
+                gpu_count: 1,
+                value_mode: 1,
+                requires_nullifier: true,
+            },
+        },
+        pct_oracle::accounts::RegisterSource {
+            authority: payer,
+            config: pda(&[b"config"]),
+            source: pda(&[b"source", &other_id]),
+            system_program: system_program::ID,
+        },
+    )])
+    .unwrap();
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    let (seal, journal) = (field(&s.proof, "seal"), field(&s.proof, "journal"));
+    let err = s.prove_with_source(seal.clone(), journal.clone(), other_id).unwrap_err();
+    assert!(err.contains("ParamsMismatch"), "{err}");
+    let source_id = s.source_id;
+    s.h.send(&[set_active(source_id, false)]).unwrap();
+    let err = s.prove_with_source(seal.clone(), journal.clone(), source_id).unwrap_err();
+    assert!(err.contains("WrongSourceKind"), "{err}");
+    s.h.send(&[set_active(source_id, true)]).unwrap();
+    s.prove_with_source(seal, journal, source_id).unwrap();
+}
+
+#[test]
 fn proof_for_another_challenge_is_refused() {
     let mut s = setup(120_000_000_000);
     s.challenge([7u8; 32]);
@@ -287,10 +356,33 @@ fn vm_measurement(proof: &Value) -> Vec<u8> {
 
 #[test]
 fn lender_requiring_a_bound_vm_refuses_an_unbound_proof() {
-    let mut s = setup_vm(120_000_000_000, true, [0u8; 32]);
+    let proof = json(include_str!("fixtures/covenant-strong-groth16.json"));
+    let mut s = setup_vm(120_000_000_000, true, vm_measurement(&proof).try_into().unwrap());
     let nonce = s.gpu_nonce();
     s.challenge(nonce);
     assert!(s.prove_real().unwrap_err().contains("ZkVmNotBound"));
+}
+
+#[test]
+fn requiring_a_bound_vm_without_pinning_its_image_is_refused() {
+    // Red team: any TDX VM can write any report_data, so "the VM vouched for this GPU report" only
+    // means something when the VM image is pinned to one that writes it honestly.
+    let mut s = setup(120_000_000_000);
+    let payer = s.h.payer.pubkey();
+    let image_id: [u8; 32] = field(&s.proof, "imageId").try_into().unwrap();
+    let err = s
+        .h
+        .send(&[Harness::ix(
+            pct_oracle::instruction::SetZkConfig { image_id, attestor_threshold: 2, require_vm_bound: true, vm_measurement: [0u8; 32] },
+            pct_oracle::accounts::SetZkConfig {
+                authority: payer,
+                config: pda(&[b"config"]),
+                zk_config: pda(&[b"zk_config"]),
+                system_program: system_program::ID,
+            },
+        )])
+        .unwrap_err();
+    assert!(err.contains("BadZkConfig"), "{err}");
 }
 
 #[test]

@@ -147,7 +147,7 @@ fn draw(s: &mut Setup, lamports: u64) -> Result<u64, String> {
     let blockhash = s.h.svm.latest_blockhash();
     let ix = Harness::ix(
         pct_oracle::instruction::Draw { lamports },
-        pct_oracle::accounts::Draw { borrower: s.borrower.pubkey(), loan: s.loan },
+        pct_oracle::accounts::Draw { borrower: s.borrower.pubkey(), loan: s.loan, zk_covenant: pda(&[b"zk_covenant", s.loan.as_ref()]) },
     );
     let msg = solana_message::Message::new_with_blockhash(&[ix], Some(&s.borrower.pubkey()), &blockhash);
     let tx = solana_transaction::versioned::VersionedTransaction::try_new(solana_message::VersionedMessage::Legacy(msg), &[&s.borrower]).unwrap();
@@ -192,6 +192,64 @@ fn proven_revenue_unlocks_draws_and_feeds_the_tape() {
 }
 
 #[test]
+fn a_public_draw_cannot_bypass_the_private_covenant_once_the_lender_opts_in() {
+    // Red team: the lender gates this loan on the private covenant (GPU attestation, device
+    // registry) by issuing a GPU challenge. The borrower must not sidestep it with the public
+    // revenue path, which never looks at a GPU.
+    let mut s = setup();
+    let (loan, op) = (s.loan, s.operator_key);
+    submit(&mut s, "op1-vast-wm1", loan, op).unwrap();
+    submit(&mut s, "op1-vast-w0", loan, op).unwrap();
+    let payer = s.h.payer.pubkey();
+    s.h.send(&[Harness::ix(
+        pct_oracle::instruction::IssueGpuChallenge { challenge: [9u8; 32] },
+        pct_oracle::accounts::IssueGpuChallenge {
+            lender: payer,
+            loan,
+            zk_covenant: pda(&[b"zk_covenant", loan.as_ref()]),
+            system_program: system_program::ID,
+        },
+    )])
+    .unwrap();
+    let err = draw(&mut s, SOL).unwrap_err();
+    assert!(err.contains("PrivateCovenantRequired"), "{err}");
+}
+
+#[test]
+fn a_covenant_below_one_x_is_refused() {
+    // Red team: min_coverage_bps 0 makes an empty proof a PASS (and a PASS badge on the public
+    // verify page) with no revenue at all. Debt cover below 1.00x is not a covenant.
+    let mut s = setup();
+    let payer = s.h.payer.pubkey();
+    for min_coverage_bps in [0u16, 9_999] {
+        let operator_key = keccak(format!("zero-cover-{min_coverage_bps}").as_bytes());
+        let terms = LoanTerms {
+            operator_key,
+            borrower: s.borrower.pubkey(),
+            sku: 0,
+            fleet_gpus: 1,
+            period_s: 604_800,
+            debt_service_micro: 1_000_000,
+            min_coverage_bps,
+            currency: *b"USD",
+            covenant_periods: 1,
+        };
+        let err = s
+            .h
+            .send(&[Harness::ix(
+                pct_oracle::instruction::OpenLoan { terms },
+                pct_oracle::accounts::OpenLoan {
+                    lender: payer,
+                    loan: pda(&[b"loan", payer.as_ref(), &operator_key]),
+                    system_program: system_program::ID,
+                },
+            )])
+            .unwrap_err();
+        assert!(err.contains("BadLoanTerms"), "{min_coverage_bps}: {err}");
+    }
+}
+
+#[test]
 fn one_proof_per_source_and_period() {
     let mut s = setup();
     let (loan, op) = (s.loan, s.operator_key);
@@ -233,7 +291,7 @@ fn only_the_borrower_draws_and_only_what_is_funded() {
     let payer = s.h.payer.pubkey();
     let err = s
         .h
-        .send(&[Harness::ix(pct_oracle::instruction::Draw { lamports: 1 }, pct_oracle::accounts::Draw { borrower: payer, loan })])
+        .send(&[Harness::ix(pct_oracle::instruction::Draw { lamports: 1 }, pct_oracle::accounts::Draw { borrower: payer, loan, zk_covenant: pda(&[b"zk_covenant", loan.as_ref()]) })])
         .unwrap_err();
     assert!(err.contains("NotBorrower"), "{err}");
 }

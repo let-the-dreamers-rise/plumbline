@@ -52,7 +52,7 @@ pub enum OracleError {
     CurrencyMismatch,
     #[msg("Only the loan's lender can do this")]
     NotLender,
-    #[msg("Attestor threshold must be between 1 and the number of attestors")]
+    #[msg("Attestor threshold must be between 1 and the number of attestors, and a required VM binding needs a pinned VM image")]
     BadZkConfig,
     #[msg("Zero-knowledge proof does not verify for the registered guest program")]
     BadZkProof,
@@ -84,6 +84,10 @@ pub enum OracleError {
     DeviceNotPledged,
     #[msg("Proof carries an all-zero chip id")]
     ZeroChipId,
+    #[msg("This loan is gated on the private covenant: draw with draw_private")]
+    PrivateCovenantRequired,
+    #[msg("The proof attests a GH100 (H100/H200) GPU, not this loan's SKU")]
+    GpuSkuMismatch,
 }
 
 impl From<crate::reclaim::ClaimError> for OracleError {

@@ -169,6 +169,27 @@ pub fn parse_micro(raw: &[u8]) -> Option<u64> {
     Some(n(whole) * 1_000_000 + n(frac) * 10u64.pow(6 - frac.len() as u32))
 }
 
+/// A claim's amount in micro-units of `currency`, read exactly as the program's `submit_revenue`
+/// reads it: `amount` (major units) wins, else `amount_cents` as whole minor units, which must
+/// name its currency; a major-unit amount without one is USD.
+pub fn amount_micro(ctx: &[u8], currency: &[u8; 3], i: usize) -> Result<u64, RevenueError> {
+    let (micro, cur) = match extract_param(ctx, "amount") {
+        Some(raw) => (parse_micro(raw).ok_or(RevenueError::BadNumber(i))?, extract_param(ctx, "currency").unwrap_or(b"USD")),
+        None => {
+            let raw = extract_param(ctx, "amount_cents").ok_or(RevenueError::MissingParam(i))?;
+            let cents = parse_micro(raw).ok_or(RevenueError::BadNumber(i))?;
+            if cents % 1_000_000 != 0 {
+                return Err(RevenueError::BadNumber(i));
+            }
+            (cents / 100, extract_param(ctx, "currency").ok_or(RevenueError::Currency(i))?)
+        }
+    };
+    if !cur.eq_ignore_ascii_case(currency) {
+        return Err(RevenueError::Currency(i));
+    }
+    Ok(micro)
+}
+
 /// Verifies every claim and runs the covenant over the window ending at `terms.as_of_period`.
 /// `params_hash` pins the one revenue source (keccak of the zkFetch parameters) all claims use.
 pub fn check_covenant(
@@ -215,22 +236,7 @@ pub fn check_covenant(
         if keccak(&[&account]) != terms.operator_key {
             return Err(RevenueError::WrongOperator(i));
         }
-        let amount_micro = match extract_param(ctx, "amount_cents") {
-            Some(raw) => {
-                let cur = extract_param(ctx, "currency").ok_or(RevenueError::Currency(i))?;
-                if !cur.eq_ignore_ascii_case(&terms.currency) {
-                    return Err(RevenueError::Currency(i));
-                }
-                parse_micro(raw).ok_or(RevenueError::BadNumber(i))? / 100
-            }
-            None => {
-                let cur = extract_param(ctx, "currency").unwrap_or(b"USD");
-                if !cur.eq_ignore_ascii_case(&terms.currency) {
-                    return Err(RevenueError::Currency(i));
-                }
-                parse_micro(extract_param(ctx, "amount").ok_or(RevenueError::MissingParam(i))?).ok_or(RevenueError::BadNumber(i))?
-            }
-        };
+        let amount_micro = amount_micro(ctx, &terms.currency, i)?;
         let earned_at = match extract_param(ctx, "at") {
             Some(raw) => {
                 let at = parse_micro(raw).ok_or(RevenueError::BadNumber(i))? / 1_000_000;
@@ -272,6 +278,21 @@ mod tests {
     use super::*;
 
     use crate::fixtures::{claim, claims, setup};
+
+    fn ctx(params: &str) -> Vec<u8> {
+        format!(r#"{{"contextAddress":"0x0","contextMessage":"","extractedParameters":{{{params}}},"providerHash":"0x0"}}"#).into_bytes()
+    }
+
+    #[test]
+    fn amounts_are_read_exactly_as_the_program_reads_them() {
+        // Red team: the guest and submit_revenue must agree on what a claim is worth.
+        let both = ctx(r#""amount":"10.00","amount_cents":"99900","currency":"INR""#);
+        assert_eq!(amount_micro(&both, b"INR", 0), Ok(10_000_000), "major units win, as onchain");
+        assert_eq!(amount_micro(&ctx(r#""amount_cents":"1234.5","currency":"INR""#), b"INR", 0), Err(RevenueError::BadNumber(0)), "fractional cents");
+        assert_eq!(amount_micro(&ctx(r#""amount_cents":"1234","currency":"INR""#), b"INR", 0), Ok(12_340_000));
+        assert_eq!(amount_micro(&ctx(r#""amount_cents":"1234""#), b"USD", 0), Err(RevenueError::Currency(0)), "minor units must name a currency");
+        assert_eq!(amount_micro(&ctx(r#""amount":"5""#), b"USD", 0), Ok(5_000_000));
+    }
 
     #[test]
     fn a_strong_month_passes() {

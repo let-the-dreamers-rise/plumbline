@@ -33,6 +33,15 @@ pub struct TdxAttestation {
     pub report_data: [u8; 64],
     /// tee_tcb_svn, for the collateral (TCB status) check.
     pub tee_tcb_svn: [u8; 16],
+    /// TD_ATTRIBUTES; bit 0 is DEBUG (the host can read and write the TD's memory).
+    pub td_attributes: [u8; 8],
+}
+
+impl TdxAttestation {
+    /// A debug TD's host can write any report_data, so nothing it reports can be trusted.
+    pub fn debug(&self) -> bool {
+        self.td_attributes[0] & 1 == 1
+    }
 }
 
 #[derive(Debug, PartialEq, Eq)]
@@ -128,6 +137,7 @@ pub fn verify_tdx(quote: &[u8]) -> Result<TdxAttestation, TdxError> {
         rtmrs: Sha256::digest(&body[328..520]).into(),
         report_data: body[520..584].try_into().unwrap(),
         tee_tcb_svn: body[..16].try_into().unwrap(),
+        td_attributes: body[120..128].try_into().unwrap(),
     })
 }
 
@@ -141,6 +151,7 @@ mod tests {
     #[test]
     fn voltage_h200_quote_verifies() {
         let a = verify_tdx(QUOTE).unwrap();
+        assert!(!a.debug(), "a production TD");
         assert_eq!(&a.report_data[..], REPORT_DATA);
         assert_eq!(Sha256::digest(INTEL_SGX_ROOT_DER)[..], hex::decode("44a0196b2b99f889b8e149e95b807a350e7424964399e885a7cbb8ccfab674d3").unwrap()[..]);
     }

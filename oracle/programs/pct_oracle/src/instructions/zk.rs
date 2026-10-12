@@ -87,6 +87,9 @@ pub fn handle_set_zk_config(
     vm_measurement: [u8; 32],
 ) -> Result<()> {
     require!(attestor_threshold >= 1 && attestor_threshold as usize <= ctx.accounts.config.attestors.len(), OracleError::BadZkConfig);
+    // Any TDX VM can write any report_data, so "the VM vouched for this GPU report" only means
+    // something for a pinned image known to write it honestly.
+    require!(!require_vm_bound || vm_measurement != [0u8; 32], OracleError::BadZkConfig);
     let z = &mut ctx.accounts.zk_config;
     z.image_id = image_id;
     z.attestor_threshold = attestor_threshold;
@@ -219,6 +222,8 @@ pub fn handle_prove_covenant<'info>(
     let config = &ctx.accounts.config;
     let source = &ctx.accounts.source;
     let loan = &ctx.accounts.loan;
+    // The guest accepts GH100 reports only (H100, H200); a B200 loan cannot be backed by one.
+    require!(loan.sku <= 1, OracleError::GpuSkuMismatch);
     let z = &mut ctx.accounts.zk_covenant;
     require!(nonce != [0u8; 32] && nonce == z.gpu_challenge, OracleError::ZkStaleChallenge);
     require!(word(3) == attestor_set_hash(zk.attestor_threshold, &config.attestors), OracleError::ZkAttestorMismatch);
