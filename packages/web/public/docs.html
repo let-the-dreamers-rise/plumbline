@@ -98,7 +98,7 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 </div>
 
 <h2>Demo evidence</h2>
-<p class="note">The program runs end to end on a local Solana validator; the devnet deploy is pending. The demo proofs verify NVIDIA's published sample H100 report and VoltageGPU's published H200 TDX quote, both chain-verified to their roots, with revenue claims signed by two test attestor keys that anyone can derive. They are real cryptographic evidence, but the quote is not bound to the sample report (<code>vm_bound = 0</code>) and neither was signed against our own challenge: the demo sets the lender's challenge to the nonce already in the sample report. A verify page prints an evidence label (<code>public</code> or <code>own</code>) when the server is configured with one. A report signed inside our own enclave against our own challenge is the next step.</p>
+<p class="note">The program is live on Solana devnet (deployed Oct 12, 2026) and also runs end to end on a local validator. The demo proofs verify NVIDIA's published sample H100 report and VoltageGPU's published H200 TDX quote, both chain-verified to their roots, with revenue claims signed by two test attestor keys that anyone can derive. They are real cryptographic evidence, but the quote is not bound to the sample report (<code>vm_bound = 0</code>) and neither was signed against our own challenge: the demo sets the lender's challenge to the nonce already in the sample report. A verify page prints an evidence label (<code>public</code> or <code>own</code>) when the server is configured with one. A report signed inside our own enclave against our own challenge is the next step.</p>
 
 <h2>API</h2>
 <div class="tbl"><table>
@@ -111,7 +111,7 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
     <tr><td class="mono">POST /api/lead</td><td>Request a proof: <code>{email, fleetGpus, lender, note}</code>.</td></tr>
   </tbody>
 </table></div>
-<p style="margin-top:10px">Everything is read straight from Solana; there is no database. The program id is <code>2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz</code> (devnet deploy pending); the dashboard reads <code>SOLANA_RPC_URL</code> and <code>PCT_PROGRAM_ID</code>.</p>
+<p style="margin-top:10px">Everything is read straight from Solana; there is no database. The program id is <code>2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz</code> (<a href="https://explorer.solana.com/address/2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz?cluster=devnet">live on devnet</a>); the dashboard reads <code>SOLANA_RPC_URL</code> and <code>PCT_PROGRAM_ID</code>.</p>
 
 <h2>Pricing</h2>
 <ul>

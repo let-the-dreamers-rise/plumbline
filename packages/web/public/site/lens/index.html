@@ -38,7 +38,7 @@
     <h1 id="hero-h" class="display reveal">Release the draw on a proof, not a PDF.</h1>
     <p class="lede">A lender funding a GPU fleet cannot check the collateral or the revenue behind the loan: it gets a telemetry box, a monthly PDF and a spreadsheet. With Plumbline the operator submits one zero-knowledge proof per period: the GPU that answered the lender's fresh challenge is genuine NVIDIA hardware, and the operator's revenue covers debt service. A Solana program checks the proof and approves or refuses the next draw. Anyone can verify the result; individual payouts stay private.</p>
     <p class="hook">A $50M facility, one proof a week: <em>about $50k a year at 10 bps,</em> plus onboarding from $15k (free for design partners' first facility). USD.AI already pays 150 bps, $750,000 a year on a loan that size, for a warranty. Operators prove free; verifying is free.</p>
-    <p class="fine">Status: runs end to end on a local Solana validator; devnet deploy pending. The demo uses NVIDIA's public sample GPU report and revenue signed by test attestor keys.</p>
+    <p class="fine">Status: live on Solana devnet since Oct 12, 2026: a 1.15x loan proved PASS and drew, a 1.14x loan proved WATCH and was refused. The demo uses NVIDIA's public sample GPU report and revenue signed by test attestor keys.</p>
     <div class="row">
       <a class="btn btn-gold" href="#request">Prove your fleet</a>
       <a class="btn" href="/lender">Verify a loan</a>
@@ -184,7 +184,7 @@
   <p class="eyebrow">Questions</p>
   <h2 id="fq-h" class="display-2 reveal">What a lender will ask.</h2>
   <div class="faq-list">
-    <details><summary>Is this live?</summary><div><p>Not on a public cluster yet. The program, the lending flow and the proof check run end to end on a local Solana validator; the devnet deploy is pending. Mainnet comes after an audit of the verifier program, which was written in the hackathon window.</p></div></details>
+    <details><summary>Is this live?</summary><div><p>On Solana devnet, yes, since Oct 12, 2026: the program verified a PASS proof and approved a draw, verified a WATCH proof and refused its draw, and refused a replayed proof (links in the README). Mainnet comes after an audit of the verifier program, which was written in the hackathon window.</p></div></details>
     <details><summary>What evidence does the devnet demo use?</summary><div><p>NVIDIA's published sample H100 report and VoltageGPU's published H200 TDX quote, both chain-verified to their roots, and revenue claims signed by two test attestor keys. The demo sets the lender's challenge to the nonce already in the sample report, and the TDX quote is not bound to that GPU. A report signed against a fresh challenge inside our own enclave is the next step.</p></div></details>
     <details><summary>What goes onchain, and what stays private?</summary><div><p>Public: PASS or WATCH, coverage in basis points, the total revenue for the covenant window (in the proof's public values), the number of payout claims, a hash of the chip id and firmware measurements, the enclave measurement, the challenge, period and attestor-set hash. Coverage times debt service gives the total too. Private: individual payout amounts, payout ids, tenants, prices and the raw GPU and enclave evidence never leave the operator's machine.</p></div></details>
     <details><summary>Who pays?</summary><div><p>Planned pricing for design partners: the lender pays. Onboarding per facility (device registration, source pinning, covenant setup) from $15k, then 10 basis points a year on outstanding principal, minimum $1 per GPU per month, weekly proofs included. Design partners get their first facility free during the pilot. Operators prove free; anyone verifies free. Today the onchain program charges one flat fee on every proof (0.0013 SOL of test SOL on devnet).</p></div></details>
@@ -220,7 +220,7 @@
 <footer class="foot">
   <p class="foot-mark" aria-hidden="true">Plumbline</p>
   <div class="foot-grid">
-    <div><span class="k">Program</span><code class="engrave" id="pid">2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz</code><span class="fine">Solana devnet deploy pending · open source</span></div>
+    <div><span class="k">Program</span><code class="engrave" id="pid">2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz</code><span class="fine"><a href="https://explorer.solana.com/address/2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz?cluster=devnet">Live on Solana devnet</a> · open source</span></div>
     <nav aria-label="Footer"><a href="/">Home</a><a href="/prove">Prove</a><a href="/docs">Docs</a><a href="/lender">Lender</a><a href="/tape">Tape</a><a href="https://github.com/let-the-dreamers-rise/paid-compute-tape" rel="noopener">Source</a><a href="#top">Back to top</a></nav>
   </div>
   <p class="fine">Built Sep 14 to Oct 12, 2026 for the Colosseum Crypto World's Fair. Demo evidence: NVIDIA's published sample H100 report and VoltageGPU's published H200 TDX quote, both chain-verified to their roots. The TDX quote is not yet bound to the same machine as the GPU report, and the revenue claims are signed by test attestor keys.</p>
