@@ -89,7 +89,7 @@ dialog code { font: 12px var(--mono); background: var(--sunken); padding: 1px 4p
 <div class="wrap">
   <header>
     <div><h1><a href="/">Ironproof</a></h1><div class="meta">Lender view · every loan on the program</div></div>
-    <nav aria-label="Site"><a href="/">Home</a><a href="/prove">Prove</a><a href="/docs">Docs</a><a href="/lender" aria-current="page">Lender</a><a href="/tape">Tape</a></nav>
+    <nav aria-label="Site"><a href="/">Home</a><a href="/prove">Prove</a><a href="/docs">Docs</a><a href="/lender" aria-current="page">Lender</a><a href="/tape">Tape</a><a href="https://github.com/let-the-dreamers-rise/paid-compute-tape" rel="noopener">Source</a></nav>
   </header>
   <p class="meta" id="meta">loading…</p>
   <div id="loans"></div>
@@ -135,13 +135,23 @@ function loanSection(loan, li) {
   const rent = loan.proofs.find((p) => p.rentMicro > 0);
   const per = loan.periodS === 604800 ? "week" : `${loan.periodS / 3600}h period`;
 
+  // A loan proven by the zero-knowledge covenant draws on that result, not on the public revenue proofs.
+  const zk = loan.zk && (loan.zk.status === "pass" || loan.zk.status === "watch") ? loan.zk : null;
+  const covenantCard = zk
+    ? el("div", { class: "card" },
+        el("div", { class: "k" }, `Zero-knowledge covenant · week ${zk.asOfPeriod}`),
+        el("div", { class: "big" }, x(zk.coverageBps), el("small", {}, ` / ${x(loan.minCoverageBps)} required`)),
+        el("span", { class: `chip ${zk.status === "pass" ? "ok" : "breached"}` }, zk.status === "pass" ? "PASS · draws allowed" : "WATCH · draws refused"),
+        el("div", { class: "sub" }, "One Groth16 proof verified onchain; individual payouts stay private. ", el("a", { href: `/loan/${loan.address}` }, "Verify page")),
+      )
+    : el("div", { class: "card" },
+        el("div", { class: "k" }, "Trailing coverage (quarter)"),
+        el("div", { class: "big" }, loan.periods.length ? x(loan.trailingCoverageBps) : "–", el("small", {}, ` / ${x(loan.minCoverageBps)} required`)),
+        el("span", { class: `chip ${loan.status}` }, STATUS[loan.status]),
+        el("div", { class: "sub" }, "Proven revenue over debt service. The vault refuses draws below the line."),
+      );
   const hero = el("section", { class: "hero" },
-    el("div", { class: "card" },
-      el("div", { class: "k" }, "Trailing coverage (quarter)"),
-      el("div", { class: "big" }, loan.periods.length ? x(loan.trailingCoverageBps) : "–", el("small", {}, ` / ${x(loan.minCoverageBps)} required`)),
-      el("span", { class: `chip ${loan.status}` }, STATUS[loan.status]),
-      el("div", { class: "sub" }, "Proven revenue over debt service. The vault refuses draws below the line."),
-    ),
+    covenantCard,
     el("div", { class: "card" },
       el("div", { class: "k" }, `Latest ${per}${latest ? " · " + week(latest.startS) : ""}`),
       el("div", { class: "big" }, latest ? `${sym}${usd(latest.revenueMicro, 0)}` : "–"),
@@ -170,7 +180,7 @@ function loanSection(loan, li) {
     return el("div", { class: `bar ${p.revenueMicro >= required ? "above" : "below"}` },
       el("span", {}, `Wk of ${week(p.startS)}`), el("div", { class: "track" }, fill, req), el("span", { class: "v" }, `${sym}${usd(p.revenueMicro, 0)}`),
     );
-  }) : [el("span", { class: "sub" }, "No revenue proven yet.")]));
+  }) : [el("span", { class: "sub" }, zk ? "Revenue for this loan is proven privately inside the covenant proof; only the window total is public." : "No revenue proven yet.")]));
   const legend = el("div", { class: "legend" }, `Black line: ${x(loan.minCoverageBps)} x ${sym}${usd(loan.debtServiceMicro, 0)} debt service = ${sym}${usd(required, 0)} per ${per}. Missing weeks count as zero.`);
 
   const rows = loan.proofs.length ? loan.proofs.map((p, i) => el("tr", {},
@@ -182,7 +192,7 @@ function loanSection(loan, li) {
     el("td", { class: "num" }, x(p.trailingCoverageBps)),
     el("td", { class: "mono" }, link("tx", p.signature)),
     el("td", {}, (() => { const b = el("button", { type: "button" }, "Verify"); b.onclick = () => openVerify(li, i); return b; })()),
-  )) : [el("tr", {}, el("td", { colspan: "8" }, "No proofs yet."))];
+  )) : [el("tr", {}, el("td", { colspan: "8" }, zk ? "None on the public path; see the covenant proof above." : "No proofs yet."))];
   const table = el("div", { class: "tbl" }, el("table", {},
     el("thead", {}, el("tr", {}, ...["Week", "Source", "Revenue", "GPU-hrs", "$/GPU-hr", "Coverage after", "Transaction", ""].map((h) => el("th", {}, h)))),
     el("tbody", {}, ...rows),
@@ -193,7 +203,7 @@ function loanSection(loan, li) {
     : el("p", { class: "sub" }, "No draws yet.");
 
   return el("article", { class: "loan" },
-    el("p", { class: "terms" }, "Loan ", link("address", loan.address), " · borrower ", link("address", loan.borrower), " · operator key ", el("code", {}, short(loan.operatorKey))),
+    el("p", { class: "terms" }, "Loan ", link("address", loan.address), " · borrower ", link("address", loan.borrower), " · operator key ", el("code", {}, short(loan.operatorKey)), " · ", el("a", { href: `/loan/${loan.address}` }, "verify page")),
     hero,
     el("h2", {}, "Proven revenue by week"), bars, legend,
     el("h2", {}, "Revenue proofs onchain"), table,
