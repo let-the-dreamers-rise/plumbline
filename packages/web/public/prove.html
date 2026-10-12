@@ -89,7 +89,7 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
 
 <h2>What you need</h2>
 <div class="grid">
-  <div class="card"><h3>Hardware</h3><p>NVIDIA H100 or H200 with confidential computing enabled, inside an Intel TDX confidential VM (Phala Cloud dstack today; any Intel TDX host with the NVIDIA driver in CC mode should work).</p></div>
+  <div class="card"><h3>Hardware</h3><p>NVIDIA H100 or H200 with confidential computing enabled, inside an Intel TDX confidential VM (for example Phala Cloud dstack, or any Intel TDX host with the NVIDIA driver in CC mode; not yet run on one).</p></div>
   <div class="card"><h3>A payout record</h3><p>A Razorpay, Stripe or marketplace payout account that pays you for GPU time. The prover reads it over zkTLS; only amount, date and a payout id are extracted. Individual payouts stay on your machine; the proof publishes only the window's total revenue, the coverage ratio and the number of claims.</p></div>
   <div class="card"><h3>Loan terms</h3><p>Your lender opens the loan on the program with debt service, period and the minimum coverage (11,500 basis points is 1.15x). No lender yet? Request a proof below and we open a self-declared term sheet for the first proofs.</p></div>
 </div>
@@ -114,7 +114,7 @@ dd { margin: 0; min-width: 0; word-break: break-word; }
     <tr><td>Challenge, period, attestor-set hash, number of payout claims</td><td>Yes</td><td>Freshness, scope and auditability.</td></tr>
     <tr><td>Total revenue for the covenant window</td><td>Yes</td><td>It is in the proof's public values, sent as instruction data. Coverage times debt service also gives it.</td></tr>
     <tr><td>Individual payout amounts, payout ids, tenant names, prices</td><td>No</td><td>Checked inside the proof only.</td></tr>
-    <tr><td>The attestation report and the TDX quote</td><td>No</td><td>Megabytes of evidence stay on your machine; the proof is what travels.</td></tr>
+    <tr><td>The attestation report and the TDX quote</td><td>No</td><td>The raw evidence stays on your machine; the proof is what travels.</td></tr>
   </tbody>
 </table></div>
 

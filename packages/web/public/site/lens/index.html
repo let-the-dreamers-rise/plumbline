@@ -121,7 +121,7 @@
       <ol>
         <li class="step"><h3>The lender issues a challenge</h3><p>A 32-byte nonce goes into the loan account. The GPU must sign it, so an old report cannot be replayed.</p></li>
         <li class="step"><h3>The operator runs one prover</h3><p>Inside a RISC Zero guest: NVIDIA's attestation report and its certificate chain to NVIDIA's root, an Intel TDX quote verified to Intel's root, and zkTLS payout claims, each signed by at least two attestors. The guest tests coverage and outputs pass or fail.</p></li>
-        <li class="step"><h3>Solana verifies and gates the draw</h3><p>The program checks the proof, the challenge, the guest image and the attestor set, then records PASS or WATCH. A draw is approved or refused with no admin key and no human sign-off.</p></li>
+        <li class="step"><h3>Solana verifies and gates the draw</h3><p>The program checks the proof, the challenge, the guest image and the attestor set, then records PASS or WATCH. A draw is approved or refused with no human sign-off.</p></li>
       </ol>
     </div>
   </div>

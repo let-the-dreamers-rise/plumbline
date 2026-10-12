@@ -138,7 +138,7 @@ $("addr").textContent = addr;
   $("meta").textContent = `Verify page · ${net} · program ${l.programId || ""}`;
   const word = s === "pass" ? "This fleet proved its covenant." : s === "watch" ? "This fleet's proof shows the covenant breached." : "No zero-knowledge proof yet for this loan.";
   $("headline").textContent = word;
-  $("lede").textContent = s === "none" ? "The lender can issue a challenge; the operator then has until it expires to submit one proof covering the period." :
+  $("lede").textContent = s === "none" ? "The lender issues a challenge; the operator then submits one proof, made against it, covering the period." :
     `One proof verified onchain says ${z.evidence === "public" ? "the GPU report is a genuine NVIDIA H100 report (NVIDIA's published sample, for this demo)" : "the GPU is genuine NVIDIA hardware"}${z.vmBound ? ", runs inside the measured enclave," : ","} and the revenue over the covenant window ${s === "pass" ? "covers" : "does not cover"} debt service at the minimum coverage. Individual payout amounts, payout ids and the GPU report never went onchain.`;
   $("links").innerHTML = (z.proofTx ? `<a class="btn primary" href="${ex}tx/${z.proofTx}${cl}" target="_blank" rel="noopener">Proof transaction</a>` : "") +
     `<a class="btn" href="${ex}address/${addr}${cl}" target="_blank" rel="noopener">Loan account</a><a class="btn" href="/api/loan/${addr}">JSON</a>`;

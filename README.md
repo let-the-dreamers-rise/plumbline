@@ -243,6 +243,14 @@ runs and is tested:
 | Price oracle and lending flows driving a local validator end to end | `npm run oracle:e2e`, `npm run lending:e2e` ([`oracle/README.md`](oracle/README.md)) |
 | zkTLS revenue proofs from a real Razorpay or Stripe test account | `npm run prove:revenue`, `npm run loan:*` (walkthrough in `oracle/README.md`). No proof artifact is committed |
 
+## Credits
+
+Demo evidence comes from public sources and is unchanged:
+- `zk/fixtures/h100-sample-report.hex` and `h100-sample-certchain.pem`: NVIDIA's sample H100 attestation
+  report and certificate chain from [nvtrust](https://github.com/NVIDIA/nvtrust) (the local GPU verifier's test data).
+- `zk/fixtures/tdx/`: VoltageGPU's published H200 Confidential VM attestation (Intel TDX quote and GPU
+  report), captured 4 September 2026 ([article](https://voltagegpu.com/blog/two-proofs-tdx-nvidia-h200-attestation-tenant)); provenance in `zk/fixtures/tdx/README.txt`.
+
 ## License
 
 MIT, see [LICENSE](LICENSE). The H100 attestation verifier, the Groth16 verifier program and the guest are open source and reusable.
