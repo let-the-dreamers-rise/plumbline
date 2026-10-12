@@ -22,6 +22,7 @@ Entry for the Colosseum Crypto World's Fair hackathon (submissions due 2026-10-1
 
 ![Card, PASS verify page, WATCH verify page and badges from the local-validator run](docs/img/demo.gif)
 
+- **Live on Solana devnet (Oct 12):** program [`2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz`](https://explorer.solana.com/address/2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz?cluster=devnet), deployed in [this transaction](https://explorer.solana.com/tx/3BbBX4diKE6MdinjzwDDynpHLne3bpErvFQoATY3JBPPXnHgvJLZ35vKP6RJviF6vB8d5UYqV85F6CBpMpkk1FN1?cluster=devnet). The 1.15x loan's proof verified ([proof](https://explorer.solana.com/tx/41ZoCoxTFb1MqUQKu5Qa1bRwEUch77nEUXmihPCCckvDjR52mhnAvgAQ4LqtnJZ7sjHjLFwg2Zb6yfat6RUJ7Nb7?cluster=devnet)) and its draw was approved ([draw](https://explorer.solana.com/tx/5DWV6UU7jTPem7HDUtrHrmLqeGvM3x7UzMe1XHALoXdT6ZTEoKGYS5BbbfKicrfJZLhuWbo4fpa16hUhhCyFs1er?cluster=devnet)). The 1.14x loan's proof verified ([proof](https://explorer.solana.com/tx/59nKZTGUKSDV7R57ZAf49vMCEqEPf2yjvhHy5Qd7XdPLJebJiaPkBn7pnVfWzBR4uXVJzC2r2h62mTJQQdSbHtmV?cluster=devnet)) and its draw was refused with `CovenantBreached` (6019) ([draw](https://explorer.solana.com/tx/5kV48qNZNwMfrVrxsq33qtj3QQSPtkRLqmZegw9QxoxoEDuW2birgnDJMaUnsN5U9cvN32tJZDcB7YdjRs7g1AYA?cluster=devnet)). Replaying the 1.15x proof was refused with `ZkStaleChallenge` (6027) ([replay](https://explorer.solana.com/tx/4W46GmRQ5YWZj6HsGe4jz5KKUvDDwxyeBXLSdo1eP4zf9NT25QGH5y783RZDHpXFPJYK19JQMKBYzYRUJzHnvFvq?cluster=devnet)). Each verify took about 119.7k CU. Devnet runs the fixed build, sha256 `89edffd1…5b8e` (PR #5). Until PR #5 merges, `oracle/dist` on `claude/oracle-cloud-build` is the older `380f715e…` build; on `claude/dist-rebuild`, and after the merge, it is the deployed one.
 - **What ran:** the exact `oracle/dist/pct_oracle.so` on a local validator (Oct 12). Both Groth16 proofs verified onchain (117,789 and 117,790 CU), the draw at 1.15x was approved, the draw at 1.14x was refused (`CovenantBreached`, 6019), and the replayed proof was refused (`ZkStaleChallenge`, 6027). Output: [`demo/local-validator-run.json`](demo/local-validator-run.json) and [`.log`](demo/local-validator-run.log); their explorer links point at `127.0.0.1:8899`, so they open only on the machine that ran the validator. Devnet links replace this when the deploy lands.
 - **Run it yourself:** one command, `npm run zk:local`, against a local validator with the same binary, then `npm run web` to see the pages ([Quickstart](#quickstart), about 5 minutes, no keypair or SOL).
 - **Check it without Solana:** `cd zk && cargo test` verifies NVIDIA's H100 certificate chain (P-384) and the TDX quote natively, and parses a raw H200 report without verifying its signature (23 tests, about 30 s once crates are cached); `npm install && npm test` runs the TypeScript suite.
@@ -155,18 +156,17 @@ https://dev.reclaimprotocol.org/) and a Razorpay or Stripe test account; see `or
 
 ## Devnet deployment
 
-> **Status: deploy pending.** As of 2026-10-12 the program is not on devnet: the deploy attempt
-> stopped at the faucet (no SOL for the deploy key). This section will be filled in once it lands.
+> **Deployed on 2026-10-12.** Devnet runs the fixed build, sha256 `89edffd1…5b8e` (PR #5). Until PR #5 merges, `oracle/dist` on `claude/oracle-cloud-build` is the older `380f715e…` build; on `claude/dist-rebuild`, and after the merge, it is the deployed one.
 
 | Item | Value |
 | --- | --- |
 | Target program id | `2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz` (fixed by `declare_id!`) |
 | Prebuilt binary | `oracle/dist/pct_oracle.so`, sha256 `380f715eb19584078348d325b434c9000c20cf5eef45550b49c47ee4d9e5d4ea` |
 | Deploy and demo script | `scripts/devnet-go.ps1` (waits for the SOL the binary's size needs, about 8 at peak), then `npm run zk:devnet` |
-| Program explorer link | _pending deploy_ |
-| PASS loan (1.15x, draw approved) | _pending: written to `zk-devnet-demo.json`_ |
-| WATCH loan (1.14x, draw refused) | _pending_ |
-| Replay of the PASS proof (refused) | _pending_ |
+| Program explorer link | [2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz](https://explorer.solana.com/address/2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz?cluster=devnet) (ProgramData `DVRJ7wEJf3MZyTb1sGEoYQxRwFs2J686jkWjBRcsEagu`, 640,496 bytes; [deploy tx](https://explorer.solana.com/tx/3BbBX4diKE6MdinjzwDDynpHLne3bpErvFQoATY3JBPPXnHgvJLZ35vKP6RJviF6vB8d5UYqV85F6CBpMpkk1FN1?cluster=devnet)) |
+| PASS loan (1.15x, draw approved) | [proof](https://explorer.solana.com/tx/41ZoCoxTFb1MqUQKu5Qa1bRwEUch77nEUXmihPCCckvDjR52mhnAvgAQ4LqtnJZ7sjHjLFwg2Zb6yfat6RUJ7Nb7?cluster=devnet), [draw](https://explorer.solana.com/tx/5DWV6UU7jTPem7HDUtrHrmLqeGvM3x7UzMe1XHALoXdT6ZTEoKGYS5BbbfKicrfJZLhuWbo4fpa16hUhhCyFs1er?cluster=devnet) |
+| WATCH loan (1.14x, draw refused, 6019) | [proof](https://explorer.solana.com/tx/59nKZTGUKSDV7R57ZAf49vMCEqEPf2yjvhHy5Qd7XdPLJebJiaPkBn7pnVfWzBR4uXVJzC2r2h62mTJQQdSbHtmV?cluster=devnet), [draw](https://explorer.solana.com/tx/5kV48qNZNwMfrVrxsq33qtj3QQSPtkRLqmZegw9QxoxoEDuW2birgnDJMaUnsN5U9cvN32tJZDcB7YdjRs7g1AYA?cluster=devnet) |
+| Replay of the PASS proof (refused, 6027) | [replay](https://explorer.solana.com/tx/4W46GmRQ5YWZj6HsGe4jz5KKUvDDwxyeBXLSdo1eP4zf9NT25QGH5y783RZDHpXFPJYK19JQMKBYzYRUJzHnvFvq?cluster=devnet) |
 | Hosted site | _pending_ |
 | Local-validator rehearsal, same binary | see [`demo/`](demo/) |
 
@@ -234,8 +234,7 @@ out to the RPC on every request; server errors are logged and the client gets a 
 
 ## Roadmap
 
-1. Deploy to devnet, run `npm run zk:devnet`, publish `zk-devnet-demo.json` (PASS approved, WATCH
-   refused, replay refused) and link it from the site.
+1. Link the devnet run from the hosted site.
 2. Fixtures that track the current week (`AS_OF` from the clock and a one-command refresh).
 3. Operator-input host mode: own GPU report, TDX quote bound to it (`vm_bound = 1`), real Reclaim claims.
 4. TDX collateral checks (TCB status, QE identity, CRLs) and NVIDIA RIM checks in the guest.
