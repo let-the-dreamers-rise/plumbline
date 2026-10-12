@@ -1,0 +1,13 @@
+{
+  "name": "@pct/web",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "src/state.ts",
+  "dependencies": {
+    "@pct/core": "*",
+    "@pct/oracle": "*",
+    "@solana/web3.js": "^1.98.0",
+    "bs58": "^6.0.0"
+  }
+}

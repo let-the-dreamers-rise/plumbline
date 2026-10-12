@@ -1,5 +1,5 @@
 {
-  "name": "paid-compute-tape",
+  "name": "plumbline",
   "private": true,
   "type": "module",
   "workspaces": [
@@ -12,7 +12,25 @@
     "prove:list": "tsx packages/prover/src/cli/prove-list-azure.ts",
     "probe": "tsx packages/prover/src/cli/probe-invoice.ts",
     "prove:invoice": "tsx packages/prover/src/cli/prove-invoice.ts",
-    "verify": "tsx packages/prover/src/cli/verify.ts"
+    "prove:revenue": "tsx packages/prover/src/cli/prove-revenue.ts",
+    "verify": "tsx packages/prover/src/cli/verify.ts",
+    "oracle:init": "tsx packages/oracle/src/cli/init.ts",
+    "oracle:submit": "tsx packages/oracle/src/cli/submit.ts",
+    "oracle:crank": "tsx packages/oracle/src/cli/crank.ts",
+    "oracle:e2e": "tsx scripts/oracle-e2e.ts",
+    "lending:e2e": "tsx scripts/lending-e2e.ts",
+    "zk:devnet": "tsx scripts/zk-devnet-demo.ts",
+    "zk:local": "tsx scripts/zk-devnet-demo.ts --local",
+    "zk:submit": "tsx scripts/zk-submit.ts",
+    "loan:open": "tsx packages/oracle/src/cli/loan.ts open",
+    "loan:submit": "tsx packages/oracle/src/cli/loan.ts submit",
+    "loan:draw": "tsx packages/oracle/src/cli/loan.ts draw",
+    "loan:withdraw": "tsx packages/oracle/src/cli/loan.ts withdraw",
+    "loan:show": "tsx packages/oracle/src/cli/loan.ts show",
+    "hl:deploy": "tsx packages/relayer/src/cli/deploy-market.ts",
+    "hl:relay": "tsx packages/relayer/src/cli/relay.ts",
+    "web": "tsx packages/web/src/server.ts",
+    "hl:relay:once": "tsx packages/relayer/src/cli/relay.ts --once"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

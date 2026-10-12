@@ -1,0 +1,34 @@
+loan115 {
+  "loan": "GjCmY3iPcCJZf8sQhkQKjf7bCaQmgLDyS5iEvFTYD4zP",
+  "debtServiceInrPerWeek": 141300,
+  "proofVerified": {
+    "link": "https://explorer.solana.com/tx/3Qpoc2H5n4jYy3UK3Zw2ntLr94Fbq9e7YzGsFSpTFznqrjtXQw36aUPucF3Pi3ri2cPDNDXvXJmwXxeusLgdVbsm?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
+    "computeUnits": 119701,
+    "error": null
+  },
+  "draw": {
+    "link": "https://explorer.solana.com/tx/RZ9Tknrawp5DD1dY4YWVDfQF6PVUHYbmkjvtaC96sp2NxtazFh8V8uQs7z3QBTgSkUG3i63YtDAusSKvg9KjdcW?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
+    "approved": true,
+    "error": null
+  },
+  "replay": {
+    "link": "https://explorer.solana.com/tx/2DFwH79BDdoWLPLXqBdrBJq4dN8yZSjrXkTcVQqiz3osXHh3VwjZMEpy3Vkd6LA63UFKgEJeAEjr3ore2BFfXbwx?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
+    "rejected": true,
+    "error": "Program log: AnchorError thrown in programs/pct_oracle/src/instructions/zk.rs:228. Error Code: ZkStaleChallenge. Error Number: 6027. Error Message: GPU report was not made for the lender's current challenge."
+  }
+}
+loan114 {
+  "loan": "7bwtjWsxoZMKNHgvhvYR1xn6v2TeaocDr8gfq6AKXEv9",
+  "debtServiceInrPerWeek": 142500,
+  "proofVerified": {
+    "link": "https://explorer.solana.com/tx/5L7yFoHr8rtT1jA4GXQPSV5TKzrgJvFTdBc11jPqapqFkXUdpcKXjk51jbZsEh3E8US5nYmxUHiBW9vAs3ST5JQD?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
+    "computeUnits": 119702,
+    "error": null
+  },
+  "draw": {
+    "link": "https://explorer.solana.com/tx/4uTcj7Pwm79no93fiBVXoEeu8M9PPXbz8GS1R67aVCUrMnrNevVW45Ebdpg1jg29WqpbhFsV4oU4YfyDuY9S9WFq?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
+    "approved": false,
+    "error": "Program log: AnchorError thrown in programs/pct_oracle/src/instructions/zk.rs:320. Error Code: CovenantBreached. Error Number: 6019. Error Message: Proven revenue does not cover debt service at the required ratio."
+  }
+}
+wrote zk-devnet-demo.json

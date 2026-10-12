@@ -34,6 +34,60 @@ pub enum OracleError {
     MissingParam,
     #[msg("Extracted value is not a valid decimal")]
     BadNumber,
+    #[msg("Loan terms are out of range")]
+    BadLoanTerms,
+    #[msg("Proof is for a different operator than this loan")]
+    OperatorMismatch,
+    #[msg("No proven revenue for the current or previous period")]
+    NoRecentRevenue,
+    #[msg("Proven revenue does not cover debt service at the required ratio")]
+    CovenantBreached,
+    #[msg("Not enough funds in the loan")]
+    InsufficientFunds,
+    #[msg("Only the loan's borrower can draw")]
+    NotBorrower,
+    #[msg("Revenue is dated before the loan's revenue history window")]
+    RevenueTooOld,
+    #[msg("Proof's currency differs from the loan's")]
+    CurrencyMismatch,
+    #[msg("Only the loan's lender can do this")]
+    NotLender,
+    #[msg("Attestor threshold must be between 1 and the number of attestors, and a required VM binding needs a pinned VM image")]
+    BadZkConfig,
+    #[msg("Zero-knowledge proof does not verify for the registered guest program")]
+    BadZkProof,
+    #[msg("GPU report was not made for the lender's current challenge")]
+    ZkStaleChallenge,
+    #[msg("Proof was checked against a different attestor set")]
+    ZkAttestorMismatch,
+    #[msg("Proof was checked against different loan terms")]
+    ZkTermsMismatch,
+    #[msg("Source is not an active revenue source")]
+    WrongSourceKind,
+    #[msg("Proof's VM is not the required one, or its TDX quote does not vouch for this GPU report")]
+    ZkVmNotBound,
+    #[msg("Treasury holds fewer withdrawable fees than requested")]
+    InsufficientFees,
+    #[msg("This GPU is already pledged to another loan")]
+    DevicePledgedElsewhere,
+    #[msg("Missing or wrong device registry account for this GPU")]
+    BadDeviceAccount,
+    #[msg("Challenge nonce is already claimed by another loan")]
+    NonceTaken,
+    #[msg("Missing or wrong nonce claim account for this challenge")]
+    BadNonceClaim,
+    #[msg("Remaining account 0 must be the device registry config PDA")]
+    BadRegistryConfig,
+    #[msg("Only the bound loan's lender or borrower, or the config authority, can release this GPU")]
+    CannotReleaseDevice,
+    #[msg("This GPU is not pledged to any loan")]
+    DeviceNotPledged,
+    #[msg("Proof carries an all-zero chip id")]
+    ZeroChipId,
+    #[msg("This loan is gated on the private covenant: draw with draw_private")]
+    PrivateCovenantRequired,
+    #[msg("The proof attests a GH100 (H100/H200) GPU, not this loan's SKU")]
+    GpuSkuMismatch,
 }
 
 impl From<crate::reclaim::ClaimError> for OracleError {

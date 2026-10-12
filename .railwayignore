@@ -1,0 +1,8 @@
+# What `railway up` uploads: the web workspace only; never keys, .env, proofs, sealed-eval or logs.
+*
+!package.json
+!package-lock.json
+!tsconfig.json
+!packages/
+packages/*/node_modules
+packages/**/*.test.ts

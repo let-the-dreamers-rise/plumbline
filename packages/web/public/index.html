@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Price tape · Plumbline</title>
+<meta name="description" content="A public H100 paid-price index built from zkTLS price proofs and checked onchain on Solana.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Plumbline">
+<meta property="og:title" content="Price tape · Plumbline">
+<meta property="og:description" content="A public H100 paid-price index built from zkTLS price proofs and checked onchain on Solana.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Price tape · Plumbline">
+<meta name="twitter:description" content="A public H100 paid-price index built from zkTLS price proofs and checked onchain on Solana.">
+<style>
+:root {
+  --bg: #f4f2ec; --surface: #fffdf8; --sunken: #ebe8df; --ink: #1b1d20; --muted: #63666b; --rule: #d8d4c8;
+  --paid: #a35a00; --posted: #6f7c88; --good: #24733f; --warn: #8a6500; --bad: #b0322a; --focus: #1f5fbf;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #111417; --surface: #181c20; --sunken: #0c0f11; --ink: #e6e8e4; --muted: #9aa1a7; --rule: #2b3238;
+    --paid: #eca447; --posted: #8a98a4; --good: #5cc283; --warn: #d8b54c; --bad: #ee6a5f; --focus: #7fb0ff; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); }
+.wrap { max-width: 72rem; margin: 0 auto; padding: 24px 16px 64px; }
+a { color: var(--paid); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; border-bottom: 2px solid var(--ink); padding-bottom: 12px; }
+h1 { margin: 0; font-size: 1.1rem; letter-spacing: .08em; text-transform: uppercase; }
+h1 a { color: inherit; text-decoration: none; }
+nav { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 600 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+nav a { color: var(--muted); text-decoration: none; } nav a:hover, nav a[aria-current] { color: var(--paid); }
+.empty { background: var(--surface); border: 1px solid var(--rule); padding: 16px; margin-top: 20px; max-width: 70ch; }
+.empty h2 { margin-top: 0; }
+.empty p { margin: 0 0 10px; }
+.meta { font: 12px var(--mono); color: var(--muted); }
+.hero { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); margin-top: 20px; }
+.card { background: var(--surface); border: 1px solid var(--rule); padding: 16px; min-width: 0; }
+.k { font: 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.big { font: 700 3rem/1.05 var(--mono); font-variant-numeric: tabular-nums; margin-top: 6px; }
+.big small { font-size: .9rem; font-weight: 400; color: var(--muted); }
+.paid .big { color: var(--paid); }
+.posted .big { color: var(--posted); }
+.chip { display: inline-block; font: 600 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: 2px 6px; border: 1px solid currentColor; margin-top: 8px; }
+.live { color: var(--good); } .frozen { color: var(--warn); } .never { color: var(--muted); }
+.sub { font-size: .88rem; color: var(--muted); margin-top: 6px; }
+.check { display: flex; gap: 8px; align-items: baseline; margin-top: 8px; font-size: .92rem; }
+.ok { color: var(--good); font-weight: 700; } .no { color: var(--bad); font-weight: 700; }
+h2 { font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; margin: 32px 0 8px; }
+.bars { display: grid; gap: 10px; }
+.bar { display: grid; grid-template-columns: 9rem minmax(0, 1fr) 5rem; gap: 10px; align-items: center; font-size: .9rem; }
+.bar .track { height: 14px; background: var(--sunken); position: relative; }
+.bar .fill { position: absolute; inset: 0 auto 0 0; background: var(--posted); }
+.bar.is-paid .fill { background: var(--paid); }
+.bar.is-index span:first-child, .bar.is-index .v { font-weight: 700; color: var(--paid); }
+.bar .v { font: 600 .9rem var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+.tbl { overflow-x: auto; background: var(--surface); border: 1px solid var(--rule); }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; min-width: 44rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); white-space: nowrap; }
+th { font: 600 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--sunken); }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+td.mono { font-family: var(--mono); font-size: .82rem; }
+button { font: 600 12px var(--mono); background: transparent; color: var(--ink); border: 1px solid var(--rule); padding: 4px 10px; cursor: pointer; }
+button:hover { border-color: var(--paid); color: var(--paid); }
+dialog { max-width: 40rem; width: calc(100% - 32px); border: 1px solid var(--rule); background: var(--surface); color: var(--ink); padding: 20px; }
+dialog::backdrop { background: rgb(0 0 0 / .45); }
+dialog h3 { margin: 0 0 8px; }
+dialog ol { padding-left: 1.2rem; display: grid; gap: 10px; }
+dialog code { font: 12px var(--mono); background: var(--sunken); padding: 1px 4px; word-break: break-all; }
+.err { color: var(--bad); font-family: var(--mono); margin-top: 16px; }
+@media (max-width: 40rem) { .bar { grid-template-columns: 6rem minmax(0, 1fr) 4.5rem; } .big { font-size: 2.4rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div><h1><a href="/">Plumbline</a></h1><div class="meta">H100 price tape</div></div>
+    <nav aria-label="Site"><a href="/">Home</a><a href="/prove">Prove</a><a href="/docs">Docs</a><a href="/lender">Lender</a><a href="/tape" aria-current="page">Tape</a><a href="https://github.com/let-the-dreamers-rise/plumbline" rel="noopener">Source</a></nav>
+  </header>
+  <p class="meta" id="meta">loading…</p>
+
+  <section class="empty" id="empty" hidden>
+    <h2>No price proofs on this cluster yet</h2>
+    <p>The tape is a public H100 index of what renters proved they paid per GPU-hour. Each entry is a zkTLS proof of an invoice or a price page, checked onchain: attestor signature, registered source, freshness, and a receipt so one invoice counts once. With proofs from three or more providers the program publishes a weighted median, shown below next to the posted list price.</p>
+    <p>The program runs end to end on a local Solana validator today; its devnet deploy is pending and no price proofs have been published yet. The tape is designed to feed a Hyperliquid HIP-3 perp; that relayer is dry-run tested and a testnet market is pending.</p>
+    <p><a href="/docs">Read how it works</a> · <a href="/">Back to Plumbline</a></p>
+  </section>
+
+  <section class="hero">
+    <div class="card paid">
+      <div class="k">Paid index · $/GPU-hr</div>
+      <div class="big" id="paid-value">–</div>
+      <span class="chip" id="paid-status">–</span>
+      <div class="sub" id="paid-sub"></div>
+    </div>
+    <div class="card posted">
+      <div class="k">Posted list price · $/GPU-hr</div>
+      <div class="big" id="list-value">–</div>
+      <div class="sub" id="list-sub"></div>
+    </div>
+    <div class="card">
+      <div class="k">Don't trust, verify</div>
+      <div class="check"><span id="recompute-mark">…</span><span id="recompute-text">Recomputing the index off-chain</span></div>
+      <div class="check"><span class="ok">✓</span><span id="attestor-text">Only proofs signed by the configured attestors count</span></div>
+      <div class="check"><span class="ok">✓</span><span>Each invoice counts once (onchain nullifier receipt)</span></div>
+    </div>
+  </section>
+
+  <h2>Posted vs paid</h2>
+  <div class="card bars" id="bars"></div>
+
+  <h2>Proven prices onchain</h2>
+  <div class="tbl">
+    <table>
+      <thead><tr><th>Provider</th><th>Kind</th><th>$/GPU-hr</th><th>Observed</th><th>Claim</th><th>Transaction</th><th></th></tr></thead>
+      <tbody id="rows"><tr><td colspan="7">loading…</td></tr></tbody>
+    </table>
+  </div>
+  <div class="err" id="err" hidden></div>
+</div>
+
+<dialog id="verify">
+  <h3 id="v-title"></h3>
+  <ol id="v-steps"></ol>
+  <form method="dialog"><button>Close</button></form>
+</dialog>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const usd = (micro) => (micro / 1e6).toFixed(2);
+const ago = (s) => { const d = Math.max(0, Math.floor(Date.now() / 1000) - s); return d < 90 ? `${d}s ago` : d < 5400 ? `${Math.round(d / 60)}m ago` : `${Math.round(d / 3600)}h ago`; };
+const short = (s) => `${s.slice(0, 6)}…${s.slice(-4)}`;
+let state = null;
+
+function explorer(kind, id) {
+  const rpc = state.rpc;
+  const cluster = rpc.includes("devnet") ? "?cluster=devnet" : rpc.includes("mainnet") ? "" : `?cluster=custom&customUrl=${encodeURIComponent(rpc)}`;
+  return `https://explorer.solana.com/${kind}/${id}${cluster}`;
+}
+
+function el(tag, attrs = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) k === "class" ? (e.className = v) : e.setAttribute(k, v);
+  for (const kid of kids) e.append(kid);
+  return e;
+}
+
+function render() {
+  const { paid, list, proofs, recomputed, attestors } = state;
+  $("empty").hidden = proofs.length > 0;
+  $("meta").textContent = `program ${short(state.programId)} · ${state.rpc.replace(/^https?:\/\//, "")} · updated ${new Date(state.fetchedAt * 1000).toLocaleTimeString()}`;
+
+  const live = paid && paid.status === "live";
+  $("paid-value").innerHTML = live ? `$${usd(paid.valueMicro)}` : "–";
+  $("paid-status").textContent = paid ? paid.status : "not deployed";
+  $("paid-status").className = `chip ${paid ? paid.status : "never"}`;
+  $("paid-sub").textContent = paid
+    ? `${paid.used} proofs used, ${paid.rejected} rejected · cranked ${paid.updatedAt ? ago(paid.updatedAt) : "never"}${live ? "" : " · needs 3+ providers"}`
+    : "No paid book on this cluster yet.";
+
+  const posted = list && list.slots.length ? Math.max(...list.slots.map((s) => s.priceMicro)) : null;
+  $("list-value").textContent = posted ? `$${usd(posted)}` : "–";
+  $("list-sub").textContent = posted && live
+    ? `Posted is ${Math.round((posted / paid.valueMicro - 1) * 100)}% above what renters proved they paid.`
+    : list ? `${list.slots.length} proven list price(s).` : "";
+
+  if (recomputed) {
+    $("recompute-mark").className = recomputed.matches ? "ok" : "no";
+    $("recompute-mark").textContent = recomputed.matches ? "✓" : "✕";
+    $("recompute-text").textContent = recomputed.matches
+      ? `Recomputed off-chain from the book: ${recomputed.valueMicro ? "$" + usd(recomputed.valueMicro) : recomputed.status}, matches onchain`
+      : `Off-chain recompute gives ${recomputed.valueMicro ? "$" + usd(recomputed.valueMicro) : recomputed.status}, onchain differs`;
+  } else {
+    $("recompute-mark").textContent = "–";
+    $("recompute-text").textContent = "Index not cranked yet";
+  }
+  $("attestor-text").textContent = attestors.length ? `Only proofs signed by attestor ${attestors.map(short).join(", ")} count` : "No attestors configured";
+
+  const items = [];
+  if (list) list.slots.forEach((s) => items.push({ label: `${s.provider} list`, micro: s.priceMicro, paid: false }));
+  if (paid) paid.slots.forEach((s) => items.push({ label: `${s.provider} paid`, micro: s.priceMicro, paid: true }));
+  if (live) items.push({ label: "Paid index", micro: paid.valueMicro, paid: true, index: true });
+  const max = Math.max(1, ...items.map((i) => i.micro));
+  $("bars").replaceChildren(...(items.length ? items.sort((a, b) => b.micro - a.micro).map((i) => {
+    const fill = el("div", { class: "fill" }); fill.style.width = `${(i.micro / max) * 100}%`;
+    return el("div", { class: `bar${i.paid ? " is-paid" : ""}${i.index ? " is-index" : ""}` }, el("span", {}, i.label), el("div", { class: "track" }, fill), el("span", { class: "v" }, `$${usd(i.micro)}`));
+  }) : [el("span", { class: "sub" }, "No proven prices yet.")]));
+
+  $("rows").replaceChildren(...(proofs.length ? proofs.map((p, i) => el("tr", {},
+    el("td", {}, p.provider),
+    el("td", {}, p.kind === 0 ? "paid" : "list"),
+    el("td", { class: "num" }, `$${usd(p.priceMicro)}`),
+    el("td", {}, ago(p.observedAt)),
+    el("td", { class: "mono" }, short(p.identifier)),
+    el("td", { class: "mono" }, el("a", { href: explorer("tx", p.signature), target: "_blank", rel: "noopener" }, short(p.signature))),
+    el("td", {}, (() => { const b = el("button", { type: "button" }, "Verify"); b.onclick = () => openVerify(i); return b; })()),
+  )) : [el("tr", {}, el("td", { colspan: "7" }, "No proofs submitted yet."))]));
+}
+
+function openVerify(i) {
+  const p = state.proofs[i];
+  $("v-title").textContent = `${p.provider} · $${usd(p.priceMicro)}/GPU-hr`;
+  const step = (html) => { const li = el("li"); li.innerHTML = html; return li; };
+  $("v-steps").replaceChildren(
+    step(`The renter fetched their ${p.kind === 0 ? "invoice" : "price page"} over zkTLS. A Reclaim attestor signed claim <code>${p.identifier}</code>, the keccak hash of the request and the revealed fields. Nothing else from the page was revealed.`),
+    step(`Transaction <a href="${explorer("tx", p.signature)}" target="_blank" rel="noopener"><code>${short(p.signature)}</code></a> (slot ${p.slot}) re-hashed the claim onchain, recovered the secp256k1 signer and checked it is one of: ${state.attestors.map((a) => `<code>${a}</code>`).join(", ")}.`),
+    step(`The program checked the request matches registered source <a href="${explorer("address", p.source)}" target="_blank" rel="noopener"><code>${short(p.source)}</code></a> (same URL and match rules), that the claim is fresh, and parsed the price from the signed fields itself.`),
+    step(p.kind === 0 ? `It created a receipt keyed by the invoice's hashed id, so this invoice can never be counted again.` : `It created a receipt for this claim, so it can never be counted twice.`),
+    step(`crank_index then took the weighted median across providers (25% cap per provider, outliers dropped). The "matches onchain" check above reruns that math from the public book.`),
+  );
+  $("verify").showModal();
+}
+
+async function load() {
+  try {
+    const r = await fetch("/api/state");
+    const body = await r.json();
+    if (!r.ok) throw new Error(body.error || r.statusText);
+    state = body;
+    $("err").hidden = true;
+    render();
+  } catch (e) {
+    $("err").hidden = false;
+    $("err").textContent = `Could not read the oracle: ${e.message}`;
+    if (!state) $("empty").hidden = false;
+  }
+}
+load();
+setInterval(load, 5000);
+</script>
+</body>
+</html>

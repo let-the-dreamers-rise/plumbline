@@ -20,9 +20,11 @@ custom-heap = []
 custom-panic = []
 
 [dependencies]
-anchor-lang = "1.2.0"
+anchor-lang = { version = "1.2.0", features = ["init-if-needed"] }
 solana-keccak-hasher = "3"
 solana-secp256k1-recover = "3"
+solana-bn254 = "3"
+solana-sha256-hasher = "3"
 
 [dev-dependencies]
 litesvm = "0.10.0"

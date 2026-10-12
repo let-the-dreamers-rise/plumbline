@@ -1,0 +1,33 @@
+import { mkdirSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { loadEnv, requireEnv } from "../env.js";
+import { assertRevenueProofMatches, buildRevenueRequest, revenueSpec } from "../revenue.js";
+import { assertSigned, makeClient } from "../zk.js";
+import type { Proof } from "@reclaimprotocol/js-sdk";
+
+// Proves an operator's revenue from a third-party system of record, revealing only the amount,
+// date, payment/payout id and (where the response has one) an OPRF hash of the account.
+//   npm run prove:revenue            (Razorpay latest payment; needs RAZORPAY_KEY_ID + RAZORPAY_KEY_SECRET)
+//   npm run prove:revenue stripe-payout-test   (Stripe test-mode payout; STRIPE_KEY=rk_test_...)
+//   npm run prove:revenue stripe     (Stripe live payout; STRIPE_KEY=rk_live_... read-only)
+//   npm run prove:revenue vast       (Vast host earnings; needs VAST_API_KEY)
+loadEnv();
+const spec = revenueSpec(process.argv[2] ?? "razorpay");
+const authHeader =
+  spec.name === "razorpay-payment"
+    ? `Basic ${Buffer.from(`${requireEnv("RAZORPAY_KEY_ID")}:${requireEnv("RAZORPAY_KEY_SECRET")}`).toString("base64")}`
+    : `Bearer ${spec.name.startsWith("stripe") ? requireEnv("STRIPE_KEY") : requireEnv("VAST_API_KEY")}`;
+const req = buildRevenueRequest(spec, authHeader);
+
+const started = Date.now();
+const proof = (await makeClient().zkFetch(req.url, req.publicOptions, req.secretOptions, 3, 5_000)) as unknown as Proof | undefined;
+if (!proof) throw new Error(`zkFetch returned no proof for ${spec.name}`);
+await assertSigned(proof);
+assertRevenueProofMatches(proof.claimData.parameters, spec);
+
+const dir = join("proofs", "revenue");
+mkdirSync(dir, { recursive: true });
+const path = join(dir, `${spec.name}-${proof.claimData.timestampS}.json`);
+writeFileSync(path, JSON.stringify(proof, null, 2));
+const revealed = (JSON.parse(proof.claimData.context) as { extractedParameters?: Record<string, string> }).extractedParameters;
+console.log(JSON.stringify({ source: spec.name, proofFile: path, elapsedMs: Date.now() - started, revealed }, null, 2));

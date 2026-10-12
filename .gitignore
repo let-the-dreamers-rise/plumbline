@@ -5,3 +5,7 @@ proofs/
 target/
 .anchor/
 test-ledger/
+leads.jsonl
+devnet-go.log
+zk-devnet-demo.json
+sealed-eval-local/

@@ -1,0 +1,12 @@
+{
+  "name": "@pct/oracle",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "dependencies": {
+    "@pct/prover": "*",
+    "@solana/web3.js": "^1.98.0",
+    "ethers": "^6.17.0"
+  }
+}

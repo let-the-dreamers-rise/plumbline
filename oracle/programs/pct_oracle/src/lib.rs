@@ -1,5 +1,7 @@
 pub mod constants;
 pub mod error;
+pub mod risc0_groth16;
+pub mod risc0_vk;
 pub mod instructions;
 pub mod math;
 pub mod reclaim;
@@ -57,5 +59,68 @@ pub mod pct_oracle {
 
     pub fn crank_index(ctx: Context<CrankIndex>) -> Result<()> {
         instructions::crank::handle_crank_index(ctx)
+    }
+
+    pub fn open_loan(ctx: Context<OpenLoan>, terms: LoanTerms) -> Result<()> {
+        instructions::lending::handle_open_loan(ctx, terms)
+    }
+
+    pub fn fund_loan(ctx: Context<FundLoan>, lamports: u64) -> Result<()> {
+        instructions::lending::handle_fund_loan(ctx, lamports)
+    }
+
+    pub fn submit_revenue(ctx: Context<SubmitRevenue>, sig: ClaimSig, receipt_key: [u8; 32]) -> Result<()> {
+        instructions::lending::handle_submit_revenue(ctx, sig, receipt_key)
+    }
+
+    pub fn draw(ctx: Context<Draw>, lamports: u64) -> Result<()> {
+        instructions::lending::handle_draw(ctx, lamports)
+    }
+
+    pub fn withdraw(ctx: Context<Withdraw>, lamports: u64) -> Result<()> {
+        instructions::lending::handle_withdraw(ctx, lamports)
+    }
+
+    pub fn set_zk_config(
+        ctx: Context<SetZkConfig>,
+        image_id: [u8; 32],
+        attestor_threshold: u8,
+        require_vm_bound: bool,
+        vm_measurement: [u8; 32],
+    ) -> Result<()> {
+        instructions::zk::handle_set_zk_config(ctx, image_id, attestor_threshold, require_vm_bound, vm_measurement)
+    }
+
+    pub fn issue_gpu_challenge<'info>(ctx: Context<'info, IssueGpuChallenge<'info>>, challenge: [u8; 32]) -> Result<()> {
+        instructions::zk::handle_issue_gpu_challenge(ctx, challenge)
+    }
+
+    pub fn prove_covenant<'info>(
+        ctx: Context<'info, ProveCovenant<'info>>,
+        seal: Vec<u8>,
+        public_values: Vec<u8>,
+        as_of_period: u32,
+    ) -> Result<()> {
+        instructions::zk::handle_prove_covenant(ctx, seal, public_values, as_of_period)
+    }
+
+    pub fn draw_private(ctx: Context<DrawPrivate>, lamports: u64) -> Result<()> {
+        instructions::zk::handle_draw_private(ctx, lamports)
+    }
+
+    pub fn set_proof_fee(ctx: Context<SetProofFee>, fee_lamports: u64) -> Result<()> {
+        instructions::zk::handle_set_proof_fee(ctx, fee_lamports)
+    }
+
+    pub fn withdraw_fees(ctx: Context<WithdrawFees>, lamports: u64) -> Result<()> {
+        instructions::zk::handle_withdraw_fees(ctx, lamports)
+    }
+
+    pub fn set_device_registry(ctx: Context<SetDeviceRegistry>, enforce: bool) -> Result<()> {
+        instructions::registry::handle_set_device_registry(ctx, enforce)
+    }
+
+    pub fn release_device(ctx: Context<ReleaseDevice>) -> Result<()> {
+        instructions::registry::handle_release_device(ctx)
     }
 }

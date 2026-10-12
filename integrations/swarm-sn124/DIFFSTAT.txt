@@ -1,0 +1,36 @@
+Swarm (github.com/swarm-subnet/swarm) commit 38b36a2c55967e5e7abc66932fee696a39852bac (2026-10-05, 'Merge pull request #204 from swarm-subnet/feature/ali/miner-bug-fixes')
+Patch: swarm-ironproof.patch  (git diff 38b36a2c55967e5e7abc66932fee696a39852bac, applies with 'git apply')
+
+== git diff --stat
+ swarm/ironproof/__init__.py             |  28 ++++++++
+ swarm/ironproof/backend.py              |  64 ++++++++++++++++++
+ swarm/ironproof/bench.py                |  94 ++++++++++++++++++++++++++
+ swarm/ironproof/enclave.py              |  30 +++++++++
+ swarm/ironproof/validator.py            | 115 ++++++++++++++++++++++++++++++++
+ swarm/validator/backend_api.py          |  11 +++
+ swarm/validator/forward.py              |  18 ++++-
+ swarm/validator/utils_parts/run_task.py |   4 ++
+ 8 files changed, 361 insertions(+), 3 deletions(-)
+
+== Swarm's existing files touched (3 files): +30 / -3 lines
+  +11  -0   swarm/validator/backend_api.py
+  +15  -3   swarm/validator/forward.py
+  +4   -0   swarm/validator/utils_parts/run_task.py
+  Every behavioural change is behind SWARM_IRONPROOF=1. With it unset, the only differences are that sync() also returns
+  key_challenge (None unless the backend sends one) and submit_task_result() has an unused optional ironproof_report argument.
+
+== New files (5 files, package swarm/ironproof/): +331 lines
+  +28      swarm/ironproof/__init__.py
+  +64      swarm/ironproof/backend.py
+  +94      swarm/ironproof/bench.py
+  +30      swarm/ironproof/enclave.py
+  +115     swarm/ironproof/validator.py
+  of which:
+    validator.py  validator glue: key release on sync, task -> enclave -> quoted result
+    backend.py    4 calls for Swarm's private backend (not in the public repo) to wire into its routes
+    bench.py      Swarm's benchmark behind Ironproof's swarm_sim interface; ~25 lines are the stand-in flight
+    enclave.py    enclave entry point (loads subnet-scorer's enclave/swarm_scorer.py with bench.py)
+    __init__.py   the SWARM_IRONPROOF flag and the import of subnet-scorer
+
+Ironproof code reused by import, unchanged (subnet-scorer): swarm_keyserver.KeyServer, swarm_validator.get_epoch_keys/run_task,
+swarm_verify.verify_report/audit_after_reveal, attest.check_quote, tdxq.verify_quote, enclave/swarm_scorer.py, enclave/sandbox.py.

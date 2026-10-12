@@ -1,0 +1,475 @@
+//! Private covenant on a local chain: the real RISC Zero Groth16 proof from zk/risc0 (NVIDIA's
+//! sample H100 report + a strong Razorpay month signed by two attestors) flips a loan to PASS and
+//! unlocks a draw, with no amounts onchain. Fixtures: tests/fixtures/covenant-strong-groth16.json
+//! and zk-revenue-claims.json (copies of zk/fixtures).
+
+mod common;
+
+use {
+    anchor_lang::{
+        prelude::Pubkey,
+        solana_program::{
+            instruction::{AccountMeta, Instruction},
+            system_program,
+        },
+    },
+    common::{boot_with, default_params, hex, keccak, pda, Harness},
+    pct_oracle::{
+        instructions::{LoanTerms, ZkCovenant, ZK_PASS},
+        SourceArgs,
+    },
+    serde_json::Value,
+    solana_keypair::Keypair,
+    solana_signer::Signer,
+};
+
+const SOL: u64 = 1_000_000_000;
+
+fn json(s: &str) -> Value {
+    serde_json::from_str(s).unwrap()
+}
+
+fn compute_limit(units: u32) -> Instruction {
+    let mut data = vec![2u8];
+    data.extend_from_slice(&units.to_le_bytes());
+    Instruction::new_with_bytes("ComputeBudget111111111111111111111111111111".parse().unwrap(), &data, vec![])
+}
+
+struct Setup {
+    h: Harness,
+    proof: Value,
+    borrower: Keypair,
+    loan: Pubkey,
+    source_id: [u8; 32],
+    as_of: u32,
+}
+
+fn field(v: &Value, k: &str) -> Vec<u8> {
+    hex(v[k].as_str().unwrap())
+}
+
+/// Config with the two test attestors, the Razorpay revenue source, a funded INR loan with the
+/// terms the proof was made for, and the zk config pinned to the guest's image id.
+fn setup(debt_service_micro: u64) -> Setup {
+    setup_vm(debt_service_micro, false, [0u8; 32])
+}
+
+fn setup_vm(debt_service_micro: u64, require_vm_bound: bool, vm_measurement: [u8; 32]) -> Setup {
+    setup_with(include_str!("fixtures/covenant-strong-groth16.json"), debt_service_micro, require_vm_bound, vm_measurement)
+}
+
+fn setup_with(proof: &str, debt_service_micro: u64, require_vm_bound: bool, vm_measurement: [u8; 32]) -> Setup {
+    setup_sku(proof, debt_service_micro, require_vm_bound, vm_measurement, 0)
+}
+
+fn setup_sku(proof: &str, debt_service_micro: u64, require_vm_bound: bool, vm_measurement: [u8; 32], sku: u8) -> Setup {
+    let fx = json(include_str!("fixtures/zk-revenue-claims.json"));
+    let proof = json(proof);
+    let t = &fx["terms"];
+    let as_of = t["as_of_period"].as_u64().unwrap() as u32;
+    let period_s = t["period_s"].as_u64().unwrap();
+    let attestors: Vec<[u8; 20]> =
+        fx["attestors"]["attestors"].as_array().unwrap().iter().map(|a| hex(a.as_str().unwrap()).try_into().unwrap()).collect();
+    let mut h = boot_with(attestors, default_params(), (as_of as u64 * period_s + 2 * 86_400) as i64);
+    let payer = h.payer.pubkey();
+
+    let source_id = keccak(b"razorpay-zk");
+    let args = SourceArgs {
+        source_id,
+        params_hash: hex(fx["paramsHash"].as_str().unwrap()).try_into().unwrap(),
+        provider_id: 7,
+        sku: 0,
+        kind: 2,
+        gpu_count: 1,
+        value_mode: 1,
+        requires_nullifier: true,
+    };
+    let borrower = Keypair::new();
+    h.svm.airdrop(&borrower.pubkey(), SOL).unwrap();
+    let operator_key: [u8; 32] = hex(t["operator_key"].as_str().unwrap()).try_into().unwrap();
+    let loan = pda(&[b"loan", payer.as_ref(), &operator_key]);
+    let terms = LoanTerms {
+        operator_key,
+        borrower: borrower.pubkey(),
+        sku,
+        fleet_gpus: 1,
+        period_s: period_s as u32,
+        debt_service_micro,
+        min_coverage_bps: t["min_coverage_bps"].as_u64().unwrap() as u16,
+        currency: *b"INR",
+        covenant_periods: t["covenant_periods"].as_u64().unwrap() as u8,
+    };
+    let image_id: [u8; 32] = field(&proof, "imageId").try_into().unwrap();
+    h.send(&[
+        Harness::ix(
+            pct_oracle::instruction::RegisterSource { args },
+            pct_oracle::accounts::RegisterSource {
+                authority: payer,
+                config: pda(&[b"config"]),
+                source: pda(&[b"source", &source_id]),
+                system_program: system_program::ID,
+            },
+        ),
+        Harness::ix(
+            pct_oracle::instruction::SetZkConfig { image_id, attestor_threshold: 2, require_vm_bound, vm_measurement },
+            pct_oracle::accounts::SetZkConfig {
+                authority: payer,
+                config: pda(&[b"config"]),
+                zk_config: pda(&[b"zk_config"]),
+                system_program: system_program::ID,
+            },
+        ),
+        Harness::ix(
+            pct_oracle::instruction::OpenLoan { terms },
+            pct_oracle::accounts::OpenLoan { lender: payer, loan, system_program: system_program::ID },
+        ),
+        Harness::ix(
+            pct_oracle::instruction::FundLoan { lamports: 10 * SOL },
+            pct_oracle::accounts::FundLoan { lender: payer, loan, system_program: system_program::ID },
+        ),
+    ])
+    .unwrap();
+    Setup { h, proof, borrower, loan, source_id, as_of }
+}
+
+impl Setup {
+    fn challenge(&mut self, c: [u8; 32]) {
+        let payer = self.h.payer.pubkey();
+        self.h
+            .send(&[Harness::ix(
+                pct_oracle::instruction::IssueGpuChallenge { challenge: c },
+                pct_oracle::accounts::IssueGpuChallenge {
+                    lender: payer,
+                    loan: self.loan,
+                    zk_covenant: pda(&[b"zk_covenant", self.loan.as_ref()]),
+                    system_program: system_program::ID,
+                },
+            )])
+            .unwrap();
+    }
+
+    /// The nonce the sample GPU report signed (journal word 1).
+    fn gpu_nonce(&self) -> [u8; 32] {
+        field(&self.proof, "journal")[32..64].try_into().unwrap()
+    }
+
+    fn prove(&mut self, seal: Vec<u8>, journal: Vec<u8>) -> Result<u64, String> {
+        let source_id = self.source_id;
+        self.prove_with_source(seal, journal, source_id)
+    }
+
+    fn prove_with_source(&mut self, seal: Vec<u8>, journal: Vec<u8>, source_id: [u8; 32]) -> Result<u64, String> {
+        let payer = self.h.payer.pubkey();
+        let mut ix = Harness::ix(
+            pct_oracle::instruction::ProveCovenant { seal, public_values: journal, as_of_period: self.as_of },
+            pct_oracle::accounts::ProveCovenant {
+                submitter: payer,
+                config: pda(&[b"config"]),
+                zk_config: pda(&[b"zk_config"]),
+                source: pda(&[b"source", &source_id]),
+                loan: self.loan,
+                zk_covenant: pda(&[b"zk_covenant", self.loan.as_ref()]),
+                treasury: pda(&[b"treasury"]),
+                system_program: system_program::ID,
+            },
+        );
+        // Remaining account 0: the device registry config PDA, always (uninitialised here = registry off).
+        ix.accounts.push(AccountMeta::new_readonly(pda(&[b"registry_config"]), false));
+        self.h.send(&[compute_limit(1_400_000), ix])
+    }
+
+    fn set_fee(&mut self, fee_lamports: u64) {
+        let payer = self.h.payer.pubkey();
+        self.h
+            .send(&[Harness::ix(
+                pct_oracle::instruction::SetProofFee { fee_lamports },
+                pct_oracle::accounts::SetProofFee {
+                    authority: payer,
+                    config: pda(&[b"config"]),
+                    zk_config: pda(&[b"zk_config"]),
+                    treasury: pda(&[b"treasury"]),
+                    system_program: system_program::ID,
+                },
+            )])
+            .unwrap();
+    }
+
+    fn withdraw_fees(&mut self, lamports: u64) -> Result<u64, String> {
+        let payer = self.h.payer.pubkey();
+        self.h.send(&[Harness::ix(
+            pct_oracle::instruction::WithdrawFees { lamports },
+            pct_oracle::accounts::WithdrawFees { authority: payer, config: pda(&[b"config"]), treasury: pda(&[b"treasury"]) },
+        )])
+    }
+
+    fn treasury_lamports(&self) -> u64 {
+        self.h.svm.get_account(&pda(&[b"treasury"])).map(|a| a.lamports).unwrap_or(0)
+    }
+
+    fn prove_real(&mut self) -> Result<u64, String> {
+        let (seal, journal) = (field(&self.proof, "seal"), field(&self.proof, "journal"));
+        self.prove(seal, journal)
+    }
+
+    fn draw(&mut self, lamports: u64) -> Result<u64, String> {
+        let ix = Harness::ix(
+            pct_oracle::instruction::DrawPrivate { lamports },
+            pct_oracle::accounts::DrawPrivate {
+                borrower: self.borrower.pubkey(),
+                loan: self.loan,
+                zk_covenant: pda(&[b"zk_covenant", self.loan.as_ref()]),
+            },
+        );
+        let blockhash = self.h.svm.latest_blockhash();
+        let msg = solana_message::Message::new_with_blockhash(&[ix], Some(&self.borrower.pubkey()), &blockhash);
+        let tx = solana_transaction::versioned::VersionedTransaction::try_new(
+            solana_message::VersionedMessage::Legacy(msg),
+            &[&self.borrower],
+        )
+        .unwrap();
+        let r = self.h.svm.send_transaction(tx);
+        self.h.svm.expire_blockhash();
+        r.map(|m| m.compute_units_consumed).map_err(|e| format!("{:?}\n{}", e.err, e.meta.logs.join("\n")))
+    }
+}
+
+#[test]
+fn real_proof_flips_the_loan_to_pass_and_unlocks_a_draw() {
+    let mut s = setup(120_000_000_000);
+    assert!(s.draw(SOL).is_err(), "no proof yet, no draw");
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    assert!(s.draw(SOL).unwrap_err().contains("NoRecentRevenue"), "challenge issued but nothing proven");
+    let cu = s.prove_real().unwrap();
+    println!("prove_covenant: {cu} CU");
+    let z: ZkCovenant = s.h.account(&pda(&[b"zk_covenant", s.loan.as_ref()]));
+    assert_eq!(z.status, ZK_PASS);
+    assert_eq!(z.coverage_bps, 13_541);
+    assert_eq!(z.claims, 4);
+    assert_eq!(z.as_of_period, s.as_of);
+    assert_eq!(z.vm_measurement.to_vec(), vm_measurement(&s.proof));
+    assert!(!z.vm_bound, "VoltageGPU's quote vouches for its own report, not NVIDIA's sample");
+    s.draw(2 * SOL).unwrap();
+}
+
+#[test]
+fn an_h100_proof_cannot_back_a_b200_loan() {
+    // Red team: the guest only accepts GH100 (H100/H200) reports, so a B200 loan must not take one.
+    let mut s = setup_sku(include_str!("fixtures/covenant-strong-groth16.json"), 120_000_000_000, false, [0u8; 32], 2);
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    let err = s.prove_real().unwrap_err();
+    assert!(err.contains("GpuSkuMismatch"), "{err}");
+}
+
+#[test]
+fn the_journal_pins_the_one_revenue_source_its_claims_came_from() {
+    // Red team (source not pinned per loan): prove_covenant takes any active revenue source the
+    // authority registered, but the journal commits to the claims' params hash, so a proof only
+    // counts under a source with exactly those params, and only while that source is active.
+    let mut s = setup(120_000_000_000);
+    let payer = s.h.payer.pubkey();
+    let other_id = keccak(b"other-revenue-source");
+    let mut weaker_params = field(&json(include_str!("fixtures/zk-revenue-claims.json")), "paramsHash");
+    weaker_params[0] ^= 1;
+    let set_active = |source_id: [u8; 32], active: bool| {
+        Harness::ix(
+            pct_oracle::instruction::SetSourceActive { active },
+            pct_oracle::accounts::SetSourceActive { authority: payer, config: pda(&[b"config"]), source: pda(&[b"source", &source_id]) },
+        )
+    };
+    s.h.send(&[Harness::ix(
+        pct_oracle::instruction::RegisterSource {
+            args: SourceArgs {
+                source_id: other_id,
+                params_hash: weaker_params.try_into().unwrap(),
+                provider_id: 8,
+                sku: 0,
+                kind: 2,
+                gpu_count: 1,
+                value_mode: 1,
+                requires_nullifier: true,
+            },
+        },
+        pct_oracle::accounts::RegisterSource {
+            authority: payer,
+            config: pda(&[b"config"]),
+            source: pda(&[b"source", &other_id]),
+            system_program: system_program::ID,
+        },
+    )])
+    .unwrap();
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    let (seal, journal) = (field(&s.proof, "seal"), field(&s.proof, "journal"));
+    let err = s.prove_with_source(seal.clone(), journal.clone(), other_id).unwrap_err();
+    assert!(err.contains("ParamsMismatch"), "{err}");
+    let source_id = s.source_id;
+    s.h.send(&[set_active(source_id, false)]).unwrap();
+    let err = s.prove_with_source(seal.clone(), journal.clone(), source_id).unwrap_err();
+    assert!(err.contains("WrongSourceKind"), "{err}");
+    s.h.send(&[set_active(source_id, true)]).unwrap();
+    s.prove_with_source(seal, journal, source_id).unwrap();
+}
+
+#[test]
+fn proof_for_another_challenge_is_refused() {
+    let mut s = setup(120_000_000_000);
+    s.challenge([7u8; 32]);
+    assert!(s.prove_real().unwrap_err().contains("ZkStaleChallenge"));
+}
+
+#[test]
+fn edited_verdict_is_refused() {
+    let mut s = setup(120_000_000_000);
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    let mut journal = field(&s.proof, "journal");
+    let at = journal.len() - 9 - 8; // coverage_bps (u64 LE) sits before claims (u32) and pass (u8)
+    journal[at..at + 8].copy_from_slice(&50_000u64.to_le_bytes());
+    assert!(s.prove(field(&s.proof, "seal"), journal).unwrap_err().contains("BadZkProof"));
+}
+
+#[test]
+fn proof_made_for_other_loan_terms_is_refused() {
+    // A lender whose loan asks for twice the debt service cannot reuse the proof.
+    let mut s = setup(240_000_000_000);
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    assert!(s.prove_real().unwrap_err().contains("ZkTermsMismatch"));
+}
+
+#[test]
+fn proof_is_too_old_once_the_window_moves_on() {
+    let mut s = setup(120_000_000_000);
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    let later = ((s.as_of + 2) as i64) * 604_800 + 60;
+    s.h.set_time(later);
+    assert!(s.prove_real().unwrap_err().contains("NoRecentRevenue"));
+}
+
+/// Journal: 6 words, revenue, coverage, claims, pass, then the VM measurement.
+fn vm_measurement(proof: &Value) -> Vec<u8> {
+    field(proof, "journal")[192 + 21..192 + 53].to_vec()
+}
+
+#[test]
+fn lender_requiring_a_bound_vm_refuses_an_unbound_proof() {
+    let proof = json(include_str!("fixtures/covenant-strong-groth16.json"));
+    let mut s = setup_vm(120_000_000_000, true, vm_measurement(&proof).try_into().unwrap());
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    assert!(s.prove_real().unwrap_err().contains("ZkVmNotBound"));
+}
+
+#[test]
+fn requiring_a_bound_vm_without_pinning_its_image_is_refused() {
+    // Red team: any TDX VM can write any report_data, so "the VM vouched for this GPU report" only
+    // means something when the VM image is pinned to one that writes it honestly.
+    let mut s = setup(120_000_000_000);
+    let payer = s.h.payer.pubkey();
+    let image_id: [u8; 32] = field(&s.proof, "imageId").try_into().unwrap();
+    let err = s
+        .h
+        .send(&[Harness::ix(
+            pct_oracle::instruction::SetZkConfig { image_id, attestor_threshold: 2, require_vm_bound: true, vm_measurement: [0u8; 32] },
+            pct_oracle::accounts::SetZkConfig {
+                authority: payer,
+                config: pda(&[b"config"]),
+                zk_config: pda(&[b"zk_config"]),
+                system_program: system_program::ID,
+            },
+        )])
+        .unwrap_err();
+    assert!(err.contains("BadZkConfig"), "{err}");
+}
+
+#[test]
+fn lender_pinning_another_vm_image_refuses_the_proof() {
+    let mut s = setup_vm(120_000_000_000, false, [9u8; 32]);
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    assert!(s.prove_real().unwrap_err().contains("ZkVmNotBound"));
+}
+
+#[test]
+fn lender_pinning_this_vm_image_accepts_the_proof() {
+    let proof = json(include_str!("fixtures/covenant-strong-groth16.json"));
+    let mut s = setup_vm(120_000_000_000, false, vm_measurement(&proof).try_into().unwrap());
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    s.prove_real().unwrap();
+}
+
+#[test]
+fn the_same_proof_cannot_be_replayed() {
+    let mut s = setup(120_000_000_000);
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    s.prove_real().unwrap();
+    assert!(s.prove_real().unwrap_err().contains("ZkStaleChallenge"));
+}
+
+const FEE: u64 = 1_300_000; // about $0.25 at $190/SOL
+
+#[test]
+fn proof_fee_is_charged_on_pass_and_can_be_withdrawn() {
+    let mut s = setup(120_000_000_000);
+    s.set_fee(FEE);
+    let rent = s.treasury_lamports();
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    s.prove_real().unwrap();
+    assert_eq!(s.treasury_lamports(), rent + FEE);
+    assert!(s.withdraw_fees(FEE + 1).unwrap_err().contains("InsufficientFees"), "the treasury keeps its rent");
+    s.withdraw_fees(FEE).unwrap();
+    assert_eq!(s.treasury_lamports(), rent);
+}
+
+#[test]
+fn proof_fee_is_charged_on_watch_too() {
+    let mut s = setup_with(include_str!("fixtures/covenant-strong-watch114-groth16.json"), 142_500_000_000, false, [0u8; 32]);
+    s.set_fee(FEE);
+    let rent = s.treasury_lamports();
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    s.prove_real().unwrap();
+    let z: ZkCovenant = s.h.account(&pda(&[b"zk_covenant", s.loan.as_ref()]));
+    assert_eq!((z.status, z.coverage_bps), (pct_oracle::instructions::ZK_WATCH, 11_403));
+    assert_eq!(s.treasury_lamports(), rent + FEE);
+    assert!(s.draw(SOL / 100).unwrap_err().contains("CovenantBreached"), "1.14x does not unlock a draw");
+}
+
+#[test]
+fn proof_is_refused_when_the_submitter_cannot_pay_the_fee() {
+    let mut s = setup(120_000_000_000);
+    s.set_fee(1_000_000 * SOL);
+    let nonce = s.gpu_nonce();
+    s.challenge(nonce);
+    assert!(s.prove_real().is_err());
+    let z: ZkCovenant = s.h.account(&pda(&[b"zk_covenant", s.loan.as_ref()]));
+    assert_eq!(z.status, pct_oracle::instructions::ZK_NONE);
+}
+
+#[test]
+fn only_the_authority_sets_the_fee() {
+    let mut s = setup(120_000_000_000);
+    let other = Keypair::new();
+    s.h.svm.airdrop(&other.pubkey(), SOL).unwrap();
+    let ix = Harness::ix(
+        pct_oracle::instruction::SetProofFee { fee_lamports: 0 },
+        pct_oracle::accounts::SetProofFee {
+            authority: other.pubkey(),
+            config: pda(&[b"config"]),
+            zk_config: pda(&[b"zk_config"]),
+            treasury: pda(&[b"treasury"]),
+            system_program: system_program::ID,
+        },
+    );
+    let blockhash = s.h.svm.latest_blockhash();
+    let msg = solana_message::Message::new_with_blockhash(&[ix], Some(&other.pubkey()), &blockhash);
+    let tx = solana_transaction::versioned::VersionedTransaction::try_new(solana_message::VersionedMessage::Legacy(msg), &[&other]).unwrap();
+    let err = s.h.svm.send_transaction(tx).unwrap_err();
+    assert!(err.meta.logs.join("\n").contains("Unauthorized"));
+}
