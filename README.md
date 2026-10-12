@@ -1,9 +1,9 @@
-# Ironproof
+# Plumbline
 
-**Ironproof gives lenders who finance GPU fleets a checkable proof behind each draw.** GPU-backed private credit (lenders
+**Plumbline gives lenders who finance GPU fleets a checkable proof behind each draw.** GPU-backed private credit (lenders
 such as USD.AI, GAIB and Compute Labs) today relies on warranties, site audits and PDF revenue
 statements to know that the collateral is real hardware and that it earns enough to service the
-debt. With Ironproof an operator produces one zero-knowledge proof per period that says: the GPU that
+debt. With Plumbline an operator produces one zero-knowledge proof per period that says: the GPU that
 answered the lender's challenge is a genuine NVIDIA H100 (its own attestation, chain-verified to NVIDIA's root), this is the Intel TDX
 confidential VM it reports from (the lender can require the two to be bound; the demo cannot, see
 below), and the fleet's revenue over the covenant window, proven from the
@@ -12,7 +12,7 @@ payment processor with zkTLS (Reclaim), covers debt service by at least the loan
 records PASS or WATCH on the loan, and gates draws on it. Anyone can check a loan at
 `/loan/<address>`, embed `/badge/<address>.svg`, or read `/api/loan/<address>`.
 
-Naming: the product is **Ironproof**. `paid-compute-tape` (repo), `PCT` (`@pct/*` packages,
+Naming: the product is **Plumbline**. `paid-compute-tape` (repo), `PCT` (`@pct/*` packages,
 `pct_oracle`, `PCT_*` env vars) is the internal code prefix from the project's first form, an
 H100 price tape, which still exists as a by-product (`/tape`).
 
@@ -26,7 +26,7 @@ Entry for the Colosseum Crypto World's Fair hackathon (submissions due 2026-10-1
 - **Run it yourself:** one command, `npm run zk:local`, against a local validator with the same binary, then `npm run web` to see the pages ([Quickstart](#quickstart), about 5 minutes, no keypair or SOL).
 - **Check it without Solana:** `cd zk && cargo test` verifies NVIDIA's H100 certificate chain (P-384) and the TDX quote natively, and parses a raw H200 report without verifying its signature (23 tests, about 30 s once crates are cached); `npm install && npm test` runs the TypeScript suite.
 - **Read first:** [What runs on sample data](#what-runs-on-sample-data). Every input in the demo is a published sample or a test key; the verifier, the program and the proofs are real.
-- **Who it is for:** [First facility](docs/first-facility.md) maps USD.AI's public GPU loan book to what a weekly proof would add, including the 92% of it on Blackwell that Ironproof has not tested.
+- **Who it is for:** [First facility](docs/first-facility.md) maps USD.AI's public GPU loan book to what a weekly proof would add, including the 92% of it on Blackwell that Plumbline has not tested.
 - **Code worth reading:** `zk/lib/src/gpu.rs` (NVIDIA chain), `oracle/programs/pct_oracle/src/risc0_groth16.rs` (Groth16 on alt_bn128), `oracle/programs/pct_oracle/src/instructions/zk.rs` (challenge, covenant, fee, draw gate).
 
 | PASS loan, draw allowed | WATCH loan, draw refused |
@@ -196,7 +196,7 @@ The `Dockerfile` runs `packages/web` (site, verify pages, badges, lead form) on 
 ```bash
 npm i -g @railway/cli
 railway login
-railway init --name ironproof
+railway init --name plumbline
 railway up --detach                  # first deploy creates the service
 railway service                      # link it (pick the service just created)
 railway variables --set "SOLANA_RPC_URL=https://api.devnet.solana.com" --set "PCT_PROGRAM_ID=2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz" --set "PCT_EVIDENCE=public" --set "LEADS_FILE=/data/leads.jsonl"

@@ -1,13 +1,13 @@
 # First facility: what a weekly proof would add to USD.AI's public loan book
 
-This page maps every funded position in USD.AI's public loan book to what a weekly Ironproof proof
+This page maps every funded position in USD.AI's public loan book to what a weekly Plumbline proof
 would add, and to what is still missing for it. The data was read on Oct 12, 2026 from USD.AI's own
-API. Ironproof is not affiliated with USD.AI, and nothing here was sent to them. Borrower names are
+API. Plumbline is not affiliated with USD.AI, and nothing here was sent to them. Borrower names are
 left out; positions are identified by the API's own ids. Lines marked *[inf]* are our inference.
 
 ## The honest gap first
 
-**92% of the funded book is Blackwell** (B200, B300, DGX B300 and RTX PRO 6000 GPUs). Ironproof's GPU
+**92% of the funded book is Blackwell** (B200, B300, DGX B300 and RTX PRO 6000 GPUs). Plumbline's GPU
 check has only been run on NVIDIA's published sample **H100** report. The two H200 positions, about 8%
 of the book, are Hopper, the same family as the tested H100 path. Even those have not been run with a
 real H200 report signed against a lender's challenge *[inf]*. Every Blackwell row below is therefore
@@ -19,7 +19,7 @@ blocked on an attestation path that has not been tested.
   558 servers and 4,536 GPUs listed (sum of `remainingAmount` in `proof-of-reserves`).
 - USD.AI publishes the covenant a proof would test: "Loans are monitored quarterly against a minimum
   1.15x debt service coverage ratio (DSCR)", tested against trailing cash receipts
-  ([underwriting page](https://usd.ai/insights/usdai-underwriting-and-risk-management)). Ironproof runs
+  ([underwriting page](https://usd.ai/insights/usdai-underwriting-and-risk-management)). Plumbline runs
   the same kind of test weekly, with the ratio set as a loan term.
 - Public telemetry lists servers and GPU counts. It shows neither chip identity nor revenue.
 - **Best first fit: the H200 [75] position in Missouri** (`26472cfd`, $14.08M outstanding, about $141k

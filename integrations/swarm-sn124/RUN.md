@@ -13,6 +13,8 @@ network, and Swarm has not reviewed or adopted it.
   [`DIFFSTAT.txt`](DIFFSTAT.txt) has the counts: +30/−3 lines in three of Swarm's existing files and a new
   331-line `swarm/ironproof/` package.
 - **Flag:** every behavioural change is behind `SWARM_IRONPROOF=1`. With it unset, Swarm runs as before.
+- **Naming:** the patch was written when the product was called Ironproof, so its identifiers
+  (`swarm/ironproof/`, `SWARM_IRONPROOF`, `IRONPROOF_SCORER_PATH`) keep that name.
 
 ## What it changes
 Today a whitelisted validator receives each epoch's seed key from Swarm's backend and derives the
@@ -23,7 +25,7 @@ the enclave. Seeds are derived, flown and scored with Swarm's own `evaluate_roll
 and each result goes back with a quote-bound per-seed report. Weights still come from Swarm's own KotH
 combine and `set_weights`.
 
-**Not runnable from this repository alone.** The patch imports Ironproof's scorer package
+**Not runnable from this repository alone.** The patch imports Plumbline's scorer package
 (`subnet-scorer`: the key server, the enclave app, the quote and report verifiers) from
 `IRONPROOF_SCORER_PATH`. That package is the attested-scoring prototype, and it is not in this
 repository yet, so a reviewer can read the patch and its tests but cannot rerun them from here.

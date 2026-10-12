@@ -4,7 +4,8 @@
 set -euo pipefail
 old="$1"; new="$2"; lo_old=$(echo "$old" | tr '[:upper:]' '[:lower:]'); lo_new=$(echo "$new" | tr '[:upper:]' '[:lower:]')
 cd "$(dirname "$0")/.."
-files=$(git ls-files README.md LICENSE Dockerfile scripts/devnet-go.ps1 'packages/web/public/*.html' 'packages/web/public/*.js' 'packages/web/src/*.ts' | xargs grep -l "$old" || true)
+# Only the capitalised product name: lower/upper-case forms are identifiers (env vars, package and file names).
+files=$(git ls-files README.md LICENSE Dockerfile scripts/devnet-go.ps1 'docs/*.md' 'packages/web/public/*.html' 'packages/web/public/**/*.html' 'packages/web/public/*.js' 'packages/web/src/*.ts' 'integrations/*/RUN.md' | xargs grep -l "$old" || true)
 for f in $files; do sed -i "s/$old/$new/g" "$f"; done
 sed -i "s/railway init --name $lo_old\b/railway init --name $lo_new/" README.md
 echo "renamed $old -> $new in:"; echo "$files"
