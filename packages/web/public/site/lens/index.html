@@ -37,7 +37,7 @@
     <p class="eyebrow">For lenders financing GPU fleets, and the operators who borrow against them</p>
     <h1 id="hero-h" class="display reveal">Release the draw on a proof, not a PDF.</h1>
     <p class="lede">A lender funding a GPU fleet cannot check the collateral or the revenue behind the loan: it gets a telemetry box, a monthly PDF and a spreadsheet. With Plumbline the operator submits one zero-knowledge proof per period: the GPU that answered the lender's fresh challenge is genuine NVIDIA hardware, and the operator's revenue covers debt service. A Solana program checks the proof and approves or refuses the next draw. Anyone can verify the result; individual payouts stay private.</p>
-    <p class="hook">A $16.6M loan, one proof a week: <em>$16,600 a year at 10 bps plus a facility fee.</em> USD.AI already pays 150 bps, $249,000 a year, for the warranty on the same loan. Verifying is free.</p>
+    <p class="hook">A $50M facility, one proof a week: <em>about $50k a year at 10 bps,</em> plus onboarding from $15k (free for design partners' first facility). USD.AI already pays 150 bps, $750,000 a year on a loan that size, for a warranty. Operators prove free; verifying is free.</p>
     <p class="fine">Status: runs end to end on a local Solana validator; devnet deploy pending. The demo uses NVIDIA's public sample GPU report and revenue signed by test attestor keys.</p>
     <div class="row">
       <a class="btn btn-gold" href="#request">Prove your fleet</a>
@@ -148,19 +148,20 @@
 
 <section class="sec price" aria-labelledby="pr-h">
   <p class="eyebrow">Pricing</p>
-  <h2 id="pr-h" class="display-2 reveal">Planned: a facility fee plus 5 to 15 bps a year on the loan. Verifying is free.</h2>
+  <h2 id="pr-h" class="display-2 reveal">Planned: the lender pays from $15k per facility, then 10 bps a year. Proving and verifying are free.</h2>
   <div class="calc">
     <div class="calc-in">
-      <label for="loan">Loan size <output id="loan-out" for="loan">$16.6M</output></label>
-      <input type="range" id="loan" min="1" max="100" step="0.1" value="16.6">
-      <p class="fine">Planned pricing: a facility fee plus 5 to 15 basis points a year on the loan, weekly proofs included, paid by the lender or passed to the borrower in the loan terms. Today the program charges one flat fee on every proof (0.0013 SOL of test SOL in the devnet demo). Verifying is free.</p>
+      <label for="loan">Loan size <output id="loan-out" for="loan">$50.0M</output></label>
+      <input type="range" id="loan" min="1" max="100" step="0.1" value="50">
+      <p class="fine">Planned pricing for design partners: the lender pays. Onboarding per facility (device registration, source pinning, covenant setup) from $15k, then 10 basis points a year on outstanding principal, minimum $1 per GPU per month, weekly proofs included. Design partners get their first facility free during the pilot. Operators prove free; anyone verifies free. Today the onchain program charges one flat fee on every proof (0.0013 SOL of test SOL on devnet).</p>
     </div>
     <div class="calc-out" aria-live="polite">
       <div class="stack" id="stack" aria-hidden="true"></div>
       <dl>
-        <div><dt>At 10 bps, per year, plus the facility fee</dt><dd id="bps">$16,600</dd></div>
-        <div><dt>USD.AI's value warranty on the same loan, 150 bps a year (its published cost)</dt><dd id="war">$249,000</dd></div>
-        <div><dt>Verify pages, badges, read API</dt><dd>Free</dd></div>
+        <div><dt>Onboarding, per facility (first facility free for design partners)</dt><dd>From $15,000</dd></div>
+        <div><dt>At 10 bps a year on outstanding principal (minimum $1 per GPU per month)</dt><dd id="bps">$50,000</dd></div>
+        <div><dt>USD.AI's value warranty on the same loan, 150 bps a year (its published cost)</dt><dd id="war">$750,000</dd></div>
+        <div><dt>Proving for operators; verify pages, badges, read API</dt><dd>Free</dd></div>
       </dl>
     </div>
   </div>
@@ -186,7 +187,7 @@
     <details><summary>Is this live?</summary><div><p>Not on a public cluster yet. The program, the lending flow and the proof check run end to end on a local Solana validator; the devnet deploy is pending. Mainnet comes after an audit of the verifier program, which was written in the hackathon window.</p></div></details>
     <details><summary>What evidence does the devnet demo use?</summary><div><p>NVIDIA's published sample H100 report and VoltageGPU's published H200 TDX quote, both chain-verified to their roots, and revenue claims signed by two test attestor keys. The demo sets the lender's challenge to the nonce already in the sample report, and the TDX quote is not bound to that GPU. A report signed against a fresh challenge inside our own enclave is the next step.</p></div></details>
     <details><summary>What goes onchain, and what stays private?</summary><div><p>Public: PASS or WATCH, coverage in basis points, the total revenue for the covenant window (in the proof's public values), the number of payout claims, a hash of the chip id and firmware measurements, the enclave measurement, the challenge, period and attestor-set hash. Coverage times debt service gives the total too. Private: individual payout amounts, payout ids, tenants, prices and the raw GPU and enclave evidence never leave the operator's machine.</p></div></details>
-    <details><summary>Who pays?</summary><div><p>Planned pricing: a facility fee plus 5 to 15 basis points a year on the loan, weekly proofs included, paid by the lender or passed to the borrower in the loan terms. Today the program charges one flat fee on every proof (0.0013 SOL of test SOL in the devnet demo). Verifying is free.</p></div></details>
+    <details><summary>Who pays?</summary><div><p>Planned pricing for design partners: the lender pays. Onboarding per facility (device registration, source pinning, covenant setup) from $15k, then 10 basis points a year on outstanding principal, minimum $1 per GPU per month, weekly proofs included. Design partners get their first facility free during the pilot. Operators prove free; anyone verifies free. Today the onchain program charges one flat fee on every proof (0.0013 SOL of test SOL on devnet).</p></div></details>
     <details><summary>How long does a proof take?</summary><div><p>97 to 108 minutes on a 4-core, 15 GB cloud VM, including the Groth16 wrap. A fleet proves once a week, so this runs in the background.</p></div></details>
     <details><summary>What do I still have to trust?</summary><div><p>NVIDIA's and Intel's root certificates, the revenue attestors not colluding (the demo uses two test keys held by the developer), Intel TCB status, QE identity and CRLs (not yet checked in the guest), and the RISC Zero prover and our Groth16 verifier program, which is not yet audited.</p></div></details>
   </div>
@@ -210,7 +211,7 @@
       <li><b>A public verify page</b><span>PASS or WATCH, coverage, chip and enclave measurements, the proof transaction.</span></li>
       <li><b>An embeddable badge</b><span>/badge/&lt;address&gt;.svg for any lender or vault page.</span></li>
       <li><b>A JSON endpoint</b><span>/api/loan/&lt;address&gt; under the page.</span></li>
-      <li><b>Pricing</b><span>Planned: a facility fee plus 5 to 15 bps a year on the loan. Today a flat fee per proof (0.0013 SOL of test SOL in the devnet demo).</span></li>
+      <li><b>Pricing</b><span>Planned, for design partners: the lender pays onboarding from $15k per facility (first facility free during the pilot), then 10 bps a year on outstanding principal, minimum $1 per GPU per month. Operators prove free. Today a flat fee per proof (0.0013 SOL of test SOL on devnet).</span></li>
     </ul>
   </div>
 </section>

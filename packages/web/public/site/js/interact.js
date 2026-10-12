@@ -30,7 +30,7 @@
     }
   }
 
-  /* Pricing: a facility fee plus 5 to 15 bps a year (planned; the program charges a flat fee per proof), shown at 10 bps next to USD.AI's published 150 bps warranty. Slider is in $M. */
+  /* Pricing (planned, lender pays; the program charges a flat fee per proof today): onboarding from $15k per facility, then 10 bps a year on outstanding principal, minimum $1 per GPU per month. Shown at 10 bps next to USD.AI's published 150 bps warranty. Slider is in $M. */
   var loan = document.getElementById('loan');
   if (loan) {
     var usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 0 });
