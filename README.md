@@ -20,6 +20,7 @@ Entry for the Colosseum Crypto World's Fair hackathon (submissions due 2026-10-1
 ## For judges (60 seconds)
 
 - **What ran:** the exact `oracle/dist/pct_oracle.so` on a local validator (Oct 12). Both Groth16 proofs verified onchain (117,789 and 117,790 CU), the draw at 1.15x was approved, the draw at 1.14x was refused (`CovenantBreached`, 6019), and the replayed proof was refused (`ZkStaleChallenge`, 6027). Output: [`demo/local-validator-run.json`](demo/local-validator-run.json) and [`.log`](demo/local-validator-run.log); their explorer links point at `127.0.0.1:8899`, so they open only on the machine that ran the validator. Devnet links replace this when the deploy lands.
+- **Run it yourself:** a local validator with the same binary, then `npm run zk:local` and `npm run web` ([Quickstart](#quickstart), about 5 minutes, no keypair or SOL).
 - **Check it without Solana:** `cd zk && cargo test` verifies NVIDIA's H100 certificate chain (P-384) and the TDX quote natively (20 tests, about 30 s once crates are cached); `npm install && npm test` runs the TypeScript suite.
 - **Read first:** [What runs on sample data](#what-runs-on-sample-data). Every input in the demo is a published sample or a test key; the verifier, the program and the proofs are real.
 - **Code worth reading:** `zk/lib/src/gpu.rs` (NVIDIA chain), `oracle/programs/pct_oracle/src/risc0_groth16.rs` (Groth16 on alt_bn128), `oracle/programs/pct_oracle/src/instructions/zk.rs` (challenge, covenant, fee, draw gate).
@@ -118,15 +119,29 @@ npm test                 # vitest, all TypeScript packages
 npm run typecheck
 ```
 
-**Local validator end to end** (Linux or WSL with the Agave 3.1 CLI; details in `oracle/README.md`):
+**Local validator end to end** (Linux, macOS or WSL; about 5 minutes from a fresh clone). Needs the
+Agave 3.1 CLI: `sh -c "$(curl -sSfL https://release.anza.xyz/v3.1.14/install)"`, or, if that host is
+unreachable, unpack
+[the same release from GitHub](https://github.com/anza-xyz/agave/releases/download/v3.1.14/solana-release-x86_64-unknown-linux-gnu.tar.bz2)
+and put its `bin/` on your `PATH`. No keypair or SOL needed: the scripts airdrop to a fixed local authority.
 
 ```bash
+# terminal 1: the exact devnet binary, at its devnet program id
 solana-test-validator --reset --limit-ledger-size 50000000 \
   --bpf-program 2jvEsAiBYWPeiSzb54qMgBbtbQivQkK5ZiTkp2bgZ6kz oracle/dist/pct_oracle.so
-npm run oracle:e2e       # price sources, fixture claims, replay refused, index cranked to $2.49
-npm run lending:e2e      # open and fund a loan, prove revenue, draw, replay refused, weak week refused
-SOLANA_RPC_URL=http://127.0.0.1:8899 npm run web   # http://localhost:8787
+
+# terminal 2, from the repo root
+npm run zk:local         # the product: two Groth16 proofs verified (~118k CU each), 1.15x draw approved,
+                         # 1.14x draw refused (CovenantBreached), replayed proof refused (ZkStaleChallenge)
+npm run lending:e2e      # optional, the earlier transparent flow: per-claim revenue proofs gate draws
+npm run oracle:e2e       # optional, the H100 price tape: fixture claims, replay refused, index $2.49
+SOLANA_RPC_URL=http://127.0.0.1:8899 npm run web   # http://localhost:8787, then open /lender
 ```
+
+`zk:local` writes `zk-devnet-demo.json` with every loan address and transaction. `/lender` lists
+every loan on the program; each has a verify page (`/loan/<address>`), a badge and a JSON endpoint.
+The three scripts run in any order. The committed proofs are accepted until 2026-10-15 00:00 UTC
+(see [What runs on sample data](#what-runs-on-sample-data)).
 
 Rust tests: `cargo test` in `oracle/` (LiteSVM, needs `cargo build-sbf` first) and in `zk/`.
 Proving: see [`zk/README.md`](zk/README.md).
