@@ -3,7 +3,7 @@
  * from USD.AI's docs or its loan-router repository (deployments/arbitrum.json); see
  * strategy/credit-monitor-feasibility.md for how each was verified.
  */
-export const USER_AGENT = "Plumbline-credit-monitor/0.1 (+https://github.com/let-the-dreamers-rise/paid-compute-tape)";
+export const USER_AGENT = "Plumbline-credit-monitor/0.1 (+https://github.com/let-the-dreamers-rise/plumbline)";
 
 export const ARBITRUM_RPC = "https://arb1.arbitrum.io/rpc";
 export const ARBISCAN = "https://arbiscan.io";

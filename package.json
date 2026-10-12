@@ -1,5 +1,5 @@
 {
-  "name": "paid-compute-tape",
+  "name": "plumbline",
   "private": true,
   "type": "module",
   "workspaces": [
