@@ -20,10 +20,13 @@ Entry for the Colosseum Crypto World's Fair hackathon (submissions due 2026-10-1
 
 ## For judges (60 seconds)
 
+![Card, PASS verify page, WATCH verify page and badges from the local-validator run](docs/img/demo.gif)
+
 - **What ran:** the exact `oracle/dist/pct_oracle.so` on a local validator (Oct 12). Both Groth16 proofs verified onchain (117,789 and 117,790 CU), the draw at 1.15x was approved, the draw at 1.14x was refused (`CovenantBreached`, 6019), and the replayed proof was refused (`ZkStaleChallenge`, 6027). Output: [`demo/local-validator-run.json`](demo/local-validator-run.json) and [`.log`](demo/local-validator-run.log); their explorer links point at `127.0.0.1:8899`, so they open only on the machine that ran the validator. Devnet links replace this when the deploy lands.
-- **Run it yourself:** a local validator with the same binary, then `npm run zk:local` and `npm run web` ([Quickstart](#quickstart), about 5 minutes, no keypair or SOL).
-- **Check it without Solana:** `cd zk && cargo test` verifies NVIDIA's H100 certificate chain (P-384) and the TDX quote natively (20 tests, about 30 s once crates are cached); `npm install && npm test` runs the TypeScript suite.
+- **Run it yourself:** one command, `npm run zk:local`, against a local validator with the same binary, then `npm run web` to see the pages ([Quickstart](#quickstart), about 5 minutes, no keypair or SOL).
+- **Check it without Solana:** `cd zk && cargo test` verifies NVIDIA's H100 certificate chain (P-384) and the TDX quote natively (22 tests, about 30 s once crates are cached); `npm install && npm test` runs the TypeScript suite.
 - **Read first:** [What runs on sample data](#what-runs-on-sample-data). Every input in the demo is a published sample or a test key; the verifier, the program and the proofs are real.
+- **Who it is for:** [First facility](docs/first-facility.md) maps USD.AI's public GPU loan book to what a weekly proof would add, including the 92% of it on Blackwell that Ironproof has not tested.
 - **Code worth reading:** `zk/lib/src/gpu.rs` (NVIDIA chain), `oracle/programs/pct_oracle/src/risc0_groth16.rs` (Groth16 on alt_bn128), `oracle/programs/pct_oracle/src/instructions/zk.rs` (challenge, covenant, fee, draw gate).
 
 | PASS loan, draw allowed | WATCH loan, draw refused |
