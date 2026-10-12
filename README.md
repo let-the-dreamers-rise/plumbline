@@ -181,15 +181,59 @@ regenerated proofs first (`zk/README.md`).
 | --- | --- |
 | `zk/` | RISC Zero guest, shared verification library, host, fixtures and committed Groth16 proofs. [`zk/README.md`](zk/README.md) |
 | `oracle/` | Anchor program `pct_oracle` (oracle, lending, Groth16 verifier), LiteSVM tests, prebuilt `dist/pct_oracle.so`. [`oracle/README.md`](oracle/README.md) |
-| `packages/web` | Site and dashboard read straight from Solana: product page (`/`), prove (`/prove`), docs (`/docs`), lender view (`/lender`), price tape (`/tape`), verify page (`/loan/<address>`), badge (`/badge/<address>.svg`), JSON (`/api/loan/<address>`, `/api/loans`, `/api/state`), lead form (`POST /api/lead`). `PCT_EVIDENCE` defaults to `public` (proofs use the published sample evidence); set `own` only for proofs made against the loan's own challenge. |
+| `packages/web` | Site and dashboard read straight from Solana: product page (`/`), prove (`/prove`), docs (`/docs`), lender view (`/lender`), price tape (`/tape`), verify page (`/loan/<address>`), badge (`/badge/<address>.svg`), JSON (`/api/loan/<address>`, `/api/loans`, `/api/state`), lead form (`POST /api/lead`), GPU Credit Monitor (`/monitor`, `/api/monitor`). `PCT_EVIDENCE` defaults to `public` (proofs use the published sample evidence); set `own` only for proofs made against the loan's own challenge. |
 | `packages/oracle` | TS client for the program: price proofs, loans, revenue proofs, zk instructions, draws; CLIs `oracle:*`, `loan:*`. |
 | `packages/prover` | zkFetch source specs and request builder (secrets stay private, only the captured spans are revealed, account ids OPRF-hashed), proof checks, CLIs. |
+| `packages/monitor` | GPU Credit Monitor: reads USD.AI's loan book from Arbitrum and public GPU prices, writes `data/monitor/latest.json` (`npm run monitor:snapshot`). |
+| `data/` | Committed monitor snapshots (`data/monitor/`) and the daily GPU price archive (`data/gpu-prices/YYYY-MM-DD.json`). |
 | `packages/core` | Price index math, the reference for the onchain books. |
 | `packages/relayer` | Pushes the onchain index to a Hyperliquid HIP-3 market (`hl:deploy`, `hl:relay`). |
 | `sources/` | One JSON spec per provable price source; `example-invoice.json` shows the format. |
 | `scripts/` | Fixture generators (`make-*-fixtures.ts`), local e2e runs, the devnet demo (`zk-devnet-demo.ts`), `devnet-go.ps1`. |
 | `integrations/swarm-sn124/` | Pilot patch for Swarm's (Bittensor SN124) validator, against upstream commit `38b36a2`: with `SWARM_IRONPROOF=1` the seed key is sealed to an attested TDX enclave that scores. Tested against a mock backend, not live. [`RUN.md`](integrations/swarm-sn124/RUN.md) |
 | `proofs/` | Generated proofs (git-ignored). |
+
+## GPU Credit Monitor
+
+A free public page, `/monitor` (JSON at `/api/monitor`), for depositors and risk curators of onchain
+GPU lenders. It needs nobody's cooperation: it starts with USD.AI on Arbitrum and reads only public data.
+
+- **Loans:** `LoanOriginated`, `LoanMigrated`, `LoanRefinanced`, `LoanRepaid`, `LoanBreached` and
+  `LoanLiquidated` from both USD.AI routers (v1 `0x0C2E…97D1` and LoanRouterV2 `0x1C2E…E12f`) over the
+  public RPC `arb1.arbitrum.io/rpc`, in 10M-block windows, then `loanState(hash)` for status and repayment
+  count. Terms (principal, per-second tranche rates, term, borrower, collateral token ids) come from the
+  event when it carries them, and otherwise from the origination calldata (found inside ERC-4337
+  `handleOps` by its selector); a loan whose terms cannot be decoded is listed as a gap.
+- **Collateral:** `tokenURI(id)` on the Tokenized Hardware NFT, then `metadata.usd.ai/v1/{id}` for GPU
+  model, server count, stated value and useful life. Location, offtake code and the app's all-in APR
+  come from `app.usd.ai/loans` when that page still parses; if it does not, those fields are blank.
+- **Prices:** Vast.ai offers, RunPod list prices and Akash's console median, with no key. Per model
+  (H100, H200, B200, B300, GB200, RTX PRO 6000): each source's median, then the median across sources.
+  Each run writes `data/gpu-prices/YYYY-MM-DD.json`, so a price history builds up from day one.
+- **Per loan:** debt service per GPU-hour (a level monthly payment amortizing the principal at its APR
+  over its term, spread over every GPU and 730 hours a month), breakeven utilization (debt service ÷
+  market price), coverage at an assumed utilization (default 70%), how far rents can fall before
+  coverage reaches 1x, stated LTV and an LTV with the collateral depreciated straight line over 5 years,
+  days to maturity, and repayments made against the months elapsed.
+- **Book:** principal outstanding, top-borrower share, share by GPU model and by location, and flags
+  (breakeven above 80%, behind on repayments, breached, past maturity).
+
+```bash
+npm run monitor:snapshot                                   # defaults: 70% utilization, 5-year depreciation, no opex
+npm run monitor:snapshot -- --utilization=0.6 --depreciation-years=4 --opex=0.4
+```
+
+It writes `data/monitor/latest.json` and a dated copy. Every number carries a `source`: an Arbiscan
+tx link, a metadata URL, the price archive file, or `derived:` with the formula and its inputs.
+Closed log windows, transactions and block times are cached in `.cache/monitor/` (git-ignored), so a
+daily run makes about a dozen RPC calls plus one metadata read per collateral token. Requests send a
+`Plumbline-credit-monitor` User-Agent. The committed snapshot (block 514,179,553, Oct 12, 2026) lets
+the page work offline.
+
+These are estimates. Market prices are on-demand list prices, not the borrowers' offtake contracts;
+coverage is gross of opex unless `--opex` is set; GPUs per server are assumed (8, or 72 per GB200
+NVL72 rack); the APR is the lender tranche rate, without USD.AI's fees. Not financial advice, and not
+affiliated with USD.AI. Plumbline is what turns the estimated coverage into a proven one.
 
 ## Hosting the site
 

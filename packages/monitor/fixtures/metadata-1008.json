@@ -1,0 +1,32 @@
+{
+  "name": "B300 [130]",
+  "description": "Server Portfolio of NVIDIA B300s",
+  "image": "https://zggcmphqypwbbvpexdet.supabase.co/storage/v1/object/public/usdai_assets/collateral/60addd263aff9a549c8fdbea42b77f83.png",
+  "attributes": [
+    {
+      "trait_type": "Collateral Value USD",
+      "value": 77720676.36,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Useful Life (days)",
+      "value": 1095,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Depreciation Start",
+      "value": "On Borrow",
+      "display_type": "string"
+    },
+    {
+      "trait_type": "Manufacturer",
+      "value": "Supermicro",
+      "display_type": "string"
+    },
+    {
+      "trait_type": "Quantity",
+      "value": 130,
+      "display_type": "number"
+    }
+  ]
+}

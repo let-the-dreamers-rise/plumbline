@@ -1,0 +1,102 @@
+{
+  "offers": [
+    {
+      "gpu_name": "RTX PRO 6000 S",
+      "num_gpus": 1,
+      "dph_total": 1.4503703703703705,
+      "id": 54163789,
+      "rentable": true
+    },
+    {
+      "gpu_name": "H100 SXM",
+      "num_gpus": 2,
+      "dph_total": 3.575555555555556,
+      "id": 44302085,
+      "rentable": true
+    },
+    {
+      "gpu_name": "RTX PRO 6000 S",
+      "num_gpus": 1,
+      "dph_total": 1.537925925925926,
+      "id": 44623535,
+      "rentable": true
+    },
+    {
+      "gpu_name": "B200",
+      "num_gpus": 1,
+      "dph_total": 6.252083333333333,
+      "id": 51577281,
+      "rentable": true
+    },
+    {
+      "gpu_name": "RTX PRO 6000 S",
+      "num_gpus": 1,
+      "dph_total": 1.4711111111111113,
+      "id": 55013905,
+      "rentable": true
+    },
+    {
+      "gpu_name": "RTX PRO 6000 S",
+      "num_gpus": 2,
+      "dph_total": 2.8022222222222224,
+      "id": 53350983,
+      "rentable": true
+    },
+    {
+      "gpu_name": "RTX PRO 6000 S",
+      "num_gpus": 2,
+      "dph_total": 2.937777777777778,
+      "id": 55013904,
+      "rentable": true
+    },
+    {
+      "gpu_name": "H100 NVL",
+      "num_gpus": 1,
+      "dph_total": 2.3355555555555556,
+      "id": 33610860,
+      "rentable": true
+    },
+    {
+      "gpu_name": "RTX PRO 6000 S",
+      "num_gpus": 1,
+      "dph_total": 1.4736888888888886,
+      "id": 47972964,
+      "rentable": true
+    },
+    {
+      "gpu_name": "B200",
+      "num_gpus": 8,
+      "dph_total": 60.01041666666667,
+      "id": 51062142,
+      "rentable": true
+    },
+    {
+      "gpu_name": "RTX PRO 6000 S",
+      "num_gpus": 4,
+      "dph_total": 6.66962962962963,
+      "id": 48441830,
+      "rentable": true
+    },
+    {
+      "gpu_name": "H100 NVL",
+      "num_gpus": 1,
+      "dph_total": 3.028888888888881,
+      "id": 55584945,
+      "rentable": true
+    },
+    {
+      "gpu_name": "B200",
+      "num_gpus": 1,
+      "dph_total": 7.360416666666667,
+      "id": 55557510,
+      "rentable": true
+    },
+    {
+      "gpu_name": "B200",
+      "num_gpus": 2,
+      "dph_total": 14.710416666666665,
+      "id": 55557503,
+      "rentable": true
+    }
+  ]
+}

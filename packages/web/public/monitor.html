@@ -1,0 +1,243 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>GPU Credit Monitor · Plumbline</title>
+<meta name="description" content="Free public monitor of USD.AI's onchain GPU loan book: debt service per GPU-hour against public rental prices, breakeven utilization, coverage, LTV and concentration. Estimates from public data.">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Plumbline">
+<meta property="og:title" content="GPU Credit Monitor · Plumbline">
+<meta property="og:description" content="USD.AI's onchain GPU loan book, priced against public GPU rental rates. Every number links to its source.">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="GPU Credit Monitor · Plumbline">
+<meta name="twitter:description" content="USD.AI's onchain GPU loan book, priced against public GPU rental rates. Every number links to its source.">
+<style>
+:root {
+  --bg: #f4f2ec; --surface: #fffdf8; --sunken: #ebe8df; --ink: #1b1d20; --muted: #63666b; --rule: #d8d4c8;
+  --paid: #a35a00; --posted: #6f7c88; --good: #24733f; --warn: #8a6500; --bad: #b0322a; --focus: #1f5fbf;
+  --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+  --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root { --bg: #111417; --surface: #181c20; --sunken: #0c0f11; --ink: #e6e8e4; --muted: #9aa1a7; --rule: #2b3238;
+    --paid: #eca447; --posted: #8a98a4; --good: #5cc283; --warn: #d8b54c; --bad: #ee6a5f; --focus: #7fb0ff; }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.5 var(--sans); }
+.wrap { max-width: 72rem; margin: 0 auto; padding: 24px 16px 64px; }
+a { color: var(--paid); }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+header { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px 16px; border-bottom: 2px solid var(--ink); padding-bottom: 12px; }
+h1 { margin: 0; font-size: 1.1rem; letter-spacing: .08em; text-transform: uppercase; }
+nav { display: flex; flex-wrap: wrap; gap: 4px 14px; font: 600 12px var(--mono); letter-spacing: .06em; text-transform: uppercase; }
+nav a { color: var(--muted); text-decoration: none; } nav a:hover, nav a[aria-current] { color: var(--paid); }
+.meta { font: 12px var(--mono); color: var(--muted); }
+h2 { font-size: .8rem; letter-spacing: .1em; text-transform: uppercase; margin: 36px 0 10px; }
+h3 { margin: 0 0 6px; font-size: 1rem; }
+p { margin: 0 0 10px; max-width: 66ch; }
+.grid { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.card { background: var(--surface); border: 1px solid var(--rule); padding: 16px; min-width: 0; }
+.k { font: 11px var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.big { font: 700 2.4rem/1.1 var(--mono); font-variant-numeric: tabular-nums; margin-top: 6px; }
+.big small { font-size: .9rem; font-weight: 400; color: var(--muted); }
+.chip { display: inline-block; font: 600 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; padding: 2px 6px; border: 1px solid currentColor; }
+.good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); } .mutedc { color: var(--muted); }
+.sub { font-size: .88rem; color: var(--muted); margin-top: 6px; }
+.btn { display: inline-block; font: 600 13px var(--mono); letter-spacing: .04em; text-transform: uppercase; padding: 10px 14px; border: 1px solid var(--ink); color: var(--ink); text-decoration: none; background: transparent; cursor: pointer; }
+.btn.primary { background: var(--ink); color: var(--bg); }
+.btn:hover { border-color: var(--paid); color: var(--paid); } .btn.primary:hover { color: var(--bg); background: var(--paid); border-color: var(--paid); }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+code, pre { font: 12.5px/1.5 var(--mono); background: var(--sunken); }
+code { padding: 1px 4px; word-break: break-all; }
+pre { margin: 8px 0 12px; padding: 12px; overflow-x: auto; border: 1px solid var(--rule); white-space: pre; }
+ol, ul { padding-left: 1.2rem; margin: 0 0 10px; } li { margin: 4px 0; max-width: 70ch; }
+.tbl { overflow-x: auto; background: var(--surface); border: 1px solid var(--rule); }
+table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--rule); vertical-align: top; }
+th { font: 600 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); background: var(--sunken); white-space: nowrap; }
+td.mono { font-family: var(--mono); font-size: .82rem; word-break: break-all; }
+td.num { font-family: var(--mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+label { display: grid; gap: 4px; font: 600 12px var(--mono); letter-spacing: .04em; text-transform: uppercase; color: var(--muted); }
+input, textarea { font: 14px var(--sans); color: var(--ink); background: var(--surface); border: 1px solid var(--rule); padding: 8px 10px; width: 100%; }
+form { display: grid; gap: 12px; max-width: 34rem; }
+footer { margin-top: 48px; border-top: 1px solid var(--rule); padding-top: 12px; font: 12px var(--mono); color: var(--muted); display: grid; gap: 4px; }
+.hero { padding: 36px 0 8px; }
+.hero h2.title { font: 800 clamp(1.8rem, 4.6vw, 3rem)/1.05 var(--sans); letter-spacing: -.02em; text-transform: none; margin: 0 0 14px; max-width: 22ch; }
+.hero .lede { font-size: 1.1rem; max-width: 58ch; }
+.number { border-left: 4px solid var(--paid); padding: 6px 14px; margin: 18px 0; font: 600 1.05rem/1.4 var(--sans); max-width: 52ch; }
+.steps { counter-reset: s; display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); }
+.steps .card::before { counter-increment: s; content: counter(s); font: 700 1.6rem var(--mono); color: var(--paid); display: block; margin-bottom: 4px; }
+dl { margin: 0; display: grid; grid-template-columns: max-content minmax(0, 1fr); gap: 6px 14px; font-size: .92rem; }
+dt { font: 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding-top: 3px; }
+dd { margin: 0; min-width: 0; word-break: break-word; }
+@media (max-width: 40rem) { dl { grid-template-columns: minmax(0, 1fr); gap: 2px 0; } dt { padding-top: 8px; } }
+.note { font-size: .88rem; color: var(--muted); border: 1px dashed var(--rule); padding: 8px 12px; max-width: 70ch; }
+</style>
+<style>
+/* Monitor additions, on the same tokens as the docs page. */
+.tbl table { min-width: 72rem; }
+td.num, th.num { text-align: right; }
+td small, .cell small { display: block; color: var(--muted); font: 11px var(--mono); }
+#loans td { white-space: nowrap; } #loans td.mono { word-break: normal; }
+tr.flag td:first-child { box-shadow: inset 3px 0 0 var(--bad); }
+.bars { display: grid; gap: 8px; }
+.bar { display: grid; grid-template-columns: minmax(7rem, 12rem) minmax(0, 1fr) 4.5rem; gap: 10px; align-items: center; font-size: .88rem; }
+.bar .track { height: 12px; background: var(--sunken); position: relative; }
+.bar .fill { position: absolute; inset: 0 auto 0 0; background: var(--paid); }
+.bar .v { font: 600 .85rem var(--mono); text-align: right; font-variant-numeric: tabular-nums; }
+.bar .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.big.sm { font-size: 1.8rem; }
+.cta { border: 1px solid var(--ink); background: var(--surface); padding: 18px; margin-top: 36px; display: flex; flex-wrap: wrap; gap: 12px 24px; align-items: center; justify-content: space-between; }
+.cta p { margin: 0; font: 600 1.1rem/1.4 var(--sans); }
+.err { color: var(--bad); font-family: var(--mono); }
+@media (max-width: 40rem) { .bar { grid-template-columns: 6rem minmax(0, 1fr) 4rem; } .big { font-size: 1.9rem; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div><h1>Plumbline</h1><div class="meta">GPU Credit Monitor · USD.AI loan book on Arbitrum</div></div>
+  <nav aria-label="Site"><a href="/">Home</a><a href="/prove">Prove</a><a href="/docs">Docs</a><a href="/lender">Lender</a><a href="/tape">Tape</a><a href="/monitor" aria-current="page">Monitor</a><a href="https://github.com/let-the-dreamers-rise/plumbline" rel="noopener">Source</a></nav>
+</header>
+
+<section class="hero">
+  <h2 class="title">GPU Credit Monitor</h2>
+  <p class="lede">Every active loan in USD.AI's onchain GPU book, with the debt service each GPU must earn per hour, set against what the same GPU rents for today. Read from public data, with no cooperation from the lender. Every number links to its source.</p>
+  <p class="meta" id="stamp">Loading the latest snapshot…</p>
+</section>
+
+<p class="err" id="err" hidden></p>
+<noscript><p class="note">This page renders with JavaScript. The same data is at <a href="/api/monitor">/api/monitor</a>.</p></noscript>
+
+<div id="app" hidden>
+<h2>Book summary</h2>
+<div class="grid" id="summary"></div>
+
+<h2>Flags</h2>
+<div id="flags"></div>
+
+<h2>Loans</h2>
+<p class="sub">Sorted by principal outstanding. Debt service is per GPU-hour at 100% utilization; breakeven is the share of hours a GPU must be rented at today's market price to cover it. Hover a value or follow its link for the source.</p>
+<div class="tbl"><table>
+  <thead><tr>
+    <th>Loan</th><th>Borrower</th><th>Collateral</th><th class="num">Principal</th><th class="num">APR</th><th>Maturity</th>
+    <th class="num">Debt service $/GPU-hr</th><th class="num">Market $/GPU-hr</th><th class="num">Breakeven util.</th><th class="num" id="covh">Coverage</th><th class="num">LTV</th><th>Status</th>
+  </tr></thead>
+  <tbody id="loans"></tbody>
+</table></div>
+
+<h2>Concentration</h2>
+<div class="grid">
+  <div class="card"><h3>By borrower</h3><div class="bars" id="byBorrower"></div></div>
+  <div class="card"><h3>By GPU model</h3><div class="bars" id="byModel"></div></div>
+  <div class="card"><h3>By location</h3><div class="bars" id="byLocation"></div></div>
+</div>
+
+<h2>Market prices used</h2>
+<div class="tbl"><table style="min-width:0">
+  <thead><tr><th>Model</th><th class="num">Median $/GPU-hr</th><th>Per source (median, quotes)</th></tr></thead>
+  <tbody id="prices"></tbody>
+</table></div>
+
+<h2>Assumptions</h2>
+<ul id="assumptions"></ul>
+
+<h2>What this is, and is not</h2>
+<ul id="notes"></ul>
+<p class="note">Estimates from public data: Arbitrum logs and view calls, USD.AI's public collateral metadata and loans page, and public GPU rental prices (Vast.ai, RunPod, Akash). Market prices are on-demand list prices, not the borrowers' contracted offtake rates, which are not public. Not financial advice. Plumbline is not affiliated with USD.AI.</p>
+<div id="gaps"></div>
+
+<div class="cta">
+  <p>Coverage here is estimated. Plumbline makes it proven.</p>
+  <a class="btn primary" href="/">See how</a>
+</div>
+</div>
+
+<footer>
+  <div>Data: <a href="/api/monitor">/api/monitor</a> (the snapshot as JSON) · refreshed with <code>npm run monitor:snapshot</code> · daily price archive in <code>data/gpu-prices/</code></div>
+  <div>Source code: <code>packages/monitor</code></div>
+</footer>
+</div>
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const ARB = "https://arbiscan.io";
+  const usdM = (v) => (v == null ? "n/a" : v >= 1e6 ? `$${(v / 1e6).toFixed(2)}M` : `$${Math.round(v / 1e3).toLocaleString("en-US")}k`);
+  const pct = (v, dp = 0) => (v == null ? "n/a" : `${(v * 100).toFixed(dp)}%`);
+  const money = (v, dp = 2) => (v == null ? "n/a" : `$${v.toFixed(dp)}`);
+  const x = (v) => (v == null ? "n/a" : `${v.toFixed(2)}x`);
+  const short = (a) => (a ? `${a.slice(0, 6)}…${a.slice(-4)}` : "unknown");
+  // A source is a link when it is one URL; otherwise it is shown as a tooltip.
+  const src = (s, text) => {
+    const url = /^https:\/\/[^\s]+$/.test(s?.source ?? "") ? s.source : null;
+    return url ? `<a href="${esc(url)}" rel="noopener" title="${esc(url)}">${text}</a>` : `<span title="${esc(s?.source ?? "")}">${text}</span>`;
+  };
+  const card = (k, big, sub) => `<div class="card"><div class="k">${esc(k)}</div><div class="big sm">${big}</div>${sub ? `<div class="sub">${sub}</div>` : ""}</div>`;
+  const bars = (rows, label) =>
+    rows.slice(0, 6).map((r) => `<div class="bar"><span class="name" title="${esc(r.key)}">${label(r)}</span><span class="track"><span class="fill" style="width:${Math.max(1, r.share * 100).toFixed(1)}%"></span></span><span class="v">${pct(r.share, 1)}</span></div>`).join("");
+
+  function render(s) {
+    const b = s.book, a = s.assumptions;
+    $("stamp").textContent = `Snapshot ${new Date(s.generatedAt).toUTCString()} · Arbitrum block ${s.asOfBlock.toLocaleString("en-US")} · ${b.activeLoans} active loans`;
+    $("covh").textContent = `Coverage @${Math.round(a.utilization * 100)}%`;
+    $("summary").innerHTML = [
+      card("Principal outstanding", usdM(b.outstandingUsd.value), `${usdM(b.principalUsd.value)} at origination or last refinance`),
+      card("Active loans", String(b.activeLoans), `${b.closed.repaid} repaid, ${b.closed.liquidated} liquidated, ${b.closed.supersededByRefinanceOrMigration} refinanced or migrated`),
+      card("GPUs financed", b.gpus.value == null ? "n/a" : b.gpus.value.toLocaleString("en-US"), "servers x assumed GPUs per server"),
+      card("Weighted APR", b.weightedAprPct.value == null ? "n/a" : `${b.weightedAprPct.value.toFixed(2)}%`, "lender tranche rate, weighted by outstanding"),
+      card("Monthly debt service", usdM(b.monthlyDebtServiceUsd.value), "sum of level payments (estimate)"),
+      card("Weighted breakeven", pct(b.weightedBreakevenUtilization.value), "utilization needed at today's rents"),
+      card("Top borrower", b.topBorrower ? pct(b.topBorrower.share, 1) : "n/a", b.topBorrower ? `<a href="${ARB}/address/${esc(b.topBorrower.key)}" rel="noopener">${esc(short(b.topBorrower.key))}</a>` : ""),
+    ].join("");
+    $("flags").innerHTML = b.flagged.length
+      ? `<ul>${b.flagged.map((f) => `<li><b>${esc(f.id)}</b>: ${f.flags.map(esc).join("; ")}</li>`).join("")}</ul>`
+      : `<p class="note"><span class="chip good">none</span> No loan needs more than ${pct(a.breakevenFlag)} utilization to cover debt service at today's market price, none is marked breached or behind on repayments, and none is past maturity.</p>`;
+
+    $("loans").innerHTML = s.loans.map((l) => {
+      const m = l.metrics, c = l.collateral;
+      const models = c ? c.models.filter((p) => p.gpus !== 0).map((p) => `${esc(p.model ?? p.label)} x${p.gpus ?? "?"}`).join(", ") : "unknown";
+      const status = l.repayments.health === "current" ? "good" : l.repayments.health === "unknown" ? "mutedc" : "bad";
+      return `<tr class="${l.flags.length ? "flag" : ""}">
+        <td class="mono">${l.links.collateral ? `<a href="${esc(l.links.collateral)}" rel="noopener">${esc(l.id.length > 14 ? l.id.split("+")[0] + "+…" : l.id)}</a>` : esc(l.id)}<small><a href="${esc(l.links.createdTx)}" rel="noopener">${esc(l.createdBy)} tx</a></small></td>
+        <td class="mono">${l.borrower.value ? `<a href="${ARB}/address/${esc(l.borrower.value)}" rel="noopener">${esc(short(l.borrower.value))}</a>` : "unknown"}${l.enrichment?.locationName ? `<small>${esc(l.enrichment.locationName)}</small>` : ""}</td>
+        <td>${models}<small title="${esc(c?.name ?? "")}">${c ? src(c.valueUsd, `${usdM(c.valueUsd.value)} stated`) : ""}</small></td>
+        <td class="num">${src(l.outstandingUsd, usdM(l.outstandingUsd.value))}<small>${src(l.principalUsd, `of ${usdM(l.principalUsd.value)}`)}</small></td>
+        <td class="num">${src(l.aprPct, l.aprPct.value == null ? "n/a" : `${l.aprPct.value.toFixed(2)}%`)}${l.enrichment?.appAprPct != null ? `<small title="all-in APR shown on app.usd.ai">app ${l.enrichment.appAprPct.toFixed(2)}%</small>` : ""}</td>
+        <td>${esc((l.maturityAt.value ?? "").slice(0, 10) || "n/a")}<small>${l.daysToMaturity.value == null ? "" : `${l.daysToMaturity.value} days`}</small></td>
+        <td class="num">${src(m.debtServicePerGpuHr, money(m.debtServicePerGpuHr.value))}</td>
+        <td class="num">${src(m.marketPerGpuHr, money(m.marketPerGpuHr.value))}</td>
+        <td class="num">${src(m.breakevenUtilization, pct(m.breakevenUtilization.value))}</td>
+        <td class="num">${src(m.coverageAtAssumedUtilization, x(m.coverageAtAssumedUtilization.value))}<small>${m.rentDropToBreakeven.value == null ? "" : `rents can fall ${pct(m.rentDropToBreakeven.value)}`}</small></td>
+        <td class="num">${src(m.statedLtv, pct(m.statedLtv.value))}<small>${src(m.depreciatedLtv, `${pct(m.depreciatedLtv.value)} depr.`)}</small></td>
+        <td><span class="chip ${status}">${esc(l.repayments.health)}</span><small>${esc(l.status)} · ${l.repayments.count.value ?? "?"} paid</small></td>
+      </tr>`;
+    }).join("");
+
+    $("byBorrower").innerHTML = bars(b.byBorrower, (r) => `<a href="${ARB}/address/${esc(r.key)}" rel="noopener">${esc(short(r.key))}</a>`);
+    $("byModel").innerHTML = bars(b.byModel, (r) => `${esc(r.key)}${r.gpus ? ` · ${r.gpus.toLocaleString("en-US")} GPUs` : ""}`);
+    $("byLocation").innerHTML = bars(b.byLocation, (r) => esc(r.key));
+    $("prices").innerHTML = Object.entries(s.prices).map(([k, p]) =>
+      `<tr><td>${esc(k)}</td><td class="num">${money(p.medianUsdPerGpuHr)}</td><td class="mono">${p.sources.length ? p.sources.map((q) => `${esc(q.source)} ${money(q.medianUsdPerGpuHr)} (${q.quotes})`).join(" · ") : "no public quote"}</td></tr>`).join("");
+    $("assumptions").innerHTML = [
+      `Utilization for coverage: <b>${pct(a.utilization)}</b>. Coverage = market price x utilization${a.opexPerGpuHr ? ` - $${a.opexPerGpuHr}/GPU-hr opex` : ""} / debt service; it is gross of operating costs${a.opexPerGpuHr ? " beyond the opex shown" : ""}.`,
+      `Debt service: ${esc(a.amortization)} Spread over every GPU and ${a.hoursPerMonth} hours a month.`,
+      `GPUs per collateral unit: ${esc(a.gpusPerUnit)}.`,
+      `Depreciation-adjusted LTV: ${esc(a.depreciation)}`,
+      `Flag threshold: breakeven utilization above ${pct(a.breakevenFlag)}.`,
+      `Market price: ${esc(a.priceMethod)} Daily archive: <code>${esc(s.sources.prices)}</code>.`,
+    ].map((t) => `<li>${t}</li>`).join("");
+    $("notes").innerHTML = s.notes.map((n) => `<li>${esc(n)}</li>`).join("");
+    $("gaps").innerHTML = s.unavailable.length ? `<h3 style="margin-top:16px">Data we could not get</h3><ul>${s.unavailable.map((u) => `<li>${esc(u)}</li>`).join("")}</ul>` : "";
+    $("app").hidden = false;
+  }
+
+  fetch("/api/monitor", { headers: { accept: "application/json" } })
+    .then((r) => (r.ok ? r.json() : r.json().then((e) => Promise.reject(new Error(e.error || r.statusText)))))
+    .then(render)
+    .catch((e) => { $("stamp").textContent = ""; $("err").hidden = false; $("err").textContent = `Could not load the snapshot: ${e.message}`; });
+})();
+</script>
+</body>
+</html>
