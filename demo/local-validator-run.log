@@ -1,34 +1,34 @@
 loan115 {
-  "loan": "6jFgjSgR59AtWhxebFrC946WPyV6PoxbHd4RPc5Pcw9f",
+  "loan": "2azsSHxLurDptzuK4AzME7xMU2gR8z7YrMdJSvS1q6Tp",
   "debtServiceInrPerWeek": 141300,
   "proofVerified": {
-    "link": "https://explorer.solana.com/tx/5SEsVhYiPPxHL4Rc9PjsKR94ZKXs8wJQtNKEPjcVfKkSNuJ4Hh41NThq1zMjJcMYdvpBJz585ioeD6sBPzigKvBi?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
-    "computeUnits": 117789,
+    "link": "https://explorer.solana.com/tx/4hDnTJSNKzqP8sh6ChhYEV3pyLUkEaHbE48rFUDekvFWfGLeuKQNWiYaR7WkZKP9Y5qJcLsxcQcSUNaAYGnHGY5A?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
+    "computeUnits": 119701,
     "error": null
   },
   "draw": {
-    "link": "https://explorer.solana.com/tx/4ZRJQjzMMT7pKKT6RbAuz3QrghATcjxKdRwAKtMN5ZbVqwY3NjppXPzNAkL47Jy2jJoyHnvoFDxnjppg62taJeim?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
+    "link": "https://explorer.solana.com/tx/39zs7EmM6US3KHrKtPp63rkh7gj8jdqXDE7SjTj2dLXeBea4zYmGsLr9X8ULUqKGGsd8boENqff4aH2pSj3HhCqN?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
     "approved": true,
     "error": null
   },
   "replay": {
-    "link": "https://explorer.solana.com/tx/2tGM3Siwtjwk85pW1ahdEPEPGTDMCFBTjPLMELJpGdjEY2BmMFToBQeypTkZgnwuRSpneVrdVPVydugcazY9pPgc?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
+    "link": "https://explorer.solana.com/tx/4GJ1hS6k6U4kYGsxFFMufQYkmf8W1wiKtzrKSJLLU6CxSSLmuMvNfUeRWMmPgZUHMo2nQaaDg9Fz7ystbuQg5b4h?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
     "rejected": true,
-    "error": "Program log: AnchorError thrown in programs/pct_oracle/src/instructions/zk.rs:198. Error Code: ZkStaleChallenge. Error Number: 6027. Error Message: GPU report was not made for the lender's current challenge."
+    "error": "Program log: AnchorError thrown in programs/pct_oracle/src/instructions/zk.rs:228. Error Code: ZkStaleChallenge. Error Number: 6027. Error Message: GPU report was not made for the lender's current challenge."
   }
 }
 loan114 {
-  "loan": "rB2ssjjWCyNEi81D8o7wTfZKxUUjFhdeWB7GUffK7CS",
+  "loan": "3qaG8nnzLU6zCmacBzsPo1JYNEoDZUsNYX6VPTKeDqWb",
   "debtServiceInrPerWeek": 142500,
   "proofVerified": {
-    "link": "https://explorer.solana.com/tx/42AMhYWUpZYe2WJ5mqgphsc5BpwF4K9DJAWzEwSxEKW4SqsfHRcFPskVVCL3jmd29UGToEC5EpV8VLaqSugwDLFH?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
-    "computeUnits": 117790,
+    "link": "https://explorer.solana.com/tx/3xGPEWhqqpAvxZdfu7AMVpVtQmdssVvpAM2BMCTu1DjBaY4UE9k2vRAnXMPtFQv4N3PM6VXtbuZcoyba1E2Dx5w6?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
+    "computeUnits": 119702,
     "error": null
   },
   "draw": {
-    "link": "https://explorer.solana.com/tx/126hcfEpvo74PuQ3xDpTAC6bL98hBFdQ2XW8BdhTURPQXFcqQ5NuqK85NaQs2Uj5i1xUk6h8cNMDBUygvok3Qfh2?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
+    "link": "https://explorer.solana.com/tx/2xHFi6gmPBSC6VfbeidChxywXaRQZPdaVZM6676iwSvV897Uzw6hux5CNGRhBwF2KRSXiJM43ix3MUpTSzK2UZrm?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A8899",
     "approved": false,
-    "error": "Program log: AnchorError thrown in programs/pct_oracle/src/instructions/zk.rs:281. Error Code: CovenantBreached. Error Number: 6019. Error Message: Proven revenue does not cover debt service at the required ratio."
+    "error": "Program log: AnchorError thrown in programs/pct_oracle/src/instructions/zk.rs:320. Error Code: CovenantBreached. Error Number: 6019. Error Message: Proven revenue does not cover debt service at the required ratio."
   }
 }
 wrote zk-devnet-demo.json
