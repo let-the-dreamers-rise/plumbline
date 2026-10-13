@@ -43,7 +43,7 @@ H100 price tape, which still exists as a by-product (`/tape`).
 
 Entry for the Colosseum Crypto World's Fair hackathon (submissions due 2026-10-12).
 
-## For judges (60 seconds)
+### Lending demo for judges (60 seconds)
 
 ![Card, PASS verify page, WATCH verify page and badges from the local-validator run](docs/img/demo.gif)
 
