@@ -1,2 +1,20 @@
-node_modules
-test/*.test.mjs
+# Upload as little as possible: secrets never belong in this folder, but deny them anyway.
+*
+!index.html
+!bounty.html
+!verify.html
+!howto.html
+!styles.css
+!tessera-verify.js
+!server.mjs
+!js/
+!js/*.js
+!test/
+!test/serve.mjs
+!Dockerfile
+.env*
+*keypair*.json
+id.json
+*wallet*
+*.pem
+*.key
