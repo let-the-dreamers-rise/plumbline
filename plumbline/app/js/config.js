@@ -1,4 +1,4 @@
-// Cluster + program ids. Localnet by default, devnet on request; mainnet is refused, as in the CLI.
+// Cluster + program ids. Localnet when served locally, devnet when hosted; mainnet is refused, as in the CLI.
 // Program ids: keep in sync with plumbline/programs (cli/test/layout.test.ts fails if they drift from the IDL).
 export const PROGRAMS = {
   registry: 'Eicw3HXxXN7kckn5XB4WDGQG2c61BLf7X7QpGehLTgAW',
@@ -17,11 +17,13 @@ const store = {
 
 export function isMainnet(s) { return /mainnet/i.test(String(s || '')); }
 
-/** Resolve from ?cluster= / ?rpc= first, then the remembered choice, then localnet. */
+/** Resolve from ?cluster= / ?rpc= first, then the remembered choice, then localnet when served from this
+ * machine and devnet when hosted. */
 export function currentCluster(search = location.search) {
   const q = new URLSearchParams(search);
   const rpc = q.get('rpc');
-  const name = q.get('cluster') || store.get() || 'localnet';
+  const local = typeof location === 'undefined' || /^(127\.0\.0\.1|localhost|)$/.test(location.hostname);
+  const name = q.get('cluster') || store.get() || (local ? 'localnet' : 'devnet');
   if (isMainnet(rpc) || isMainnet(name)) return { name: 'refused', url: null, error: 'Mainnet is not supported: Plumbline v0 runs on localnet and devnet only.' };
   if (rpc) {
     let host = '';
