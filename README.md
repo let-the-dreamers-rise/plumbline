@@ -1,30 +1,5 @@
 # Plumbline
 
-**Plumbline runs private-data AI competitions where the prize pays itself.** A sponsor locks a prize on
-Solana against a test set nobody gets to see. Anyone enters a model with their wallet address. An Intel TDX
-enclave scores it on the hidden questions, a zero-knowledge proof of that enclave's signed score is checked
-onchain, and the escrow pays the entrant's wallet the moment a verified score meets the target. No judge, no
-leaked test set, no trust between sponsor and entrant.
-
-**For judges:** the whole flow ran end to end on a local validator: bounty posted, model entered through the
-enclave, real Groth16 proof (about 20 minutes on CPU), score recorded, 0.5 SOL paid to the wallet named inside
-the proof, and the relayer that sent the claim got nothing but fees. Transcript and screenshots:
-[`plumbline/e2e/`](plumbline/e2e/). Start with [the spec](plumbline/SPEC.md), then
-[how sponsors and entrants use it](plumbline/docs/PRODUCT.md), then
-[what is real today and what is still pending](plumbline/docs/REAL-VS-PENDING.md).
-
-| Piece | Where | Tests |
-|---|---|---|
-| Competition enclave (scores any allowed model, puts the payout wallet in the signed score) | [`plumbline/enclave`](plumbline/enclave) | all pass |
-| zk guest (TDX quote to Intel's root, dstack event log, 330-byte journal with payout) | [`plumbline/zk`](plumbline/zk) | 7 + 16 |
-| Registry + prize escrow (Anchor) | [`plumbline/programs`](plumbline/programs) | 39 on a local validator, on real Groth16 proofs |
-| Relayer, sponsor/entrant CLI, web app (bounties, leaderboard, verify) | [`plumbline/relayer`](plumbline/relayer), [`cli`](plumbline/cli), [`app`](plumbline/app) | 10, 37, 5 |
-
-The same attestation engine already runs live on Solana devnet for a second market, GPU-backed lending,
-described below.
-
-## The engine, live on devnet: GPU credit proofs
-
 **Plumbline gives lenders who finance GPU fleets a checkable proof behind each draw.** GPU-backed private credit (lenders
 such as USD.AI, GAIB and Compute Labs) today relies on warranties, site audits and PDF revenue
 statements to know that the collateral is real hardware and that it earns enough to service the
@@ -43,6 +18,8 @@ H100 price tape, which still exists as a by-product (`/tape`).
 
 Entry for the Colosseum Crypto World's Fair hackathon (submissions close 2026-10-13, 06:59 UTC).
 
+**For judges:** the GPU credit oracle is live on Solana devnet (deploy, verified proofs, an approved draw, a refused draw and a refused replay, all linked below). The section after the demo shows the same attestation engine extended to sealed-eval competitions, run end to end with a real Groth16 proof.
+
 ### Lending demo for judges (60 seconds)
 
 ![Card, PASS verify page, WATCH verify page and badges from the local-validator run](docs/img/demo.gif)
@@ -60,6 +37,27 @@ Entry for the Colosseum Crypto World's Fair hackathon (submissions close 2026-10
 | ![Verify page for the 1.15x loan: PASS](docs/img/verify-pass.png) | ![Verify page for the 1.14x loan: WATCH](docs/img/verify-watch.png) |
 
 ![Embeddable badges for both loans](docs/img/badge.png)
+
+## Extending the same engine: sealed-eval competitions that pay themselves
+
+**The same engine runs private-data AI competitions where the prize pays itself.** A sponsor locks a prize on
+Solana against a test set nobody gets to see. Anyone enters a model with their wallet address. An Intel TDX
+enclave scores it on the hidden questions, a zero-knowledge proof of that enclave's signed score is checked
+onchain, and the escrow pays the entrant's wallet the moment a verified score meets the target. No judge, no
+leaked test set, no trust between sponsor and entrant.
+
+**Evidence:** the whole flow ran end to end on a local validator: bounty posted, model entered through the
+enclave, real Groth16 proof (about 20 minutes on CPU), score recorded, 0.5 SOL paid to the wallet named inside
+the proof, and the relayer that sent the claim got nothing but fees. Transcript and screenshots:
+[`plumbline/e2e/`](plumbline/e2e/). Start with [the spec](plumbline/SPEC.md), then
+[how sponsors and entrants use it](plumbline/docs/PRODUCT.md), then
+[what is real today and what is still pending](plumbline/docs/REAL-VS-PENDING.md).
+
+| Piece | Where | Tests |
+|---|---|---|
+| Competition enclave (scores any allowed model, puts the payout wallet in the signed score) | [`plumbline/enclave`](plumbline/enclave) | all pass |
+| zk guest (TDX quote to Intel's root, dstack event log, 330-byte journal with payout) | [`plumbline/zk`](plumbline/zk) | 7 + 16 |
+| Registry + prize escrow (Anchor) | [`plumbline/programs`](plumbline/programs) | 39 on a local validator, on real Groth16 proofs |
 
 ## What is real today
 
