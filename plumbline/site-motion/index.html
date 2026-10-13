@@ -128,6 +128,25 @@
   </div>
 </section>
 
+<!-- REPLAY: this morning's real run, from its own logs -->
+<section class="replay-wrap" id="replay" aria-labelledby="rp-h">
+  <p class="eyebrow">The heavy machinery, for real</p>
+  <h2 id="rp-h" class="reveal-h">Watch this morning's run: 67 minutes behind one answer.</h2>
+  <p class="lede">On Oct 13 the engine ran end to end on Google Cloud: a confidential Intel TDX VM, a sealed test, an attested result, a 35-minute Groth16 proof, then a Solana program checking it and paying out. Every line below is from that run's logs. This run scored a model; a lender's covenant check runs the same enclave, proof and onchain path.</p>
+  <div class="replay">
+    <ol class="rp-ph" aria-label="Phases"><li>Cloud</li><li>Enclave</li><li>Score</li><li>Verify</li><li>Prove</li><li>Onchain</li></ol>
+    <div class="rp-bar" aria-hidden="true"><span class="rp-fill"></span></div>
+    <div class="rp-ctl">
+      <button class="btn btn-sm" type="button" data-rp="play" aria-pressed="false">Play</button>
+      <span class="seg" role="group" aria-label="Speed"><button type="button" data-speed="60" aria-pressed="true">60×</button><button type="button" data-speed="300" aria-pressed="false">300×</button></span>
+      <button class="btn btn-ghost btn-sm" type="button" data-rp="end">Skip to end</button>
+      <span class="rp-clock mono small" aria-live="off">00:00 of 66:56 real time</span>
+    </div>
+    <ol class="rp-log" aria-live="polite"><li><span class="ts">03:35:28Z</span><span class="ph">Cloud</span><span class="m">run-2 start … 04:42:24Z record and claim. Full log in plumbline-gcp/run-2.</span></li></ol>
+    <p class="small">Cloud cost about $0.09 of trial credit; every resource was deleted and verified gone at 04:05Z. The payout ran on a local validator, not devnet; the devnet payout from a test-root proof is <a href="https://explorer.solana.com/tx/3aHByAATknm3kwmzQrc9uZVZfAb7ycqQfRec76aKZgQkLG1rSvGkNoPR5y5j4QfRTCPy34a7R3UySmSTrRbTvYJc?cluster=devnet">here</a>.</p>
+  </div>
+</section>
+
 <!-- RUN A DRAW: the lender's seat, four steps, real data only -->
 <section class="run" id="run" aria-labelledby="run-h">
   <p class="eyebrow">Sit in the lender's seat</p>
@@ -324,6 +343,7 @@
 <script src="js/hero.js" defer></script>
 <script src="js/scenes.js" defer></script>
 <script src="js/live.js" defer></script>
+<script src="js/replay.js" defer></script>
 <script type="module" src="js/console.js"></script>
 </body>
 </html>

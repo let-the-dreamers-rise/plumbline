@@ -261,3 +261,22 @@ html:not(.js) .foot-line span { transform: none; }
 .next .eyebrow { color: var(--graphite); }
 .next-list { margin: 20px 0 0; padding-left: 20px; color: var(--graphite); }
 .next-list li { margin-bottom: 8px; }
+
+/* REPLAY */
+.replay { margin-top: 32px; padding: clamp(16px, 3vw, 28px); border: 1.5px solid var(--ink); border-radius: 18px; background: var(--paper-2); }
+.rp-ph { display: grid; grid-template-columns: repeat(6, 1fr); gap: 6px; margin: 0 0 10px; padding: 0; list-style: none; font: 600 12px var(--mono); text-transform: uppercase; letter-spacing: .06em; }
+.rp-ph li { padding: 8px 4px; text-align: center; border-radius: 8px; color: var(--graphite); border: 1px solid var(--rule); transition: background var(--med), color var(--med); }
+.rp-ph li.on { background: var(--brass); color: var(--ink); border-color: var(--brass); }
+.rp-ph li.done { color: var(--true); border-color: var(--true); }
+.rp-bar { height: 4px; background: var(--rule); border-radius: 2px; overflow: hidden; }
+.rp-fill { display: block; height: 100%; background: var(--true); transform-origin: 0 50%; transform: scaleX(0); }
+.rp-ctl { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 16px 0; }
+.rp-ctl .seg { margin: 0; }
+.rp-log { height: 300px; overflow-y: auto; margin: 0 0 12px; padding: 14px; list-style: none; border-radius: 10px; background: var(--ink); color: var(--paper); font: 400 13px/1.55 var(--mono); }
+.rp-log li { display: grid; grid-template-columns: 92px 72px 1fr; gap: 10px; padding: 3px 0; }
+.rp-log .ts { color: var(--graphite); }
+.rp-log .ph { color: var(--brass); }
+@media (max-width: 560px) {
+  .rp-ph { grid-template-columns: repeat(3, 1fr); }
+  .rp-log li { grid-template-columns: 1fr; gap: 0; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+}
