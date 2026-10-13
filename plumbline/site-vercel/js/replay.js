@@ -31,6 +31,7 @@
   var log = root.querySelector('.rp-log'), clock = root.querySelector('.rp-clock'), fill = root.querySelector('.rp-fill');
   var phs = Array.prototype.slice.call(root.querySelectorAll('.rp-ph li'));
   var play = root.querySelector('[data-rp=play]');
+  var live = document.createElement('li'); live.className = 'rp-live';
   var speed = 60, t = 0, shown = 0, raf = null, last = 0;
 
   function fmt(s) { s = Math.floor(s); return String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
@@ -39,9 +40,16 @@
       var e = EV[shown++], li = document.createElement('li');
       li.innerHTML = '<span class="ts"></span><span class="ph"></span><span class="m"></span>';
       li.children[0].textContent = e.at + 'Z'; li.children[1].textContent = PH[e.ph]; li.children[2].textContent = e.msg;
-      log.appendChild(li); log.scrollTop = log.scrollHeight;
+      log.insertBefore(li, live.parentNode ? live : null); log.scrollTop = log.scrollHeight;
     }
     var cur = shown ? EV[shown - 1].ph : -1;
+    /* While the Groth16 prover runs (04:05:50 to 04:42:01), show it working. */
+    var p0 = T('04:05:50'), p1 = T('04:42:01');
+    if (t > p0 && t < p1) {
+      if (!live.parentNode) log.appendChild(live);
+      live.textContent = 'proving… ' + Math.floor(t - p0).toLocaleString('en-US') + ' s of 2,136 s · ' + Math.round(3641071 * (t - p0) / (p1 - p0)).toLocaleString('en-US') + ' cycles';
+      log.scrollTop = log.scrollHeight;
+    } else if (live.parentNode) live.remove();
     phs.forEach(function (p, k) { p.className = k < cur ? 'done' : (k === cur ? 'on' : ''); });
     clock.textContent = fmt(t) + ' of ' + fmt(END) + ' real time';
     fill.style.transform = 'scaleX(' + Math.min(1, t / END) + ')';
