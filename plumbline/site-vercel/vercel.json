@@ -28,6 +28,10 @@
   ],
   "rewrites": [
     {
+      "source": "/classic",
+      "destination": "https://plumbline-production-56e8.up.railway.app/"
+    },
+    {
       "source": "/:path*",
       "destination": "https://plumbline-production-56e8.up.railway.app/:path*"
     }

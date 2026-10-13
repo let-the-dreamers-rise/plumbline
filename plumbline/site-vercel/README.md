@@ -2,9 +2,13 @@
 
 `npx vercel --prod --yes` from this folder. No build step.
 
-- `/` and every other path (`/prove`, `/lender`, `/docs`, `/monitor`, `/loan/...`, `/api/lead`) are served by the live
-  Railway site (`plumbline-production-56e8.up.railway.app`), whose home page is the Lens design. Vercel proxies them, so the
-  lead form and the devnet loan pages keep working.
-- `/premium/` (Hallmark), `/premium/lens/` and `/premium/lattice/` are the three static design directions, copied from the
-  design thread's `site-premium` folder. `/hallmark` and `/lattice` redirect there.
+- `/` is the motion home page (copied from `plumbline/site-motion/`: `index.html`, `css/`, `js/`, `vendor/`). Static files win
+  over rewrites on Vercel, so these are served from here.
+- Every other path (`/prove`, `/lender`, `/docs`, `/monitor`, `/loan/...`, `/api/lead`) is proxied to the live Railway site
+  (`plumbline-production-56e8.up.railway.app`), so the pilot form and the devnet loan pages keep working. `/classic` shows
+  Railway's home page (the Lens design).
+- `/premium/` (Hallmark), `/premium/lens/` and `/premium/lattice/` are the earlier design directions; `/hallmark` and
+  `/lattice` redirect there.
 - `/bounties` and `/sealed-evals` redirect to the sealed-eval competition app (`plumbline/app`, its own Vercel project).
+
+After `plumbline/site-motion/` changes, copy it here again before deploying.
