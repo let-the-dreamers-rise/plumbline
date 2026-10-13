@@ -231,3 +231,33 @@ html:not(.js) .foot-line span { transform: none; }
   .kv div { flex-direction: column; gap: 2px; }
   .kv dd { text-align: left; }
 }
+
+/* WHY */
+.why-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 36px; }
+.why-grid article { padding: 22px; border-top: 2px solid var(--watch); background: var(--paper-2); border-radius: 0 0 12px 12px; }
+.why-grid .big { font: 600 clamp(30px, 3.4vw, 44px)/1 var(--display); margin-bottom: 12px; }
+.why-grid p:not(.big) { color: var(--graphite); font-size: 16px; margin: 0; }
+@media (max-width: 860px) { .why-grid { grid-template-columns: 1fr 1fr; } }
+@media (max-width: 480px) { .why-grid { grid-template-columns: 1fr; } }
+
+/* PIPELINE extras */
+.step .log { display: block; margin-top: 8px; font: 500 12px var(--mono); color: var(--true); }
+.js .step.is-done { opacity: .7; }
+.js .step.is-done .n::after { content: " ✓"; color: var(--true); }
+@media (min-width: 861px) {
+  .js .story .step:not(.is-on) p, .js .story .step:not(.is-on) .log { display: none; }
+  .story .steps { gap: 4px; }
+  .story .step { padding: 10px 16px; }
+}
+.packet { fill: var(--brass); }
+.ring.is-on circle { stroke-dasharray: 6 4; animation: spin 2.4s linear infinite; transform-box: fill-box; transform-origin: 50% 50%; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ring text, .gate-label { font: 600 11px var(--mono); }
+.gate-label { fill: var(--true); text-anchor: middle; }
+.pipe-out { margin-top: 16px; }
+
+/* NEXT */
+.next { border-top: 1px dashed var(--rule); }
+.next .eyebrow { color: var(--graphite); }
+.next-list { margin: 20px 0 0; padding-left: 20px; color: var(--graphite); }
+.next-list li { margin-bottom: 8px; }

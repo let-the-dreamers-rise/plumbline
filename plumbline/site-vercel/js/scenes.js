@@ -66,25 +66,34 @@
   });
 
 
-  /* Pinned story: four steps, the bob descends the line through each ring. */
+  /* Pinned pipeline: six stations. A packet of evidence travels the rail, each station
+     clamps it (a stepped, mechanical beat) and lights up, then the draw gate. */
   var mm = gsap.matchMedia();
   mm.add('(min-width: 861px)', function () {
-    var steps = gsap.utils.toArray('.step'), rings = gsap.utils.toArray('.ring');
-    var stops = [62, 162, 262, 352];
-    gsap.set('.story-bob', { y: 0 });
+    var steps = gsap.utils.toArray('.step'), rings = gsap.utils.toArray('.ring'), n = steps.length;
     var st = gsap.timeline({
       scrollTrigger: {
-        trigger: '.story', start: 'top top', end: '+=1600', pin: true, scrub: .8,
+        trigger: '.story', start: 'top top', end: '+=2400', pin: true, scrub: .6,
         onUpdate: function (s) {
-          var i = Math.min(3, Math.floor(s.progress * 4.0001));
-          steps.forEach(function (el, k) { el.classList.toggle('is-on', k === i); });
+          var i = Math.min(n - 1, Math.floor(s.progress * n * 1.0001));
+          steps.forEach(function (el, k) { el.classList.toggle('is-on', k === i); el.classList.toggle('is-done', k < i); });
           rings.forEach(function (el, k) { el.classList.toggle('is-on', k <= i); });
         }
       }
     });
-    st.to('.track-fill', { scaleY: 1, ease: 'none', duration: 4 }, 0);
-    stops.forEach(function (y, k) { st.to('.story-bob', { y: y, duration: 1, ease: 'power2.inOut' }, k); });
-    return function () { steps.forEach(function (el, k) { el.classList.toggle('is-on', k === 0); }); };
+    st.to('.track-fill', { scaleY: 1, ease: 'none', duration: n }, 0);
+    rings.forEach(function (r, k) {
+      st.to('.packet', { y: 30 + 64 * k, duration: .6, ease: 'power3.in' }, k)
+        .to('.packet', { scaleX: 1.35, scaleY: .7, transformOrigin: '50% 50%', duration: .12, ease: 'steps(2)' }, k + .6)
+        .to('.packet', { scaleX: 1, scaleY: 1, duration: .28, ease: 'back.out(3)' }, k + .72);
+    });
+    st.to('.packet', { y: 384, duration: .5, ease: 'power3.in' }, n - .1);
+    return function () { steps.forEach(function (el, k) { el.classList.toggle('is-on', k === 0); el.classList.remove('is-done'); }); };
+  });
+  mm.add('(max-width: 860px)', function () {
+    gsap.utils.toArray('.step').forEach(function (el) {
+      ScrollTrigger.create({ trigger: el, start: 'top 70%', end: 'bottom 30%', toggleClass: 'is-on' });
+    });
   });
 
   /* Count-ups: numbers roll and settle on the exact value. */

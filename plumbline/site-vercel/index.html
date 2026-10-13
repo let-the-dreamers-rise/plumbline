@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Plumbline · GPU-backed credit, released by proof</title>
+<title>Plumbline · Lend against GPUs you can check</title>
 <meta name="description" content="GPU-backed credit, released by proof: the next draw opens only when the GPU is real and its revenue covers the payments. Live on devnet.">
 <meta name="theme-color" content="#f2ede3">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2v18' stroke='%2315140f' stroke-width='2'/%3E%3Cpath d='M10 20h12l-6 10z' fill='%23b8863b'/%3E%3C/svg%3E">
@@ -35,9 +35,9 @@
 <!-- HERO: a crooked stack settles true under the plumb line; the draw unlocks -->
 <section class="hero" id="top" aria-labelledby="hero-h">
   <div class="hero-copy">
-    <p class="eyebrow">For lenders financing GPU fleets</p>
-    <h1 id="hero-h" class="reveal-h">GPU-backed credit, released by proof.</h1>
-    <p class="lede">The next draw opens only when the GPU is real and its revenue covers the payments. One zero-knowledge proof, checked by a Solana program. Live on devnet.</p>
+    <p class="eyebrow">GPU-backed credit · live on Solana devnet</p>
+    <h1 id="hero-h" class="reveal-h">Lend against GPUs you can actually check.</h1>
+    <p class="lede">Plumbline releases each draw of a GPU-backed loan only when the GPU is real and its revenue covers the payments. Lenders get the covenant checked before every draw instead of once a quarter. Operators with real hardware get their money without the audits.</p>
     <div class="cta-row">
       <a class="btn" href="/lender">Open the live loan check</a>
       <a class="btn btn-ghost" href="#run">Run a draw in 60 seconds</a>
@@ -78,10 +78,53 @@
       <li><a href="https://explorer.solana.com/tx/5DWV6UU7jTPem7HDUtrHrmLqeGvM3x7UzMe1XHALoXdT6ZTEoKGYS5BbbfKicrfJZLhuWbo4fpa16hUhhCyFs1er?cluster=devnet">1.15x draw approved on devnet</a></li>
       <li><a href="https://explorer.solana.com/tx/5kV48qNZNwMfrVrxsq33qtj3QQSPtkRLqmZegw9QxoxoEDuW2birgnDJMaUnsN5U9cvN32tJZDcB7YdjRs7g1AYA?cluster=devnet">1.14x draw refused · CovenantBreached</a></li>
       <li><a href="https://explorer.solana.com/tx/4W46GmRQ5YWZj6HsGe4jz5KKUvDDwxyeBXLSdo1eP4zf9NT25QGH5y783RZDHpXFPJYK19JQMKBYzYRUJzHnvFvq?cluster=devnet">Replay refused · ZkStaleChallenge</a></li>
-      <li><span>22/30 sealed score inside an Intel TDX VM, verified to Intel's root</span></li>
-      <li><a href="https://explorer.solana.com/tx/3aHByAATknm3kwmzQrc9uZVZfAb7ycqQfRec76aKZgQkLG1rSvGkNoPR5y5j4QfRTCPy34a7R3UySmSTrRbTvYJc?cluster=devnet">0.05 SOL bounty paid from a Groth16 proof on devnet</a></li>
-      <li><span>39 tests on real Groth16 proofs</span></li>
+      <li><a href="https://explorer.solana.com/tx/41ZoCoxTFb1MqUQKu5Qa1bRwEUch77nEUXmihPCCckvDjR52mhnAvgAQ4LqtnJZ7sjHjLFwg2Zb6yfat6RUJ7Nb7?cluster=devnet">1.15x covenant proof verified onchain</a></li>
+      <li><span>One 256-byte proof, about 120k compute units to verify</span></li>
     </ul>
+  </div>
+</section>
+
+<!-- WHY: the lending problem, facts file only -->
+<section class="why" aria-labelledby="why-h">
+  <h2 id="why-h" class="reveal-h">GPUs are collateral now. Lenders cannot check them.</h2>
+  <div class="why-grid">
+    <article><p class="big">$7.5B</p><p>CoreWeave borrowed against its GPUs (Blackstone, 2024). Onchain lenders now lend against GPUs they have never seen.</p></article>
+    <article><p class="big">Quarterly</p><p>USD.AI tests its 1.15x coverage floor once a quarter, on trailing receipts. The depositors funding the loans cannot check the ratio.</p></article>
+    <article><p class="big">~1.8M</p><p>fake GPUs tried to join io.net in April 2024, its CEO reported. Telemetry sees serials and health, not revenue.</p></article>
+    <article><p class="big">150 bps</p><p>a year USD.AI pays for a value warranty on the same collateral that never sees revenue. Honest operators pay for dishonest ones through their rate.</p></article>
+  </div>
+</section>
+
+<!-- PIPELINE (pinned): the machine running, station by station -->
+<section class="story" id="how" aria-labelledby="story-h">
+  <div class="story-pin">
+    <div class="story-copy">
+      <p class="eyebrow">What runs before every draw</p>
+      <h2 id="story-h" class="reveal-h">Six checks. One transaction. Then the money moves.</h2>
+      <ol class="steps">
+        <li class="step is-on"><span class="n">01</span><h3>Lender issues a challenge</h3><p>A fresh nonce for this period, so an old answer cannot be reused.</p><code class="log">issue_gpu_challenge · signed by the lender</code></li>
+        <li class="step"><span class="n">02</span><h3>The GPU answers inside the enclave</h3><p>The H100 signs an SPDM report over the challenge with its own P-384 key, inside a confidential VM.</p><code class="log">spdm report · chain to NVIDIA Device Identity CA</code></li>
+        <li class="step"><span class="n">03</span><h3>Attested to Intel's root</h3><p>The Intel TDX quote names the VM image the lender pinned, and binds the GPU to it.</p><code class="log">tdx quote v4 · Intel SGX Root CA 44a0196b…74d3</code></li>
+        <li class="step"><span class="n">04</span><h3>Revenue proven, kept private</h3><p>zkTLS proofs of the period's payouts. The total is public; each payout stays private.</p><code class="log">reclaim zkTLS · pinned attestor set</code></li>
+        <li class="step"><span class="n">05</span><h3>One zero-knowledge proof</h3><p>A RISC Zero guest checks all of it against the 1.15x floor and compresses about 32 KB of evidence into 256 bytes.</p><code class="log">risc0 → groth16 · 256 B · ~100 min to prove</code></li>
+        <li class="step"><span class="n">06</span><h3>Solana decides the draw</h3><p>The program verifies the proof, uses up the challenge, then opens the draw or refuses it.</p><code class="log">prove_covenant · ~120k CU · draw_private</code></li>
+      </ol>
+      <p class="small pipe-out">Result on devnet: <a href="https://explorer.solana.com/tx/5DWV6UU7jTPem7HDUtrHrmLqeGvM3x7UzMe1XHALoXdT6ZTEoKGYS5BbbfKicrfJZLhuWbo4fpa16hUhhCyFs1er?cluster=devnet">1.15x draw approved</a> · <a href="https://explorer.solana.com/tx/5kV48qNZNwMfrVrxsq33qtj3QQSPtkRLqmZegw9QxoxoEDuW2birgnDJMaUnsN5U9cvN32tJZDcB7YdjRs7g1AYA?cluster=devnet">1.14x draw refused</a></p>
+    </div>
+    <div class="story-stage" aria-hidden="true">
+      <svg viewBox="0 0 300 420">
+        <line x1="150" y1="16" x2="150" y2="404" class="track"/>
+        <line x1="150" y1="16" x2="150" y2="404" class="track-fill"/>
+        <g class="ring r1"><circle cx="150" cy="44" r="24"/><text x="150" y="48">CHAL</text></g>
+        <g class="ring r2"><circle cx="150" cy="108" r="24"/><text x="150" y="112">GPU</text></g>
+        <g class="ring r3"><circle cx="150" cy="172" r="24"/><text x="150" y="176">TDX</text></g>
+        <g class="ring r4"><circle cx="150" cy="236" r="24"/><text x="150" y="240">PAY</text></g>
+        <g class="ring r5"><circle cx="150" cy="300" r="24"/><text x="150" y="304">ZK</text></g>
+        <g class="ring r6"><circle cx="150" cy="364" r="24"/><text x="150" y="368">SOL</text></g>
+        <rect class="packet" x="134" y="4" width="32" height="12" rx="3"/>
+        <text x="150" y="416" class="gate-label">DRAW</text>
+      </svg>
+    </div>
   </div>
 </section>
 
@@ -158,7 +201,7 @@
     <li data-sig="59nKZTGUKSDV7R57ZAf49vMCEqEPf2yjvhHy5Qd7XdPLJebJiaPkBn7pnVfWzBR4uXVJzC2r2h62mTJQQdSbHtmV" data-expect="ok"><span class="what">1.14x proof verified</span><span class="state">Checked on devnet</span></li>
     <li data-sig="5kV48qNZNwMfrVrxsq33qtj3QQSPtkRLqmZegw9QxoxoEDuW2birgnDJMaUnsN5U9cvN32tJZDcB7YdjRs7g1AYA" data-expect="6019"><span class="what">1.14x draw refused</span><span class="state">Checked on devnet</span></li>
     <li data-sig="4W46GmRQ5YWZj6HsGe4jz5KKUvDDwxyeBXLSdo1eP4zf9NT25QGH5y783RZDHpXFPJYK19JQMKBYzYRUJzHnvFvq" data-expect="6027"><span class="what">Replayed proof refused</span><span class="state">Checked on devnet</span></li>
-    <li data-sig="3aHByAATknm3kwmzQrc9uZVZfAb7ycqQfRec76aKZgQkLG1rSvGkNoPR5y5j4QfRTCPy34a7R3UySmSTrRbTvYJc" data-expect="ok"><span class="what">Sealed-eval bounty claimed, 0.05 SOL</span><span class="state">Checked on devnet</span></li>
+    <li data-sig="3aHByAATknm3kwmzQrc9uZVZfAb7ycqQfRec76aKZgQkLG1rSvGkNoPR5y5j4QfRTCPy34a7R3UySmSTrRbTvYJc" data-expect="ok"><span class="what">Next product: sealed-eval bounty claimed, 0.05 SOL</span><span class="state">Checked on devnet</span></li>
   </ol>
   <p class="small" id="live-note" role="status" aria-live="polite">Each row links to the Solana explorer.</p>
   <p class="wallet-note"><strong>No wallet or SOL needed</strong> to check anything on this page. Sending a new proof or claiming a prize takes a wallet; that is for operators and lenders, and the transactions above show those steps already ran on devnet.</p>
@@ -178,31 +221,6 @@
 </section>
 
 
-<!-- PINNED STORY: three roots, one proof, one decision -->
-<section class="story" id="how" aria-labelledby="story-h">
-  <div class="story-pin">
-    <div class="story-copy">
-      <h2 id="story-h" class="reveal-h">Three roots. One proof. One decision.</h2>
-      <ol class="steps">
-        <li class="step is-on"><span class="n">01</span><h3>The GPU is real</h3><p>NVIDIA's SPDM attestation report, signed by the H100 with P-384, checked to the NVIDIA Device Identity CA.</p></li>
-        <li class="step"><span class="n">02</span><h3>It runs in a known enclave</h3><p>An Intel TDX quote verified to Intel's root names the VM image a lender can pin onchain.</p></li>
-        <li class="step"><span class="n">03</span><h3>It earns enough</h3><p>Reclaim zkTLS proofs of the period's payouts. The total is public; each payout stays private.</p></li>
-        <li class="step"><span class="n">04</span><h3>The program decides</h3><p>A RISC Zero guest checks the lender's floor and emits one 256-byte Groth16 proof. The Anchor program verifies it, clears the challenge so it cannot be replayed, and opens or refuses the draw.</p></li>
-      </ol>
-    </div>
-    <div class="story-stage" aria-hidden="true">
-      <svg viewBox="0 0 300 420">
-        <line x1="150" y1="10" x2="150" y2="410" class="track"/>
-        <line x1="150" y1="10" x2="150" y2="410" class="track-fill"/>
-        <g class="ring r1"><circle cx="150" cy="80" r="34"/><text x="150" y="85">GPU</text></g>
-        <g class="ring r2"><circle cx="150" cy="180" r="34"/><text x="150" y="185">TDX</text></g>
-        <g class="ring r3"><circle cx="150" cy="280" r="34"/><text x="150" y="285">PAY</text></g>
-        <g class="ring r4"><rect x="96" y="346" width="108" height="48" rx="24"/><text x="150" y="375">PROOF</text></g>
-        <path d="M140 10h20l-10 18z" class="story-bob"/>
-      </svg>
-    </div>
-  </div>
-</section>
 
 <!-- BENTO: each card loops its own micro-animation -->
 <section class="bento-wrap" aria-labelledby="bento-h">
@@ -242,12 +260,24 @@
   <h2 id="stats-h" class="visually-hidden">The numbers so far</h2>
   <dl class="stat-grid">
     <div><dt>Coverage floor checked</dt><dd><span class="count" data-to="1.15" data-dec="2">1.15</span>x</dd></div>
-    <div><dt>Sealed score in Intel TDX</dt><dd><span class="count" data-to="22">22</span>/30</dd></div>
-    <div><dt>Tests on real Groth16 proofs</dt><dd><span class="count" data-to="39">39</span></dd></div>
+    <div><dt>Draws refused on devnet (1.14x, replay)</dt><dd><span class="count" data-to="2">2</span></dd></div>
+    <div><dt>Evidence per proof, about</dt><dd><span class="count" data-to="32">32</span> KB</dd></div>
     <div><dt>Proof size</dt><dd><span class="count" data-to="256">256</span> B</dd></div>
-    <div><dt>CU to record a verified score</dt><dd><span class="count" data-to="120367">120,367</span></dd></div>
+    <div><dt>Compute units to verify it onchain, about</dt><dd><span class="count" data-to="120">120</span>k</dd></div>
     <div><dt>Devnet transactions in the loan demo</dt><dd><span class="count" data-to="5">5</span></dd></div>
   </dl>
+</section>
+
+<!-- NEXT: model evals, clearly future -->
+<section class="next" aria-labelledby="next-h">
+  <p class="eyebrow">Next · on the same engine</p>
+  <h2 id="next-h" class="reveal-h">The same engine scores AI models.</h2>
+  <p class="lede">A sponsor locks a prize against a hidden test set, an enclave scores entries without anyone seeing the questions, and the escrow pays the wallet proven inside the score. Early evidence:</p>
+  <ul class="next-list">
+    <li><a href="https://explorer.solana.com/tx/3aHByAATknm3kwmzQrc9uZVZfAb7ycqQfRec76aKZgQkLG1rSvGkNoPR5y5j4QfRTCPy34a7R3UySmSTrRbTvYJc?cluster=devnet">A 0.05 SOL bounty paid on devnet</a> from a real Groth16 proof, under a test root.</li>
+    <li>22/30 on a sealed 30-item suite inside an Intel TDX VM on Google Cloud, verified to Intel's root (Oct 13).</li>
+    <li><a href="/bounties">See the bounty pages</a></li>
+  </ul>
 </section>
 
 <!-- FAQ -->
@@ -257,7 +287,6 @@
   <details><summary>What does one proof show, and what not?</summary><p>That one attested GPU answered the lender's fresh challenge, ran in a known enclave, and its proven payouts cover the floor. It does not show who owns the GPU; weekly fleet sampling is planned.</p></details>
   <details><summary>What is real in the demo today?</summary><p>The proofs verify NVIDIA's public sample H100 report and a published H200 TDX quote, chain-verified to their roots. Revenue claims are synthetic, signed by two test attestor keys. No TCB or revocation checks yet.</p></details>
   <details><summary>Who reads the result?</summary><p>The lender's program gates the draw. The verify page, badge and JSON are free for curators, depositors and GPU networks.</p></details>
-  <details><summary>What comes next on the same engine?</summary><p>Sealed-eval bounties where the prize pays itself: an enclave scores entries on hidden tests and the escrow pays the wallet proven inside the score. One 0.05 SOL bounty has been paid on devnet under a test root.</p></details>
   <details><summary>What does it cost?</summary><p>[Pricing placeholder: to be confirmed.]</p></details>
 </section>
 
