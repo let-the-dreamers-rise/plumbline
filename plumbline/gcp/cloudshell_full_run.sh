@@ -2,14 +2,18 @@
 # One real, attested Plumbline score on a Google Cloud Intel TDX VM, end to end, from Google Cloud Shell.
 #
 #   bash cloudshell_full_run.sh PROJECT_ID PAYOUT_ADDRESS     full run (about 30-45 min), deletes everything at the end
-#   bash cloudshell_full_run.sh --cleanup-only PROJECT_ID     only delete what a run creates (plumbline-* names) and list
+#   bash cloudshell_full_run.sh --cleanup-only PROJECT_ID [RUN_ID]
+#        delete exactly what one run created: the names in ~/plumbline-run-1/created.txt, or, given RUN_ID
+#        (r + 6 hex, printed at the start of a run), the names derived from it. Nothing else is touched.
 #
 # What it does: clones the plumbline repo, checks the measured compose file, deploys a c3-standard-4 TDX VM
 # with dstack-cloud v0.6.1 (self-hosted, key_provider tpm, no Phala KMS or gateway), opens port 8080 only to
 # this Cloud Shell's own IP, checks the attestation (Intel PCK chain embedded, RTMR3 replay, compose hash),
 # seals a fresh 30-item suite it never prints, enters Qwen2.5-0.5B-Instruct, verifies the bundle with the
 # plumbline CLI and saves the results in ~/plumbline-run-1. A trap deletes the VM, images, bucket and
-# firewall rule on ANY exit (success, failure or Ctrl+C) and then lists the project to show nothing is left.
+# firewall rule on ANY exit (success, failure or Ctrl+C) and then checks each of them is gone. Every cloud
+# resource carries this run's id (plumbline-rXXXXXX-...) and is written to ~/plumbline-run-1/created.txt
+# before it is created; cleanup deletes only those exact names.
 #
 # It never touches billing, quotas or the account type. Cost on the free-trial credit: about $0.23/h while
 # the VM exists, so roughly $0.15-0.25 for one run.
@@ -27,19 +31,30 @@ DSTACK_VER=0.6.1
 DSTACK_REL=https://github.com/Phala-Network/meta-dstack-cloud/releases/download/v$DSTACK_VER
 DSTACK_CLI_URL=https://raw.githubusercontent.com/Phala-Network/meta-dstack-cloud/v$DSTACK_VER/scripts/bin/dstack-cloud
 DSTACK_CLI_SHA=0ecbbfb7d9ace7732b7e93f244dd812aa376c0f775c2d5d6959f0fce6a4dc35b
+IMG_MAIN=dstack-cloud-$DSTACK_VER.tar.gz       # bzImage, initramfs, ovmf, rootfs, metadata
+IMG_MAIN_SHA=b4dd97c4fa9ec7f8e1290407c9f9eb8cc4c6b932795a55c13cd049a3d1732a21
+IMG_UKI=dstack-cloud-$DSTACK_VER-uki.tar.gz    # disk.raw (the GCP boot disk), auth_hash.txt
+IMG_UKI_SHA=d26fd140e959c5d59e7d898168684198092378e54ac1277ea4919359f06ed070
 MODEL_ID=Qwen/Qwen2.5-0.5B-Instruct                     # the board's pins (sealed-eval-board/models.json)
 MODEL_REV=7ae557604adf67be50417f59c2c2f167def9a775
 MODEL_FILE=model.safetensors
 MODEL_SHA=fdf756fa7fcbe7404d5c60e26bff1a0c8b8aa1f72ced49e7dd0210fe288fb7fe
 MODEL_SIZE=
 SUITE_ITEMS=30
-# names: everything this script creates in the cloud starts with plumbline-
+# The dstack app name is inside the measured app-compose.json ("name"), so it stays fixed. It is a local
+# folder name, not a cloud resource. No cloud resource name is in app-compose.json (dstack-cloud's
+# _generate_app_compose reads only app.json's app fields, never gcp_config), so all of them carry the run id.
 APP_NAME=plumbline-gcp
-INSTANCE=plumbline-tdx
-BOOT_IMAGE=plumbline-dstack-cloud-0-6-1
-DATA_IMAGE=plumbline-dstack-data-disk
-FW_RULE=plumbline-tdx-allow-8080
-FW_TAG=fw-plumbline-tdx
+set_names() {   # $1 = run id, r + 6 hex
+  RID=$1
+  INSTANCE=plumbline-$RID-tdx              # disks $INSTANCE, $INSTANCE-data, $INSTANCE-shared (auto-delete)
+  SHARED_IMAGE=$INSTANCE-shared            # named by dstack-cloud deploy
+  BOOT_IMAGE=plumbline-$RID-dstack-0-6-1
+  DATA_IMAGE=plumbline-$RID-data-disk
+  FW_RULE=plumbline-$RID-allow-8080
+  FW_TAG=fw-$INSTANCE                      # dstack-cloud tags the VM with fw-<instance>
+  BUCKET=gs://plumbline-$RID-$PROJECT-dstack
+}
 ZONE=${PLB_ZONE:-us-central1-a}
 REGION=${ZONE%-*}
 
@@ -250,7 +265,7 @@ PLUMBLINE_GCP_PY_EOF
 # ---------------------------------------------------------------- arguments -------------------------------
 MODE=full TEST=0 URL= PROJECT= PAYOUT=
 case "${1:-}" in
-  --cleanup-only) MODE=cleanup; PROJECT=${2:-} ;;
+  --cleanup-only) MODE=cleanup; PROJECT=${2:-}; CLEAN_RID=${3:-} ;;
   --enclave-url)  MODE=test; TEST=1; URL=${2:-}; PAYOUT=${3:-} ;;   # hidden: test against an existing enclave
   -h|--help|"") sed -n '2,6p' "$0"; exit 2 ;;
   *) PROJECT=$1; PAYOUT=${2:-} ;;
@@ -269,7 +284,8 @@ if [ "$MODE" = test ]; then
 else
   [[ "$PROJECT" =~ ^[a-z][a-z0-9-]{4,28}[a-z0-9]$ ]] || die "first argument must be your GCP project ID (got '${PROJECT}')"
 fi
-BUCKET=gs://plumbline-$PROJECT-dstack
+set_names "r$(od -An -N3 -tx1 /dev/urandom | tr -d ' \n')"
+CREATED=$OUT/created.txt       # exact names of what this run creates, written before each is created
 PROJ=$WORK/$APP_NAME           # dstack-cloud project dir
 RUN=$WORK/run                  # attest/sealed/bundle land here, then get copied to $OUT
 SUITE_DIR=
@@ -287,51 +303,55 @@ shred_suite() {
   fi
 }
 
-cloud_cleanup() {
-  local p=$PROJECT left=0 name zone
+exists() {   # kind name project zone
+  case $1 in
+    instance) gcloud compute instances describe "$2" --zone "$4" --project "$3" --format="value(name)" ;;
+    disk)     gcloud compute disks describe "$2" --zone "$4" --project "$3" --format="value(name)" ;;
+    image)    gcloud compute images describe "$2" --project "$3" --format="value(name)" ;;
+    firewall) gcloud compute firewall-rules describe "$2" --project "$3" --format="value(name)" ;;
+    bucket)   gcloud storage buckets describe "$2" --project "$3" --format="value(name)" ;;
+    *) return 1 ;;
+  esac >/dev/null 2>&1
+}
+delete_one() {   # kind name project zone
+  case $1 in
+    instance) gcloud compute instances delete "$2" --zone "$4" --project "$3" --quiet ;;
+    disk)     gcloud compute disks delete "$2" --zone "$4" --project "$3" --quiet ;;
+    image)    gcloud compute images delete "$2" --project "$3" --quiet ;;
+    firewall) gcloud compute firewall-rules delete "$2" --project "$3" --quiet ;;
+    bucket)   gcloud storage rm -r "$2" --project "$3" --quiet ;;
+  esac
+}
+
+cloud_cleanup() {   # $1 = a created.txt; deletes exactly the names in it, nothing else
+  local f=$1 p z rid left=0 kind name
   set +e
-  log "CLEANUP: deleting everything named plumbline-* in project $p (about 3-5 min; please wait, Ctrl+C is ignored now)"
-  if [ -f "$PROJ/state.json" ] && command -v dstack-cloud >/dev/null; then
-    (cd "$PROJ" && dstack-cloud remove) || log "dstack-cloud remove reported an error; deleting by name below"
-  fi
-  while read -r name zone; do
-    [ -n "$name" ] || continue
-    log "delete instance $name ($zone)"; gcloud compute instances delete "$name" --zone "${zone##*/}" --project "$p" --quiet
-  done < <(gcloud compute instances list --project "$p" --filter="name~^plumbline-" --format="value(name,zone)" 2>/dev/null)
-  while read -r name zone; do
-    [ -n "$name" ] || continue
-    log "delete disk $name"; gcloud compute disks delete "$name" --zone "${zone##*/}" --project "$p" --quiet
-  done < <(gcloud compute disks list --project "$p" --filter="name~^plumbline-" --format="value(name,zone)" 2>/dev/null)
-  for name in $(gcloud compute firewall-rules list --project "$p" --filter="name~^plumbline-" --format="value(name)" 2>/dev/null); do
-    log "delete firewall rule $name"; gcloud compute firewall-rules delete "$name" --project "$p" --quiet
+  p=$(awk '$1 == "project" {print $2}' "$f"); z=$(awk '$1 == "zone" {print $2}' "$f"); rid=$(awk '$1 == "run_id" {print $2}' "$f")
+  if [ -z "$p" ] || [ -z "$z" ]; then log "CLEANUP: $f has no project/zone line"; return 1; fi
+  log "CLEANUP: deleting only what run $rid created in $p (listed in $f; about 2-4 min; Ctrl+C is ignored now)"
+  for kind in instance disk firewall image bucket; do      # VM first: its disks go with it
+    for name in $(awk -v k="$kind" '$1 == k {print $2}' "$f"); do
+      if exists "$kind" "$name" "$p" "$z"; then
+        log "delete $kind $name"; delete_one "$kind" "$name" "$p" "$z"
+      fi
+    done
   done
-  for name in $(gcloud compute images list --project "$p" --no-standard-images --filter="name~^plumbline-" --format="value(name)" 2>/dev/null); do
-    log "delete image $name"; gcloud compute images delete "$name" --project "$p" --quiet
+  log "CLEANUP: checking each name is gone"
+  for kind in instance disk firewall image bucket; do
+    for name in $(awk -v k="$kind" '$1 == k {print $2}' "$f"); do
+      if exists "$kind" "$name" "$p" "$z"; then left=1; log "  $kind $name: STILL THERE"; else log "  $kind $name: gone"; fi
+    done
   done
-  if gcloud storage buckets describe "$BUCKET" --project "$p" >/dev/null 2>&1; then
-    log "delete bucket $BUCKET"; gcloud storage rm -r "$BUCKET" --project "$p" --quiet
-  fi
-  log "CLEANUP: listing what is left (should be nothing)"
-  local what out
-  for what in "instances" "disks" "images" "firewall-rules"; do
-    if [ "$what" = images ]; then
-      out=$(gcloud compute images list --project "$p" --no-standard-images --filter="name~^plumbline-" --format="value(name)" 2>&1)
-    else
-      out=$(gcloud compute "$what" list --project "$p" --filter="name~^plumbline-" --format="value(name)" 2>&1)
-    fi
-    if [ -n "$out" ]; then left=1; log "  $what: STILL THERE: $out"; else log "  $what: none"; fi
+  for name in $(awk '$1 == "image" {print $2}' "$f"); do        # local symlink made for dstack-cloud
+    [ -L "$HOME/.dstack/images/$name" ] && rm -f -- "${HOME:?}/.dstack/images/${name:?}"
   done
-  out=$(gcloud storage ls --project "$p" 2>&1 | grep -E "^gs://plumbline-" || true)
-  if [ -n "$out" ]; then left=1; log "  buckets: STILL THERE: $out"; else log "  buckets: none"; fi
-  out=$(gcloud compute instances list --project "$p" --format="value(name)" 2>/dev/null)
-  [ -z "$out" ] || log "  note: other VMs exist in this project (not ours, not touched): $out"
   if [ $left = 0 ]; then
-    log "CLEANUP VERIFIED: no plumbline-* VM, disk, image, firewall rule or bucket is left in $p. Nothing is billing."
+    echo "cleanup_verified $(date -u +%Y-%m-%dT%H:%M:%SZ)" >> "$f"
+    log "CLEANUP VERIFIED: everything run $rid created in $p is deleted. Nothing of this run is billing."
   else
-    log "CLEANUP INCOMPLETE. Run again:  bash $0 --cleanup-only $p"
-    log "or delete the items above in the console (Compute Engine and Cloud Storage)."
+    log "CLEANUP INCOMPLETE. Run again:  bash $0 --cleanup-only $p $rid"
+    log "or delete the items marked STILL THERE in the console (Compute Engine and Cloud Storage)."
   fi
-  rm -f -- "${HOME:?}"/.dstack/images/*.tar.gz 2>/dev/null
   return $left
 }
 
@@ -345,7 +365,7 @@ on_exit() {
   if [ "$MODE" = full ]; then
     if [ $CLOUD_TOUCHED = 1 ]; then
       [ $rc = 0 ] || log "run did not finish (exit $rc); cleaning up anyway"
-      cloud_cleanup
+      cloud_cleanup "$CREATED"
     else
       log "stopped before anything was created in the cloud; nothing to delete"
     fi
@@ -362,19 +382,43 @@ trap 'exit 143' TERM
 trap 'exit 129' HUP
 
 if [ "$MODE" = cleanup ]; then
-  [[ "$PROJECT" =~ ^[a-z][a-z0-9-]{4,28}[a-z0-9]$ ]] || die "usage: bash $0 --cleanup-only PROJECT_ID"
-  BUCKET=gs://plumbline-$PROJECT-dstack
-  log "cleanup-only mode for project $PROJECT"
+  [[ "$PROJECT" =~ ^[a-z][a-z0-9-]{4,28}[a-z0-9]$ ]] || die "usage: bash $0 --cleanup-only PROJECT_ID [RUN_ID]"
   CLEANED=1; trap '' INT
-  cloud_cleanup; exit $?
+  if [ -n "$CLEAN_RID" ]; then
+    [[ "$CLEAN_RID" =~ ^r[0-9a-f]{6}$ ]] || die "RUN_ID must look like r1a2b3c (printed at the start of the run)"
+    set_names "$CLEAN_RID"
+    F=$WORK/created-$RID.txt
+    printf 'run_id %s\nproject %s\nzone %s\n' "$RID" "$PROJECT" "$ZONE" > "$F"
+    printf '%s\n' "bucket $BUCKET" "image $BOOT_IMAGE" "image $SHARED_IMAGE" "image $DATA_IMAGE" "instance $INSTANCE" \
+      "disk $INSTANCE" "disk $INSTANCE-data" "disk $INSTANCE-shared" "firewall $FW_RULE" >> "$F"
+    log "cleanup-only for run $RID in $PROJECT (names derived from the run id, zone $ZONE)"
+  else
+    F=$CREATED
+    [ -f "$F" ] || die "no $F. Give the run id: bash $0 --cleanup-only $PROJECT rXXXXXX"
+    [ "$(awk '$1 == "project" {print $2}' "$F")" = "$PROJECT" ] || die "$F belongs to project $(awk '$1 == "project" {print $2}' "$F"), not $PROJECT"
+    log "cleanup-only using $F"
+  fi
+  cloud_cleanup "$F"; exit $?
 fi
+
+if [ "$MODE" = full ]; then
+  # a previous run's created.txt that was never cleaned up must not be lost
+  if [ -f "$CREATED" ] && ! grep -q '^cleanup_verified' "$CREATED" && grep -qE '^(instance|image|bucket|firewall|disk) ' "$CREATED"; then
+    die "$CREATED lists resources of run $(awk '$1 == "run_id" {print $2}' "$CREATED") that were never confirmed deleted. Run: bash $0 --cleanup-only $PROJECT"
+  fi
+  [ -d "$OUT" ] && mv "$OUT" "$OUT.old-$(date -u +%Y%m%dT%H%M%S)"
+  mkdir -p "$OUT"
+  printf '# cloud resources of one plumbline Cloud Shell run; each is written here before it is created\nrun_id %s\nproject %s\nzone %s\n' \
+    "$RID" "$PROJECT" "$ZONE" > "$CREATED"
+fi
+record() { echo "$1 $2" >> "$CREATED"; }   # kind name, BEFORE creating it
 
 # tee ignores Ctrl+C / hangup so the cleanup output is never cut off
 [ "$MODE" = full ] && exec > >(trap '' INT TERM HUP; exec tee -a "$WORK/run.log") 2>&1
-log "Plumbline Cloud Shell run: project ${PROJECT:-(test)}, zone $ZONE, payout $PAYOUT"
+log "Plumbline Cloud Shell run $RID: project ${PROJECT:-(test)}, zone $ZONE, payout $PAYOUT"
 [ $TEST = 1 ] && log "TEST MODE against $URL: no deploy, no cleanup, Intel checks relaxed. NOT a real score."
 log "whole run: about 30-45 min. Keep this tab open. If it closes, reopen Cloud Shell and run:"
-log "  bash $0 --cleanup-only ${PROJECT:-PROJECT_ID}"
+log "  bash $0 --cleanup-only ${PROJECT:-PROJECT_ID} $RID"
 
 # payout must parse before anything is created
 mkdir -p "$RUN"
@@ -425,6 +469,7 @@ fw_sync() {   # keep the firewall rule at exactly this Cloud Shell's current egr
       gcloud compute firewall-rules update "$FW_RULE" --project "$PROJECT" --source-ranges "$ip/32" --quiet
     else
       log "creating $FW_RULE: tcp:8080 from $ip/32 only"
+      record firewall "$FW_RULE"
       gcloud compute firewall-rules create "$FW_RULE" --project "$PROJECT" --network default --direction INGRESS \
         --allow tcp:8080 --source-ranges "$ip/32" --target-tags "$FW_TAG" \
         --description "plumbline: enclave port, this Cloud Shell only" --quiet
@@ -466,13 +511,25 @@ free = {x['metric']: x['limit'] - x['usage'] for x in q}
 print('  quota free in', region, {k: free.get(k) for k in ('CPUS', 'C3_CPUS')})
 sys.exit(0 if free.get('CPUS', 0) >= 4 and free.get('C3_CPUS', free.get('CPUS', 0)) >= 4 else 1)
 EOF
-  if [ ! -f "$HOME/.dstack/images/dstack-cloud-$DSTACK_VER/disk.raw" ]; then
-    log "downloading dstack-cloud $DSTACK_VER OS images (2 x ~206 MB)"
-    dstack-cloud pull "$DSTACK_REL/dstack-cloud-$DSTACK_VER.tar.gz"
-    dstack-cloud pull "$DSTACK_REL/dstack-cloud-$DSTACK_VER-uki.tar.gz"
-    rm -f -- "${HOME:?}"/.dstack/images/*.tar.gz
+  # Same as `dstack-cloud pull` for both tarballs (download + tar -xzf into ~/.dstack/images), but each
+  # tarball's sha256 is checked BEFORE it is extracted. A folder without our marker is replaced.
+  IMGD=$HOME/.dstack/images/dstack-cloud-$DSTACK_VER
+  MARK="$IMG_MAIN_SHA $IMG_UKI_SHA"
+  if [ "$(cat "$IMGD/.plumbline-verified" 2>/dev/null)" != "$MARK" ]; then
+    log "downloading dstack-cloud $DSTACK_VER OS images (2 x ~216 MB), sha256-checked before extracting"
+    rm -rf -- "${IMGD:?}"
+    for pair in "$IMG_MAIN $IMG_MAIN_SHA" "$IMG_UKI $IMG_UKI_SHA"; do
+      set -- $pair
+      T=$(mktemp "$HOME/.dstack/images/.dl.XXXXXX")
+      curl -fsSL --retry 3 -o "$T" "$DSTACK_REL/$1" || { rm -f -- "$T"; die "could not download $1"; }
+      echo "$2  $T" | sha256sum -c --quiet - || { rm -f -- "$T"; die "$1 sha256 mismatch (expected $2): not extracting"; }
+      tar -xzf "$T" -C "$HOME/.dstack/images" || { rm -f -- "$T"; die "could not extract $1"; }
+      rm -f -- "$T"
+      log "  $1 sha256 ok, extracted"
+    done
+    echo "$MARK" > "$IMGD/.plumbline-verified"
   fi
-  [ -f "$HOME/.dstack/images/dstack-cloud-$DSTACK_VER/disk.raw" ] || die "disk.raw missing after pull (the VM would boot-loop)"
+  [ -f "$IMGD/disk.raw" ] || die "disk.raw missing (the VM would boot-loop)"
   # dstack-cloud reads auth_hash.txt from a folder named after the GCP boot image
   ln -sfn "dstack-cloud-$DSTACK_VER" "$HOME/.dstack/images/$BOOT_IMAGE"
   log "OS image ok"
@@ -501,11 +558,15 @@ EOF
 
   stage 2c "deploy the TDX VM (billing on the trial credit starts now)" "4-6 min"
   CLOUD_TOUCHED=1
-  if ! gcloud storage buckets describe "$BUCKET" --project "$PROJECT" >/dev/null 2>&1; then
-    gcloud storage buckets create "$BUCKET" --project "$PROJECT" --location "$REGION" --uniform-bucket-level-access --quiet
-  fi
+  log "run id $RID: names are recorded in $CREATED before each is created"
+  ! exists bucket "$BUCKET" "$PROJECT" "$ZONE" || die "bucket $BUCKET already exists (not ours); stopping"
+  record bucket "$BUCKET"
+  gcloud storage buckets create "$BUCKET" --project "$PROJECT" --location "$REGION" --uniform-bucket-level-access --quiet
+  for n in "image $BOOT_IMAGE" "image $SHARED_IMAGE" "image $DATA_IMAGE" "instance $INSTANCE" \
+           "disk $INSTANCE" "disk $INSTANCE-data" "disk $INSTANCE-shared"; do record $n; done
+  # no --delete: with it, deploy first deletes any existing VM of the same name; without it, deploy refuses
   set +e
-  (cd "$PROJ" && dstack-cloud deploy --delete) 2>&1 | tee "$WORK/deploy.log" \
+  (cd "$PROJ" && dstack-cloud deploy) 2>&1 | tee "$WORK/deploy.log" \
     | grep --line-buffered -E "INFO - (Creating|Uploading|Instance|External|=== Deployment)|ERROR|Error"
   drc=${PIPESTATUS[0]}
   set -e
@@ -643,7 +704,7 @@ log "bundle verified"
 
 # ---------------------------------------------------------------- 7. save -----------------------------------
 stage 7 "save results to ~/plumbline-run-1" "seconds"
-[ -d "$OUT" ] && mv "$OUT" "$OUT.old-$(date -u +%Y%m%dT%H%M%S)"
+if [ $TEST = 1 ]; then [ -d "$OUT" ] && mv "$OUT" "$OUT.old-$(date -u +%Y%m%dT%H%M%S)"; fi
 mkdir -p "$OUT"
 cp "$RUN/bundle.json" "$RUN/attest.json" "$RUN/sealed-suite.json" "$OUT/"
 if [ $TEST = 0 ]; then
