@@ -1,5 +1,30 @@
 # Plumbline
 
+**Plumbline runs private-data AI competitions where the prize pays itself.** A sponsor locks a prize on
+Solana against a test set nobody gets to see. Anyone enters a model with their wallet address. An Intel TDX
+enclave scores it on the hidden questions, a zero-knowledge proof of that enclave's signed score is checked
+onchain, and the escrow pays the entrant's wallet the moment a verified score meets the target. No judge, no
+leaked test set, no trust between sponsor and entrant.
+
+**For judges:** the whole flow ran end to end on a local validator: bounty posted, model entered through the
+enclave, real Groth16 proof (about 20 minutes on CPU), score recorded, 0.5 SOL paid to the wallet named inside
+the proof, and the relayer that sent the claim got nothing but fees. Transcript and screenshots:
+[`plumbline/e2e/`](plumbline/e2e/). Start with [the spec](plumbline/SPEC.md), then
+[how sponsors and entrants use it](plumbline/docs/PRODUCT.md), then
+[what is real today and what is still pending](plumbline/docs/REAL-VS-PENDING.md).
+
+| Piece | Where | Tests |
+|---|---|---|
+| Competition enclave (scores any allowed model, puts the payout wallet in the signed score) | [`plumbline/enclave`](plumbline/enclave) | all pass |
+| zk guest (TDX quote to Intel's root, dstack event log, 330-byte journal with payout) | [`plumbline/zk`](plumbline/zk) | 7 + 16 |
+| Registry + prize escrow (Anchor) | [`plumbline/programs`](plumbline/programs) | 39 on a local validator, on real Groth16 proofs |
+| Relayer, sponsor/entrant CLI, web app (bounties, leaderboard, verify) | [`plumbline/relayer`](plumbline/relayer), [`cli`](plumbline/cli), [`app`](plumbline/app) | 10, 37, 5 |
+
+The same attestation engine already runs live on Solana devnet for a second market, GPU-backed lending,
+described below.
+
+## The engine, live on devnet: GPU credit proofs
+
 **Plumbline gives lenders who finance GPU fleets a checkable proof behind each draw.** GPU-backed private credit (lenders
 such as USD.AI, GAIB and Compute Labs) today relies on warranties, site audits and PDF revenue
 statements to know that the collateral is real hardware and that it earns enough to service the
