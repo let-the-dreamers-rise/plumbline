@@ -1,0 +1,256 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Plumbline · GPU-backed credit, released by proof</title>
+<meta name="description" content="GPU-backed credit, released by proof: the next draw opens only when the GPU is real and its revenue covers the payments. Live on devnet.">
+<meta name="theme-color" content="#f2ede3">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2v18' stroke='%2315140f' stroke-width='2'/%3E%3Cpath d='M10 20h12l-6 10z' fill='%23b8863b'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/sections.css">
+<script>document.documentElement.classList.add('js');setTimeout(function(){if(!window.gsap)document.documentElement.classList.remove('js')},2500)</script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="nav">
+  <a class="brand" href="#top" aria-label="Plumbline home">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1v13" class="ln"/><path d="M7 14h10l-5 9z" class="bob"/></svg>
+    Plumbline
+  </a>
+  <nav aria-label="Sections">
+    <a href="#how">How it works</a>
+    <a href="#try">Try the floor</a>
+    <a href="#faq">FAQ</a>
+    <a class="btn btn-sm" href="#pilot">Book a lender pilot</a>
+  </nav>
+</header>
+
+<main id="main">
+<!-- HERO: a crooked stack settles true under the plumb line; the draw unlocks -->
+<section class="hero" id="top" aria-labelledby="hero-h">
+  <div class="hero-copy">
+    <p class="eyebrow">For lenders financing GPU fleets</p>
+    <h1 id="hero-h" class="reveal-h">GPU-backed credit, released by proof.</h1>
+    <p class="lede">The next draw opens only when the GPU is real and its revenue covers the payments. One zero-knowledge proof, checked by a Solana program. Live on devnet.</p>
+    <div class="cta-row">
+      <a class="btn" href="#pilot">Book a lender pilot</a>
+      <a class="btn btn-ghost" href="#try">Try the 1.15x floor</a>
+    </div>
+  </div>
+  <figure class="hero-stage" aria-label="Animation: a tilted stack of GPU blocks settles into a true vertical line, and the loan draw changes from locked to open.">
+    <svg class="plumb" viewBox="0 0 400 480" role="img" aria-hidden="true">
+      <defs>
+        <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse"><path d="M20 0H0V20" fill="none" class="gridline"/></pattern>
+      </defs>
+      <rect width="400" height="480" fill="url(#grid)" class="depth-0"/>
+      <line x1="200" y1="10" x2="200" y2="470" class="truth"/>
+      <g class="stack depth-1">
+        <g class="blk" data-off="-34" data-rot="-7"><rect x="130" y="330" width="140" height="44" rx="4"/><text x="200" y="357">GPU REPORT</text></g>
+        <g class="blk" data-off="26" data-rot="5"><rect x="130" y="280" width="140" height="44" rx="4"/><text x="200" y="307">TDX QUOTE</text></g>
+        <g class="blk" data-off="-18" data-rot="-4"><rect x="130" y="230" width="140" height="44" rx="4"/><text x="200" y="257">PAYOUTS</text></g>
+        <g class="blk" data-off="38" data-rot="8"><rect x="130" y="180" width="140" height="44" rx="4"/><text x="200" y="207">COVERAGE</text></g>
+      </g>
+      <g class="pendulum depth-2">
+        <line x1="200" y1="10" x2="200" y2="140" class="string"/>
+        <path d="M186 140h28l-14 26z" class="bob"/>
+        <circle cx="200" cy="10" r="4" class="pin"/>
+      </g>
+      <g class="gate depth-1">
+        <rect x="110" y="400" width="180" height="44" rx="22" class="gate-bg"/>
+        <text x="200" y="427" class="gate-t locked">DRAW LOCKED</text>
+        <text x="200" y="427" class="gate-t open">DRAW OPEN · 1.15x</text>
+      </g>
+    </svg>
+    <figcaption class="mono small">Illustration of the covenant check. Real devnet transactions are linked below.</figcaption>
+  </figure>
+</section>
+
+<!-- PROOF MARQUEE: verifiable facts, not logos -->
+<section class="marquee" aria-label="What is already on chain">
+  <div class="marquee-track">
+    <ul class="marquee-row">
+      <li><a href="https://explorer.solana.com/tx/5DWV6UU7jTPem7HDUtrHrmLqeGvM3x7UzMe1XHALoXdT6ZTEoKGYS5BbbfKicrfJZLhuWbo4fpa16hUhhCyFs1er?cluster=devnet">1.15x draw approved on devnet</a></li>
+      <li><a href="https://explorer.solana.com/tx/5kV48qNZNwMfrVrxsq33qtj3QQSPtkRLqmZegw9QxoxoEDuW2birgnDJMaUnsN5U9cvN32tJZDcB7YdjRs7g1AYA?cluster=devnet">1.14x draw refused · CovenantBreached</a></li>
+      <li><a href="https://explorer.solana.com/tx/4W46GmRQ5YWZj6HsGe4jz5KKUvDDwxyeBXLSdo1eP4zf9NT25QGH5y783RZDHpXFPJYK19JQMKBYzYRUJzHnvFvq?cluster=devnet">Replay refused · ZkStaleChallenge</a></li>
+      <li><span>22/30 sealed score inside an Intel TDX VM, verified to Intel's root</span></li>
+      <li><a href="https://explorer.solana.com/tx/3aHByAATknm3kwmzQrc9uZVZfAb7ycqQfRec76aKZgQkLG1rSvGkNoPR5y5j4QfRTCPy34a7R3UySmSTrRbTvYJc?cluster=devnet">0.05 SOL bounty paid from a Groth16 proof on devnet</a></li>
+      <li><span>39 tests on real Groth16 proofs</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- BEFORE / AFTER: scroll-scrubbed plumb wipe -->
+<section class="compare" aria-labelledby="cmp-h">
+  <h2 id="cmp-h" class="reveal-h">From a quarterly snapshot to a proof before every draw.</h2>
+  <div class="cmp">
+    <article class="cmp-card before">
+      <p class="tag">Today</p>
+      <ul>
+        <li>Coverage tested quarterly against a 1.15x floor on trailing receipts.</li>
+        <li>Loan reports are snapshots, published weeks later.</li>
+        <li>Depositors funding the loans cannot check the ratio.</li>
+        <li>Telemetry sees serials and health, not revenue.</li>
+        <li>No onchain record ties a GPU to one loan.</li>
+      </ul>
+    </article>
+    <article class="cmp-card after">
+      <p class="tag">With Plumbline</p>
+      <ul>
+        <li>The floor is re-proven before the next draw.</li>
+        <li>One Groth16 proof, verified in one Solana transaction.</li>
+        <li>The result is public: page, badge, JSON.</li>
+        <li>Revenue comes from zkTLS-proven payouts; individual payouts stay private.</li>
+        <li>The proven GPU's chip-id hash is recorded on its loan.</li>
+      </ul>
+    </article>
+    <div class="cmp-line" aria-hidden="true"><span></span></div>
+  </div>
+</section>
+
+<!-- PINNED STORY: three roots, one proof, one decision -->
+<section class="story" id="how" aria-labelledby="story-h">
+  <div class="story-pin">
+    <div class="story-copy">
+      <h2 id="story-h" class="reveal-h">Three roots. One proof. One decision.</h2>
+      <ol class="steps">
+        <li class="step is-on"><span class="n">01</span><h3>The GPU is real</h3><p>NVIDIA's SPDM attestation report, signed by the H100 with P-384, checked to the NVIDIA Device Identity CA.</p></li>
+        <li class="step"><span class="n">02</span><h3>It runs in a known enclave</h3><p>An Intel TDX quote verified to Intel's root names the VM image a lender can pin onchain.</p></li>
+        <li class="step"><span class="n">03</span><h3>It earns enough</h3><p>Reclaim zkTLS proofs of the period's payouts. The total is public; each payout stays private.</p></li>
+        <li class="step"><span class="n">04</span><h3>The program decides</h3><p>A RISC Zero guest checks the lender's floor and emits one 256-byte Groth16 proof. The Anchor program verifies it, clears the challenge so it cannot be replayed, and opens or refuses the draw.</p></li>
+      </ol>
+    </div>
+    <div class="story-stage" aria-hidden="true">
+      <svg viewBox="0 0 300 420">
+        <line x1="150" y1="10" x2="150" y2="410" class="track"/>
+        <line x1="150" y1="10" x2="150" y2="410" class="track-fill"/>
+        <g class="ring r1"><circle cx="150" cy="80" r="34"/><text x="150" y="85">GPU</text></g>
+        <g class="ring r2"><circle cx="150" cy="180" r="34"/><text x="150" y="185">TDX</text></g>
+        <g class="ring r3"><circle cx="150" cy="280" r="34"/><text x="150" y="285">PAY</text></g>
+        <g class="ring r4"><rect x="96" y="346" width="108" height="48" rx="24"/><text x="150" y="375">PROOF</text></g>
+        <path d="M140 10h20l-10 18z" class="story-bob"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- BENTO: each card loops its own micro-animation -->
+<section class="bento-wrap" aria-labelledby="bento-h">
+  <h2 id="bento-h" class="reveal-h">Built to be checked, not trusted.</h2>
+  <div class="bento">
+    <article class="cell c-wide" tabindex="0">
+      <div class="mini mini-replay" aria-hidden="true"><i class="chal"></i><i class="x"></i></div>
+      <h3>Replays refused</h3>
+      <p>The lender issues a fresh challenge; the program clears it once a proof uses it. A second use fails with ZkStaleChallenge on devnet.</p>
+    </article>
+    <article class="cell" tabindex="0">
+      <div class="mini mini-cu" aria-hidden="true"><i></i></div>
+      <h3>About 120k compute units</h3>
+      <p>Our own Groth16 verifier on Solana's alt_bn128 syscalls.</p>
+    </article>
+    <article class="cell" tabindex="0">
+      <div class="mini mini-fit" aria-hidden="true"><i class="big"></i><i class="small"></i></div>
+      <h3>32 KB of evidence, one transaction</h3>
+      <p>GPU report, certificate chain, TDX quote and payout claims do not fit in 1,232 bytes. The proof does.</p>
+    </article>
+    <article class="cell" tabindex="0">
+      <div class="mini mini-chip" aria-hidden="true"><i></i><i></i><i></i></div>
+      <h3>One GPU, one loan</h3>
+      <p>The chip-id hash is public under its loan. An opt-in registry refuses a second pledge (built, off by default).</p>
+    </article>
+    <article class="cell c-wide" tabindex="0">
+      <div class="mini mini-badge" aria-hidden="true"><i>PASS</i><i>WATCH</i></div>
+      <h3>Public by default</h3>
+      <p>Every facility gets a verify page, a badge that reads the chain on each load, and a JSON endpoint. Curators and depositors read it free.</p>
+    </article>
+  </div>
+</section>
+
+<!-- TOY: drag the coverage ratio, the bob settles to PASS or WATCH -->
+<section class="toy" id="try" aria-labelledby="toy-h">
+  <h2 id="toy-h" class="reveal-h">Drag the coverage. Watch the line decide.</h2>
+  <div class="toy-grid">
+    <div class="toy-ctl">
+      <label for="ratio">Debt-service coverage this period</label>
+      <output id="ratio-out" for="ratio">1.15x</output>
+      <input id="ratio" type="range" min="1.00" max="1.40" step="0.01" value="1.15" aria-describedby="toy-note">
+      <p id="verdict" class="verdict pass" role="status">PASS · next draw opens</p>
+      <p id="toy-note" class="small">Floor 1.15x, as on USD.AI's underwriting page. On devnet the program approved
+        <a href="https://explorer.solana.com/tx/5DWV6UU7jTPem7HDUtrHrmLqeGvM3x7UzMe1XHALoXdT6ZTEoKGYS5BbbfKicrfJZLhuWbo4fpa16hUhhCyFs1er?cluster=devnet">1.15x</a> and refused
+        <a href="https://explorer.solana.com/tx/5kV48qNZNwMfrVrxsq33qtj3QQSPtkRLqmZegw9QxoxoEDuW2birgnDJMaUnsN5U9cvN32tJZDcB7YdjRs7g1AYA?cluster=devnet">1.14x</a>. This slider is a simulation.</p>
+    </div>
+    <div class="toy-stage" aria-hidden="true">
+      <svg viewBox="0 0 300 300">
+        <path d="M60 60 A170 170 0 0 0 240 60" class="arc"/>
+        <line x1="150" y1="20" x2="150" y2="290" class="floor-line"/>
+        <g class="toy-pend"><line x1="150" y1="20" x2="150" y2="210" class="string"/><path d="M134 210h32l-16 30z" class="bob"/></g>
+        <circle cx="150" cy="20" r="5" class="pin"/>
+      </svg>
+    </div>
+  </div>
+</section>
+
+<!-- STATS: count-ups, every number from the build -->
+<section class="stats" aria-labelledby="stats-h">
+  <h2 id="stats-h" class="visually-hidden">The numbers so far</h2>
+  <dl class="stat-grid">
+    <div><dt>Coverage floor checked</dt><dd><span class="count" data-to="1.15" data-dec="2">1.15</span>x</dd></div>
+    <div><dt>Sealed score in Intel TDX</dt><dd><span class="count" data-to="22">22</span>/30</dd></div>
+    <div><dt>Tests on real Groth16 proofs</dt><dd><span class="count" data-to="39">39</span></dd></div>
+    <div><dt>Proof size</dt><dd><span class="count" data-to="256">256</span> B</dd></div>
+    <div><dt>CU to record a verified score</dt><dd><span class="count" data-to="120367">120,367</span></dd></div>
+    <div><dt>Devnet transactions in the loan demo</dt><dd><span class="count" data-to="5">5</span></dd></div>
+  </dl>
+</section>
+
+<!-- FAQ -->
+<section class="faq" id="faq" aria-labelledby="faq-h">
+  <h2 id="faq-h" class="reveal-h">Straight answers.</h2>
+  <details><summary>Is this live?</summary><p>The lending oracle is live on Solana devnet: a 1.15x proof was verified and its draw approved, a 1.14x draw was refused, and a replay was refused. Mainnet is refused everywhere until the verifier is audited.</p></details>
+  <details><summary>What does one proof show, and what not?</summary><p>That one attested GPU answered the lender's fresh challenge, ran in a known enclave, and its proven payouts cover the floor. It does not show who owns the GPU; weekly fleet sampling is planned.</p></details>
+  <details><summary>What is real in the demo today?</summary><p>The proofs verify NVIDIA's public sample H100 report and a published H200 TDX quote, chain-verified to their roots. Revenue claims are synthetic, signed by two test attestor keys. No TCB or revocation checks yet.</p></details>
+  <details><summary>Who reads the result?</summary><p>The lender's program gates the draw. The verify page, badge and JSON are free for curators, depositors and GPU networks.</p></details>
+  <details><summary>What comes next on the same engine?</summary><p>Sealed-eval bounties where the prize pays itself: an enclave scores entries on hidden tests and the escrow pays the wallet proven inside the score. One 0.05 SOL bounty has been paid on devnet under a test root.</p></details>
+  <details><summary>What does it cost?</summary><p>[Pricing placeholder: to be confirmed.]</p></details>
+</section>
+
+<!-- CLOSING CTA -->
+<section class="cta" id="pilot" aria-labelledby="cta-h">
+  <h2 id="cta-h" class="reveal-h">Put one facility on a plumb line.</h2>
+  <p class="lede">Tell us about one GPU facility. We will show the covenant proof running against it.</p>
+  <form id="lead" class="lead" method="post" action="/api/lead" novalidate>
+    <label>Work email<input name="email" type="email" autocomplete="email" required></label>
+    <label>Lender or fund<input name="lender" type="text" autocomplete="organization"></label>
+    <label>GPUs in the facility<input name="fleetGpus" type="number" min="0" inputmode="numeric"></label>
+    <label class="full">Anything we should know<textarea name="note" rows="3"></textarea></label>
+    <button id="lead-submit" class="btn" type="submit">Book a lender pilot</button>
+    <p id="lead-msg" class="small" role="status" aria-live="polite"></p>
+  </form>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="foot-line" aria-hidden="true"><span></span></div>
+  <div class="foot-grid">
+    <p class="brand">Plumbline</p>
+    <ul>
+      <li><a href="https://github.com/let-the-dreamers-rise/plumbline/tree/claude/plumbline-product">Source code</a></li>
+      <li><a href="https://explorer.solana.com/tx/41ZoCoxTFb1MqUQKu5Qa1bRwEUch77nEUXmihPCCckvDjR52mhnAvgAQ4LqtnJZ7sjHjLFwg2Zb6yfat6RUJ7Nb7?cluster=devnet">Devnet proof</a></li>
+      <li><a href="/bounties">Sealed-eval bounties</a></li>
+    </ul>
+    <p class="small">Devnet only. Built for the Colosseum Crypto World's Fair.</p>
+  </div>
+</footer>
+
+<script src="vendor/gsap.min.js" defer></script>
+<script src="vendor/ScrollTrigger.min.js" defer></script>
+<script src="vendor/SplitText.min.js" defer></script>
+<script src="js/hero.js" defer></script>
+<script src="js/scenes.js" defer></script>
+<script src="js/toy.js" defer></script>
+</body>
+</html>
