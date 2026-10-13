@@ -1,0 +1,29 @@
+# plumbline/cli/scripts/devnet-budget.sh, 2026-10-13T00:18:47Z, Solana 2.1.21 test validator, payer funded with exactly 6.48 SOL
+start                                  6480000000 lamports  (6.48 SOL)
+rent for registry program data (372640 bytes + 45 header): Rent-exempt minimum: 2.59477848 SOL
+deploy registry (--max-len 372640)     3882113907 lamports  (3.882113907 SOL)  spent 2.597886093
+rent for bounty program data (249240 bytes + 45 header): Rent-exempt minimum: 1.73591448 SOL
+deploy bounty (--max-len 249240)       2143737201 lamports  (2.143737201 SOL)  spent 1.738376706
+registry init-config                   2141553721 lamports  (2.141553721 SOL)  spent 0.00218348
+    registry program Eicw3HXxXN7kckn5XB4WDGQG2c61BLf7X7QpGehLTgAW
+    bounty program   9mDieYQNR2L9xgaqS6LK26kxR26rA4R9UcFntG369RPf
+    config FWEqUfbEg62kVYeDPbkrATbnNMJXhRL39FA9uNaLRS5K
+      admin        FBxnABABJxaSgDNDtYJ93t3VHNK9Gu2Gje2KYpP3mCon
+      image id     68049079fafddc9192761eb4461fb8cb036e92275fb91aa7ef61801c975114c6  (production guest)
+      root sha256  44a0196b2b99f889b8e149e95b807a350e7424964399e885a7cbb8ccfab674d3  (Intel SGX Root CA)
+      compose      ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff  (PLACEHOLDER: no score can be recorded until set-config --compose-hash)
+      mr_td        any (not checked)
+      https://explorer.solana.com/address/FWEqUfbEg62kVYeDPbkrATbnNMJXhRL39FA9uNaLRS5K?cluster=custom&customUrl=http%3A%2F%2F127.0.0.1%3A18999
+suite register                         2139753041 lamports  (2.139753041 SOL)  spent 0.00180068
+bounty create 0.05 SOL                 2086602121 lamports  (2.086602121 SOL)  spent 0.05315092
+left after deploy-devnet.ps1 + suite/bounty: 2.086602121 SOL of 6.48
+registry set-config (rehearsal)        2086597121 lamports  (2.086597121 SOL)  spent 5e-06
+registry config: matches, record should be accepted
+demo: suite register                   2084796441 lamports  (2.084796441 SOL)  spent 0.00180068
+demo: bounty create 0.05 SOL           2031645521 lamports  (2.031645521 SOL)  spent 0.05315092
+demo: record proof                     2028056121 lamports  (2.028056121 SOL)  spent 0.0035894
+paid SSmx9nD8cTAed6kMwpZeCkXp3NktCYNqw7HZCcBP3ND: 0.05 SOL -> G86RoeNmR7dTKjxsqhZZBnh15mvQgfU7W3BCnCcS3dfk, tx 5URqC9gDJRXJsfwpiJCgmsetsYnRyQnmD9w7WrRDgYCcWobZtRxw8RWt1Dx8HhaWMCTaGRgs7x6V8Kjaqx9Ur4a9
+demo: claim (paid to the proof's payout)     2028051121 lamports  (2.028051121 SOL)  spent 5e-06
+payout G86RoeNmR7dTKjxsqhZZBnh15mvQgfU7W3BCnCcS3dfk balance: 0.05 SOL
+left after everything: 2.028051121 SOL of 6.48
+BUDGET OK
