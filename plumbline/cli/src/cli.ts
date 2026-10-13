@@ -10,6 +10,7 @@ import { checkBundle, payoutToHex, type QuoteCheck } from "./bundle.js";
 import { assembleBundle, attest, enter, type Shard } from "./enclave.js";
 import { newChallenge, readSealedSuite, sealSuite, SEALED_FORMAT, type Attestation } from "./seal.js";
 import { loadKeypair } from "./wallet.js";
+import { addRegistryCommands } from "./registry-admin.js";
 
 export type Io = { out: (s: string) => void; err: (s: string) => void };
 export type Deps = Io & {
@@ -171,6 +172,8 @@ export function buildProgram(deps: Deps): Command {
       const r = await ch.registerSuite(commitment, BigInt(a.priceLamports));
       c.print(`suite ${commitment.toString("hex")} registered at ${r.suite}, tx ${r.signature}`, r);
     });
+
+  addRegistryCommands(program, ctx); // registry init-config | set-config | show-config (registry-admin.ts)
 
   // ---------------- seal ----------------
   program.command("seal <suite-file>")
