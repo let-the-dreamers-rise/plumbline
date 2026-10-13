@@ -41,7 +41,7 @@ Naming: the product and repo are **Plumbline** (the repo was `paid-compute-tape`
 `pct_oracle`, `PCT_*` env vars) is the internal code prefix from the project's first form, an
 H100 price tape, which still exists as a by-product (`/tape`).
 
-Entry for the Colosseum Crypto World's Fair hackathon (submissions due 2026-10-12).
+Entry for the Colosseum Crypto World's Fair hackathon (submissions close 2026-10-13, 06:59 UTC).
 
 ### Lending demo for judges (60 seconds)
 
