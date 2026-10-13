@@ -61,7 +61,7 @@
   } else splitHeads();
 
   /* Staggered entrances. */
-  [['.cmp-card', '.cmp'], ['.cell', '.bento'], ['.stat-grid > div', '.stat-grid'], ['.faq details', '.faq'], ['.lead > *', '.lead']].forEach(function (p) {
+  [['.cmp-card', '.cmp'], ['.live-list li', '.live-list'], ['.app-card', '.app-grid'], ['.cell', '.bento'], ['.stat-grid > div', '.stat-grid'], ['.faq details', '.faq'], ['.lead > *', '.lead']].forEach(function (p) {
     gsap.fromTo(p[0], { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: .9, ease: settle, stagger: .08, scrollTrigger: { trigger: p[1], start: 'top 80%' } });
   });
 

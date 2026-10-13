@@ -25,8 +25,9 @@
   <nav aria-label="Sections">
     <a href="#how">How it works</a>
     <a href="#try">Try the floor</a>
-    <a href="#faq">FAQ</a>
-    <a class="btn btn-sm" href="#pilot">Book a lender pilot</a>
+    <a href="#live">Live on devnet</a>
+    <a href="#app">Product</a>
+    <a class="btn btn-sm" href="/lender">Launch app</a>
   </nav>
 </header>
 
@@ -38,8 +39,8 @@
     <h1 id="hero-h" class="reveal-h">GPU-backed credit, released by proof.</h1>
     <p class="lede">The next draw opens only when the GPU is real and its revenue covers the payments. One zero-knowledge proof, checked by a Solana program. Live on devnet.</p>
     <div class="cta-row">
-      <a class="btn" href="#pilot">Book a lender pilot</a>
-      <a class="btn btn-ghost" href="#try">Try the 1.15x floor</a>
+      <a class="btn" href="/lender">Open the live loan check</a>
+      <a class="btn btn-ghost" href="#pilot">Book a lender pilot</a>
     </div>
   </div>
   <figure class="hero-stage" aria-label="Animation: a tilted stack of GPU blocks settles into a true vertical line, and the loan draw changes from locked to open.">
@@ -81,6 +82,34 @@
       <li><a href="https://explorer.solana.com/tx/3aHByAATknm3kwmzQrc9uZVZfAb7ycqQfRec76aKZgQkLG1rSvGkNoPR5y5j4QfRTCPy34a7R3UySmSTrRbTvYJc?cluster=devnet">0.05 SOL bounty paid from a Groth16 proof on devnet</a></li>
       <li><span>39 tests on real Groth16 proofs</span></li>
     </ul>
+  </div>
+</section>
+
+<!-- LIVE: reads devnet from the browser; falls back to explorer links -->
+<section class="live" id="live" aria-labelledby="live-h">
+  <h2 id="live-h" class="reveal-h">Read it from the chain yourself.</h2>
+  <p class="lede">This list asks Solana devnet directly from your browser, right now. Nothing here comes from our server.</p>
+  <ol class="live-list" data-rpc="https://api.devnet.solana.com">
+    <li data-sig="41ZoCoxTFb1MqUQKu5Qa1bRwEUch77nEUXmihPCCckvDjR52mhnAvgAQ4LqtnJZ7sjHjLFwg2Zb6yfat6RUJ7Nb7" data-expect="ok"><span class="what">1.15x proof verified</span><span class="state">Checked on devnet</span></li>
+    <li data-sig="5DWV6UU7jTPem7HDUtrHrmLqeGvM3x7UzMe1XHALoXdT6ZTEoKGYS5BbbfKicrfJZLhuWbo4fpa16hUhhCyFs1er" data-expect="ok"><span class="what">1.15x draw approved</span><span class="state">Checked on devnet</span></li>
+    <li data-sig="59nKZTGUKSDV7R57ZAf49vMCEqEPf2yjvhHy5Qd7XdPLJebJiaPkBn7pnVfWzBR4uXVJzC2r2h62mTJQQdSbHtmV" data-expect="ok"><span class="what">1.14x proof verified</span><span class="state">Checked on devnet</span></li>
+    <li data-sig="5kV48qNZNwMfrVrxsq33qtj3QQSPtkRLqmZegw9QxoxoEDuW2birgnDJMaUnsN5U9cvN32tJZDcB7YdjRs7g1AYA" data-expect="6019"><span class="what">1.14x draw refused</span><span class="state">Checked on devnet</span></li>
+    <li data-sig="4W46GmRQ5YWZj6HsGe4jz5KKUvDDwxyeBXLSdo1eP4zf9NT25QGH5y783RZDHpXFPJYK19JQMKBYzYRUJzHnvFvq" data-expect="6027"><span class="what">Replayed proof refused</span><span class="state">Checked on devnet</span></li>
+    <li data-sig="3aHByAATknm3kwmzQrc9uZVZfAb7ycqQfRec76aKZgQkLG1rSvGkNoPR5y5j4QfRTCPy34a7R3UySmSTrRbTvYJc" data-expect="ok"><span class="what">Sealed-eval bounty claimed, 0.05 SOL</span><span class="state">Checked on devnet</span></li>
+  </ol>
+  <p class="small" id="live-note" role="status" aria-live="polite">Each row links to the Solana explorer.</p>
+</section>
+
+<!-- APP: the working product behind this page -->
+<section class="app" id="app" aria-labelledby="app-h">
+  <h2 id="app-h" class="reveal-h">The product is running. Open it.</h2>
+  <div class="app-grid">
+    <a class="app-card" href="/lender"><span class="tag">Lenders</span><h3>Lender view</h3><p>The devnet loan, its covenant result and the draw it gates.</p><span class="go" aria-hidden="true">Open →</span></a>
+    <a class="app-card" href="/prove"><span class="tag">Operators</span><h3>Prove your fleet</h3><p>How an operator produces the weekly proof for a facility.</p><span class="go" aria-hidden="true">Open →</span></a>
+    <a class="app-card" href="/monitor"><span class="tag">Curators</span><h3>Credit monitor</h3><p>Devnet loan pages with the public verify result.</p><span class="go" aria-hidden="true">Open →</span></a>
+    <a class="app-card" href="/bounties"><span class="tag">Next</span><h3>Sealed-eval bounties</h3><p>The same engine paying prizes on hidden tests, on devnet.</p><span class="go" aria-hidden="true">Open →</span></a>
+    <a class="app-card" href="/docs"><span class="tag">Builders</span><h3>Docs</h3><p>Instructions, accounts and how to verify a proof yourself.</p><span class="go" aria-hidden="true">Open →</span></a>
+    <a class="app-card" href="https://github.com/let-the-dreamers-rise/plumbline"><span class="tag">Open source</span><h3>Source code</h3><p>Guest, Groth16 verifier and Anchor programs, MIT licensed.</p><span class="go" aria-hidden="true">Open →</span></a>
   </div>
 </section>
 
@@ -238,7 +267,7 @@
   <div class="foot-grid">
     <p class="brand">Plumbline</p>
     <ul>
-      <li><a href="https://github.com/let-the-dreamers-rise/plumbline/tree/claude/plumbline-product">Source code</a></li>
+      <li><a href="https://github.com/let-the-dreamers-rise/plumbline">Source code</a></li>
       <li><a href="https://explorer.solana.com/tx/41ZoCoxTFb1MqUQKu5Qa1bRwEUch77nEUXmihPCCckvDjR52mhnAvgAQ4LqtnJZ7sjHjLFwg2Zb6yfat6RUJ7Nb7?cluster=devnet">Devnet proof</a></li>
       <li><a href="/bounties">Sealed-eval bounties</a></li>
     </ul>
@@ -252,5 +281,6 @@
 <script src="js/hero.js" defer></script>
 <script src="js/scenes.js" defer></script>
 <script src="js/toy.js" defer></script>
+<script src="js/live.js" defer></script>
 </body>
 </html>
