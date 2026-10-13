@@ -391,9 +391,17 @@ if [ $TEST = 1 ] && [ -n "${PLB_TEST_REPO_DIR:-}" ]; then
 else
   REPO=$WORK/repo
   rm -rf -- "${REPO:?}"
-  git clone -q --depth 1 -b "$BRANCH" "$REPO_URL" "$REPO" || die "git clone $REPO_URL ($BRANCH) failed"
+  SRC_TGZ=${PLB_SRC_TGZ:-$(dirname "$(readlink -f "$0")")/plumbline-src.tar.gz}
+  if [ -f "$SRC_TGZ" ]; then
+    # Uploaded source (works while the GitHub repo is private): git archive of the branch + its commit id.
+    mkdir -p "$REPO" && tar -xzf "$SRC_TGZ" -C "$REPO" || die "could not unpack $SRC_TGZ"
+    log "source from $SRC_TGZ"
+  else
+    git clone -q --depth 1 -b "$BRANCH" "$REPO_URL" "$REPO" \
+      || die "git clone $REPO_URL ($BRANCH) failed. If the repo is private, upload plumbline-src.tar.gz next to this script and run again"
+  fi
 fi
-log "repo at commit $(git -C "$REPO" rev-parse HEAD)"
+log "repo at commit $(git -C "$REPO" rev-parse HEAD 2>/dev/null || cat "$REPO/COMMIT")"
 COMPOSE_YML=$REPO/plumbline/enclave/docker-compose.compete.yml
 echo "$COMPOSE_FILE_SHA  $COMPOSE_YML" | sha256sum -c --quiet - \
   || die "docker-compose.compete.yml differs from the pinned sha256 $COMPOSE_FILE_SHA (someone changed server.py or the limits)"
