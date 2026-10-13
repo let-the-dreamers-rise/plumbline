@@ -61,16 +61,10 @@
   } else splitHeads();
 
   /* Staggered entrances. */
-  [['.cmp-card', '.cmp'], ['.live-list li', '.live-list'], ['.app-card', '.app-grid'], ['.cell', '.bento'], ['.stat-grid > div', '.stat-grid'], ['.faq details', '.faq'], ['.lead > *', '.lead']].forEach(function (p) {
+  [['.live-list li', '.live-list'], ['.app-card', '.app-grid'], ['.cell', '.bento'], ['.stat-grid > div', '.stat-grid'], ['.faq details', '.faq'], ['.lead > *', '.lead']].forEach(function (p) {
     gsap.fromTo(p[0], { opacity: 0, y: 28 }, { opacity: 1, y: 0, duration: .9, ease: settle, stagger: .08, scrollTrigger: { trigger: p[1], start: 'top 80%' } });
   });
 
-  /* Before/after: the plumb line drops through the comparison as you scroll (scrubbed),
-     and the crooked "before" card is pulled true. */
-  gsap.to('.cmp-line span', { scaleY: 1, ease: 'none', scrollTrigger: { trigger: '.cmp', start: 'top 70%', end: 'bottom 50%', scrub: .6 } });
-  if (innerWidth > 760) {
-    gsap.to('.before', { rotation: 0, ease: 'none', scrollTrigger: { trigger: '.cmp', start: 'top 70%', end: 'bottom 50%', scrub: .6 } });
-  }
 
   /* Pinned story: four steps, the bob descends the line through each ring. */
   var mm = gsap.matchMedia();

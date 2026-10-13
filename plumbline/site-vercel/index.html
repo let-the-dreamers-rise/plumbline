@@ -24,7 +24,7 @@
   </a>
   <nav aria-label="Sections">
     <a href="#how">How it works</a>
-    <a href="#try">Try the floor</a>
+    <a href="#run">Run a draw</a>
     <a href="#live">Live on devnet</a>
     <a href="#app">Product</a>
     <a class="btn btn-sm" href="/lender">Launch app</a>
@@ -40,7 +40,7 @@
     <p class="lede">The next draw opens only when the GPU is real and its revenue covers the payments. One zero-knowledge proof, checked by a Solana program. Live on devnet.</p>
     <div class="cta-row">
       <a class="btn" href="/lender">Open the live loan check</a>
-      <a class="btn btn-ghost" href="#pilot">Book a lender pilot</a>
+      <a class="btn btn-ghost" href="#run">Run a draw in 60 seconds</a>
     </div>
   </div>
   <figure class="hero-stage" aria-label="Animation: a tilted stack of GPU blocks settles into a true vertical line, and the loan draw changes from locked to open.">
@@ -85,6 +85,69 @@
   </div>
 </section>
 
+<!-- RUN A DRAW: the lender's seat, four steps, real data only -->
+<section class="run" id="run" aria-labelledby="run-h">
+  <p class="eyebrow">Sit in the lender's seat</p>
+  <h2 id="run-h" class="reveal-h">Run a draw. Four clicks, real data.</h2>
+  <div class="console">
+    <ol class="run-steps" role="tablist" aria-label="Draw steps">
+      <li><button role="tab" id="t1" aria-controls="p1" aria-selected="true">1 · Facility</button></li>
+      <li><button role="tab" id="t2" aria-controls="p2" aria-selected="false">2 · GPU answers</button></li>
+      <li><button role="tab" id="t3" aria-controls="p3" aria-selected="false">3 · Proof onchain</button></li>
+      <li><button role="tab" id="t4" aria-controls="p4" aria-selected="false">4 · The money</button></li>
+    </ol>
+    <div class="run-bar" aria-hidden="true"><span></span></div>
+
+    <div class="panel" role="tabpanel" id="p1" aria-labelledby="t1">
+      <div class="pane">
+        <h3>You lend against GPUs. Set the covenant.</h3>
+        <dl class="kv">
+          <div><dt>Facility (a real fit from USD.AI's public loan book)</dt><dd>H200 · 75 servers · $14.1M</dd></div>
+          <div><dt>Covenant: debt-service coverage at least</dt><dd>1.15x</dd></div>
+          <div><dt>Fresh challenge for this period</dt><dd class="mono" id="chal">not issued</dd></div>
+        </dl>
+        <button class="btn" type="button" data-act="challenge">Issue a fresh challenge</button>
+      </div>
+      <aside class="vs"><p class="tag">Today</p><p>The 1.15x floor is tested quarterly, on trailing receipts. Depositors funding the loan cannot check it.</p><p class="tag ok">With Plumbline</p><p>The floor is re-proven before every draw, against a challenge only you issued.</p></aside>
+    </div>
+
+    <div class="panel" role="tabpanel" id="p2" aria-labelledby="t2">
+      <div class="pane">
+        <h3>The operator's machine answers. Check it yourself.</h3>
+        <p>This is the real quote from a confidential VM on Google Cloud (Intel TDX, Oct 13), where a model scored 22/30 on a sealed suite. Your browser checks its signatures back to Intel's root.</p>
+        <div class="cta-row"><button class="btn" type="button" data-act="verify">Verify the quote in this tab</button><button class="btn btn-ghost" type="button" data-act="forge">Try a forged copy</button></div>
+        <pre class="out" id="out2" role="status" aria-live="polite">Waiting.</pre>
+      </div>
+      <aside class="vs"><p class="tag">Today</p><p>Site visits and spreadsheets. io.net's CEO reported about 1.8 million fake GPUs trying to join in April 2024.</p><p class="tag ok">With Plumbline</p><p>The GPU and its enclave sign their own evidence. A forged byte fails, as you just saw.</p></aside>
+    </div>
+
+    <div class="panel" role="tabpanel" id="p3" aria-labelledby="t3">
+      <div class="pane">
+        <h3>One proof, checked by a Solana program.</h3>
+        <p>The GPU report, certificate chain, enclave quote and payout proofs (about 32 KB) become one 256-byte Groth16 proof. Our program verifies it in one transaction, about 120k compute units.</p>
+        <button class="btn" type="button" data-act="chain">Ask devnet for the 1.15x proof</button>
+        <pre class="out" id="out3" role="status" aria-live="polite">Waiting.</pre>
+      </div>
+      <aside class="vs"><p class="tag">Today</p><p>Loan reports are snapshots: one was a July 15 snapshot published September 1. Telemetry never sees revenue.</p><p class="tag ok">With Plumbline</p><p>The result is a public account. Curators and depositors read it free.</p></aside>
+    </div>
+
+    <div class="panel" role="tabpanel" id="p4" aria-labelledby="t4">
+      <div class="pane">
+        <h3>The draw opens, or it doesn't.</h3>
+        <div class="seg" role="group" aria-label="Pick a case">
+          <button type="button" data-case="pass" aria-pressed="true">Coverage 1.15x</button>
+          <button type="button" data-case="breach" aria-pressed="false">Coverage 1.14x</button>
+          <button type="button" data-case="replay" aria-pressed="false">Replay an old proof</button>
+        </div>
+        <p class="verdict-big" id="v4">Pick a case.</p>
+        <pre class="out" id="out4" role="status" aria-live="polite">Each case is a real devnet transaction, read live.</pre>
+      </div>
+      <aside class="vs pay"><p class="tag ok">Who pays, and why</p><p><strong>The lender.</strong> The money only moves when the proof says it should, so a bad quarter shows up before the next draw, not after it. Operators prove free; curators, depositors and networks read free.</p><a class="btn btn-sm" href="#pilot">Book a lender pilot</a></aside>
+    </div>
+    <div class="run-nav"><button class="btn btn-ghost btn-sm" type="button" data-nav="-1">Back</button><button class="btn btn-sm" type="button" data-nav="1">Next step</button></div>
+  </div>
+</section>
+
 <!-- LIVE: reads devnet from the browser; falls back to explorer links -->
 <section class="live" id="live" aria-labelledby="live-h">
   <h2 id="live-h" class="reveal-h">Read it from the chain yourself.</h2>
@@ -99,16 +162,6 @@
   </ol>
   <p class="small" id="live-note" role="status" aria-live="polite">Each row links to the Solana explorer.</p>
   <p class="wallet-note"><strong>No wallet or SOL needed</strong> to check anything on this page. Sending a new proof or claiming a prize takes a wallet; that is for operators and lenders, and the transactions above show those steps already ran on devnet.</p>
-
-  <div class="vq" aria-labelledby="vq-h">
-    <h3 id="vq-h">Verify a real enclave score in your browser</h3>
-    <p>On Oct 13 a model scored <strong>22/30</strong> on a sealed suite inside an Intel TDX VM on Google Cloud. Check its quote to Intel's root here, in this tab. Nothing is uploaded.</p>
-    <div class="cta-row">
-      <button class="btn" type="button" id="vq-run">Verify the 22/30 quote</button>
-      <button class="btn btn-ghost" type="button" id="vq-flip">Flip one byte and retry</button>
-    </div>
-    <pre id="vq-out" class="vq-out" role="status" aria-live="polite">Needs JavaScript. The bundle and verify output are in the repository.</pre>
-  </div>
 </section>
 
 <!-- APP: the working product behind this page -->
@@ -124,33 +177,6 @@
   </div>
 </section>
 
-<!-- BEFORE / AFTER: scroll-scrubbed plumb wipe -->
-<section class="compare" aria-labelledby="cmp-h">
-  <h2 id="cmp-h" class="reveal-h">From a quarterly snapshot to a proof before every draw.</h2>
-  <div class="cmp">
-    <article class="cmp-card before">
-      <p class="tag">Today</p>
-      <ul>
-        <li>Coverage tested quarterly against a 1.15x floor on trailing receipts.</li>
-        <li>Loan reports are snapshots, published weeks later.</li>
-        <li>Depositors funding the loans cannot check the ratio.</li>
-        <li>Telemetry sees serials and health, not revenue.</li>
-        <li>No onchain record ties a GPU to one loan.</li>
-      </ul>
-    </article>
-    <article class="cmp-card after">
-      <p class="tag">With Plumbline</p>
-      <ul>
-        <li>The floor is re-proven before the next draw.</li>
-        <li>One Groth16 proof, verified in one Solana transaction.</li>
-        <li>The result is public: page, badge, JSON.</li>
-        <li>Revenue comes from zkTLS-proven payouts; individual payouts stay private.</li>
-        <li>The proven GPU's chip-id hash is recorded on its loan.</li>
-      </ul>
-    </article>
-    <div class="cmp-line" aria-hidden="true"><span></span></div>
-  </div>
-</section>
 
 <!-- PINNED STORY: three roots, one proof, one decision -->
 <section class="story" id="how" aria-labelledby="story-h">
@@ -210,29 +236,6 @@
   </div>
 </section>
 
-<!-- TOY: drag the coverage ratio, the bob settles to PASS or WATCH -->
-<section class="toy" id="try" aria-labelledby="toy-h">
-  <h2 id="toy-h" class="reveal-h">Drag the coverage. Watch the line decide.</h2>
-  <div class="toy-grid">
-    <div class="toy-ctl">
-      <label for="ratio">Debt-service coverage this period</label>
-      <output id="ratio-out" for="ratio">1.15x</output>
-      <input id="ratio" type="range" min="1.00" max="1.40" step="0.01" value="1.15" aria-describedby="toy-note">
-      <p id="verdict" class="verdict pass" role="status">PASS · next draw opens</p>
-      <p id="toy-note" class="small">Floor 1.15x, as on USD.AI's underwriting page. On devnet the program approved
-        <a href="https://explorer.solana.com/tx/5DWV6UU7jTPem7HDUtrHrmLqeGvM3x7UzMe1XHALoXdT6ZTEoKGYS5BbbfKicrfJZLhuWbo4fpa16hUhhCyFs1er?cluster=devnet">1.15x</a> and refused
-        <a href="https://explorer.solana.com/tx/5kV48qNZNwMfrVrxsq33qtj3QQSPtkRLqmZegw9QxoxoEDuW2birgnDJMaUnsN5U9cvN32tJZDcB7YdjRs7g1AYA?cluster=devnet">1.14x</a>. This slider is a simulation.</p>
-    </div>
-    <div class="toy-stage" aria-hidden="true">
-      <svg viewBox="0 0 300 300">
-        <path d="M60 60 A170 170 0 0 0 240 60" class="arc"/>
-        <line x1="150" y1="20" x2="150" y2="290" class="floor-line"/>
-        <g class="toy-pend"><line x1="150" y1="20" x2="150" y2="210" class="string"/><path d="M134 210h32l-16 30z" class="bob"/></g>
-        <circle cx="150" cy="20" r="5" class="pin"/>
-      </svg>
-    </div>
-  </div>
-</section>
 
 <!-- STATS: count-ups, every number from the build -->
 <section class="stats" aria-labelledby="stats-h">
@@ -291,8 +294,7 @@
 <script src="vendor/SplitText.min.js" defer></script>
 <script src="js/hero.js" defer></script>
 <script src="js/scenes.js" defer></script>
-<script src="js/toy.js" defer></script>
 <script src="js/live.js" defer></script>
-<script type="module" src="js/verify.js"></script>
+<script type="module" src="js/console.js"></script>
 </body>
 </html>
