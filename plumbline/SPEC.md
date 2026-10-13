@@ -73,14 +73,11 @@ plumbline/
   relayer/           watch -> prove -> record -> claim
   cli/               plumbline CLI (sponsor + entrant)
   app/               web app: bounties, leaderboard, verify
-  docs/              what's real today vs after the Phala run
+  docs/              what's real today vs pending
 ```
 
-## Real today vs after the Phala run
+## Real today vs pending
 
-| Piece | Today | After one Phala run |
-|---|---|---|
-| Programs, escrow, payout binding | Tested on localnet with a Groth16 proof from the test-root guest | Same |
-| zk guest on a real Intel quote | Verifies Intel's sample quote; statement binding tested with a synthetic quote | A real Phala quote bound to a real score |
-| Enclave competition mode | Tested with a stub quote | Measured compose running on Phala TDX |
-| Onchain payout from a real score | Not yet | Devnet bounty paid from a real proof |
+See [docs/REAL-VS-PENDING.md](docs/REAL-VS-PENDING.md). In short: the whole flow has run end to end on a local
+validator with a real Groth16 proof (test-root quote, stand-in model); the real Intel-signed score and the
+devnet deploy are next.
