@@ -1,0 +1,214 @@
+
+== [   0s] preflight
+work dir /tmp/plumbline-e2e.EOUCZp; free disk 6.4G
+solana 2.1.21, node v22.22.0, git a07e453 on claude/plumbline-product
+
+== [   0s] 1a. TEST ONLY root + prover: fresh PCK chain, test-root guest re-pinned to it
+control build, repo test root:  image id 0x7aaa8f274bbbc3501ecee9552592a47e35a3345bd2dc3b8314a7f500187699a7
+e2e build, e2e test root:      image id 0x3a2c919e2f59c4c1adceb9e78cf95a9ba2c75f3d15962414fce84cfa9257c5f6, root sha256 2627ae1eb4abb4d413aee405403a9ec85496c7be1e8f85c07ef0a20271b79378
+
+== [  57s] 1b. solana-test-validator on http://127.0.0.1:8999 + upgradeable deploys
+operator 4WqVeEyqqvQFJbRYE5foaMyHrJYEV5AyUhNMz6rVhok4 (deploys, registry admin)
+sponsor  295GZQULBxYhTgxHQzyuh7Q8bnPGeC5KSfdF1ZDzAVPt
+relayer  EZDfB8QBUxWF3bigfchHwmPtjFNukYE8jLncXtbSNn9Y (fee payer only)
+payout   CWjBrWkBZkhtbkPJWDiVXj1uH2SKcLNyYsevaUNZH5fz (entrant's fresh payout key, never funded)
+validator up: genesis FbN4LEtSJdTvZQFQBJKtN7w4mfZ83xdL4kUwzYedKkQv
+deploy plumbline_registry: Program Id: Eicw3HXxXN7kckn5XB4WDGQG2c61BLf7X7QpGehLTgAW  Signature: 3Ny33DhYxrQsdGjkrEvqD9WFkcMyfEN6JxduG13tMyn4SoS7UA7Tfdj1eCUrzbsYKY93weqsvPhfRBsWXqaqXqEB  
+deploy plumbline_bounty: Program Id: 9mDieYQNR2L9xgaqS6LK26kxR26rA4R9UcFntG369RPf  Signature: 3Q2cJCsFL2tFRRgaanE4cRPST799dkFu3mB5vxXSa9wKZCCrRn1eoFeFMLXxRNLLK9LUmaDEgm2tmXuQNiLmRwrt  
+
+== [  71s] 2. competition enclave (real server.py; stub dstack signs with the e2e test root)
+e2e enclave (real server.py, stub dstack/HTTPS/model) on 127.0.0.1:18080, pubkey 043487f06c253bfca7c7897b5509354f27b9245db5a99fec9c562818020d961d
+enclave key 043487f06c253bfca7c7897b5509354f27b9245db5a99fec9c562818020d961d, ready True, mode competition
+compose hash (stub dstack event) eb4eba790a10fdd4b3371932135c404b292fa5046d836ad37bd97ed744e023b8
+
+== [  72s] 1c. registry config: e2e test-root image id + root, enclave compose hash
+{"tx":"Ae4GyMfxNy9wLehrDofvv2pEanLKcN52PfKCQazMD7bi6EKMrATN29DyHvWARGK8QTygn8z3K27wP6TZEWUfwoA","config":"FWEqUfbEg62kVYeDPbkrATbnNMJXhRL39FA9uNaLRS5K","admin":"4WqVeEyqqvQFJbRYE5foaMyHrJYEV5AyUhNMz6rVhok4","imageId":"3a2c919e2f59c4c1adceb9e78cf95a9ba2c75f3d15962414fce84cfa9257c5f6","root":"2627ae1eb4abb4d413aee405403a9ec85496c7be1e8f85c07ef0a20271b79378","compose":"eb4eba790a10fdd4b3371932135c404b292fa5046d836ad37bd97ed744e023b8","mrTd":"000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000"}
+
+== [  74s] 3a. sponsor: throwaway suite (6 items, generated in the work dir, never printed)
+wrote suite.json: tessera-arith-b2a6e2d5, 6 items (not printed; keep this file private)
+
+== [  74s] 3b. sponsor: plumbline seal (fetches /attest with a fresh challenge; binding checked, test-root quote)
+sealed suite written to sealed.json
+  commitment 8b58dd4e046f826b88e86de90a77c09469a8e600178c6804a5ad543ea8742ba1
+  enclave key 043487f06c253bfca7c7897b5509354f27b9245db5a99fec9c562818020d961d, quote check: binding-only
+
+== [  75s] 3c. sponsor: plumbline suite register
+suite 8b58dd4e046f826b88e86de90a77c09469a8e600178c6804a5ad543ea8742ba1 registered at J62Zgwh2UvAWuxncheeeUj6fyFLipREBCHHzgrPHvdNA, tx 3Mp8TAvAfU16TnqWvbxjPwayktc4tmfJnaspQsb8FTz2gUBJuPqMos2fzUNkMkFqvDD45eGmNN1yjxv1UGZ7y8WS
+
+== [  76s] 3d. sponsor: plumbline bounty create (0.5 SOL for 4/6, pinned to this compose + guest image)
+bounty CxPFDqL8tZXqRKrCas1GwUZdVsUjmLF3ztQzug932JE7, tx 3Fr1QmfMC3K8K7GFs4Z9HgU7TRsFfu3dJX6h3iEx9S2c9SutZQLD3USEgLqm92xXtMbc2C7BbMxREoTnRxvk6pAB
+bounty CxPFDqL8tZXqRKrCas1GwUZdVsUjmLF3ztQzug932JE7 (open)
+  sponsor 295GZQULBxYhTgxHQzyuh7Q8bnPGeC5KSfdF1ZDzAVPt
+  reward 0.5 SOL, target 4/6
+  suite 8b58dd4e046f826b88e86de90a77c09469a8e600178c6804a5ad543ea8742ba1
+  created slot 45, deadline 216044, grace 1500
+
+verified scores on this suite: 0
+
+== [  79s] 3e. entrant: plumbline enter with the fresh payout key
+entering plumbline-e2e/regex-arith-solver@8324eb2f28 on suite 8b58dd4e046f826b… (scoring can take a while)
+score 6/6, payout CWjBrWkBZkhtbkPJWDiVXj1uH2SKcLNyYsevaUNZH5fz
+bundle saved to /tmp/plumbline-e2e.EOUCZp/entrant/bundle.json
+next: drop it in the relayer inbox, or POST it to the relayer's /bundles
+statement 0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62
+  v: tessera-score-1
+  suite_commitment: 8b58dd4e046f826b88e86de90a77c09469a8e600178c6804a5ad543ea8742ba1
+  n: 6
+  correct: 6
+  model_id: plumbline-e2e/regex-arith-solver
+  model_revision: 8324eb2f28c0836b998b2618385b12dc3e8439de
+  weights_sha256: b35094591c01f972decd9b7d52e48a62a0490e2e9b85d7ca4c2aa06ec98fd516
+  payout: ab0e19cdbc9ae9be2dee58ac1e4b7912c617bac826d767b9d178148712e5a245
+statement 0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62
+score 6/6 for plumbline-e2e/regex-arith-solver@8324eb2f28
+suite 8b58dd4e046f826b88e86de90a77c09469a8e600178c6804a5ad543ea8742ba1
+payout CWjBrWkBZkhtbkPJWDiVXj1uH2SKcLNyYsevaUNZH5fz
+  ok   statement_sha256 is the hash of the canonical statement
+  ok   statement is tessera-score-1 - v = tessera-score-1
+  ok   statement carries a non-zero payout
+  ok   score quote report_data binds the statement
+  ok   RTMR3 runtime event digests recompute (empty = stripped by dstack-cloud, recomputed) - 5 events, 0 stripped
+  ok   exactly one 32-byte compose-hash event - found 1
+
+== [  81s] 4a. guest execute on the bundle (seconds; the same guest the relayer proves with)
+statement_sha256 0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62 OK
+report_data binds statement OK
+rtmr3 events 5 with stripped digest 0 compose-hash ['eb4eba790a10fdd4b3371932135c404b292fa5046d836ad37bd97ed744e023b8']
+image id 0x3a2c919e2f59c4c1adceb9e78cf95a9ba2c75f3d15962414fce84cfa9257c5f6
+cycles: 1850813 user, 2097152 total in 2 segments
+journal: correct 6/6, payout CWjBrWkBZkhtbkPJWDiVXj1uH2SKcLNyYsevaUNZH5fz
+  ok  journal is 330 bytes
+  ok  statement_hash
+  ok  root_sha256 = e2e root
+  ok  bound = 1
+  ok  compose_hash = enclave event (RTMR3 replayed)
+  ok  payout = entrant key
+
+== [  81s] 4. relayer --once: Groth16 proof (real prover, e2e test-root guest) -> record_verified_score -> claim
+{"CWjBrWkBZkhtbkPJWDiVXj1uH2SKcLNyYsevaUNZH5fz":0,"EZDfB8QBUxWF3bigfchHwmPtjFNukYE8jLncXtbSNn9Y":5000000000,"295GZQULBxYhTgxHQzyuh7Q8bnPGeC5KSfdF1ZDzAVPt":19495048400}
+{"ts":"2026-10-12T23:59:36.588Z","step":"relayer.start","cluster":"localnet","rpc":"http://127.0.0.1:8999","feePayer":"EZDfB8QBUxWF3bigfchHwmPtjFNukYE8jLncXtbSNn9Y","registry":"Eicw3HXxXN7kckn5XB4WDGQG2c61BLf7X7QpGehLTgAW","bounty":"9mDieYQNR2L9xgaqS6LK26kxR26rA4R9UcFntG369RPf","idl":"/home/claude/paid-compute-tape/plumbline/programs/target/idl/plumbline_bounty.json","quoteCheck":"binding","inbox":"/tmp/plumbline-e2e.EOUCZp/relayer/inbox","state":"/tmp/plumbline-e2e.EOUCZp/relayer/state.json"}
+{"ts":"2026-10-12T23:59:36.590Z","step":"bundle.received","source":"inbox:bundle.json"}
+{"ts":"2026-10-12T23:59:36.595Z","step":"bundle.checked","statement":"0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62","ok":true,"correct":6,"n":6,"payout":"CWjBrWkBZkhtbkPJWDiVXj1uH2SKcLNyYsevaUNZH5fz","failed":[]}
+{"ts":"2026-10-12T23:59:36.605Z","step":"prove.start","statement":"0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62"}
+{"ts":"2026-10-12T23:59:36.610Z","step":"prover.start","cmd":"/tmp/plumbline-e2e.EOUCZp/prover/tessera-risc0-host","args":["groth16","/tmp/plumbline-e2e.EOUCZp/relayer/work/0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62/quote.bin","/tmp/plumbline-e2e.EOUCZp/relayer/work/0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62/statement.json","/tmp/plumbline-e2e.EOUCZp/relayer/work/0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62/event_log.json"]}
+{"ts":"2026-10-13T00:20:07.276Z","step":"prover.done","ms":1230666,"proof":"/tmp/plumbline-e2e.EOUCZp/relayer/work/0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62/proof.json"}
+{"ts":"2026-10-13T00:20:07.280Z","step":"prove.done","statement":"0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62","proof":"/tmp/plumbline-e2e.EOUCZp/relayer/work/0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62/proof.json"}
+{"ts":"2026-10-13T00:20:07.280Z","step":"record.start","statement":"0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62"}
+{"ts":"2026-10-13T00:20:07.460Z","step":"record.done","statement":"0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62","score":"G718NowFdrMra7K17gn8CgNxNGcvFrK2Di7zRYskx9Q7","tx":"2hgDtWWjY9xqGhcNZeNno3SM8aBwGHxao6iSoaU4Vi8hcueCzBxfTJRmv6NpYu2GhzaiRxYodzqd4jTowhZaVY1u"}
+{"ts":"2026-10-13T00:20:07.531Z","step":"claim.scan","statement":"0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62","open":1}
+{"ts":"2026-10-13T00:20:07.532Z","step":"claim.start","bounty":"CxPFDqL8tZXqRKrCas1GwUZdVsUjmLF3ztQzug932JE7","payout":"CWjBrWkBZkhtbkPJWDiVXj1uH2SKcLNyYsevaUNZH5fz","amount":"500000000"}
+{"ts":"2026-10-13T00:20:07.869Z","step":"claim.done","bounty":"CxPFDqL8tZXqRKrCas1GwUZdVsUjmLF3ztQzug932JE7","tx":"2W8d6JKQggsCAc3S78XuikuUNn71qVmZQiPXwmzZCH37qQA5SZpSyNdwCEg9iCEbgwEXSsX3PSe5yyRZmDj8YMfJ","payout":"CWjBrWkBZkhtbkPJWDiVXj1uH2SKcLNyYsevaUNZH5fz"}
+{"ts":"2026-10-13T00:20:07.870Z","step":"bundle.done","statement":"0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62","status":"claimed"}
+{"ts":"2026-10-13T00:20:07.871Z","step":"inbox.moved","name":"bundle.json","to":"done","status":"claimed"}
+relayer state: {
+ "statementHash": "0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62",
+ "status": "claimed",
+ "source": "inbox:bundle.json",
+ "claims": {
+  "CxPFDqL8tZXqRKrCas1GwUZdVsUjmLF3ztQzug932JE7": {
+   "signature": "2W8d6JKQggsCAc3S78XuikuUNn71qVmZQiPXwmzZCH37qQA5SZpSyNdwCEg9iCEbgwEXSsX3PSe5yyRZmDj8YMfJ",
+   "payout": "CWjBrWkBZkhtbkPJWDiVXj1uH2SKcLNyYsevaUNZH5fz",
+   "amount": "500000000",
+   "at": "2026-10-13T00:20:07.870Z"
+  }
+ },
+ "attempts": 0,
+ "firstSeen": "2026-10-12T23:59:36.595Z",
+ "updatedAt": "2026-10-13T00:20:07.870Z",
+ "suiteCommitment": "8b58dd4e046f826b88e86de90a77c09469a8e600178c6804a5ad543ea8742ba1",
+ "payout": "CWjBrWkBZkhtbkPJWDiVXj1uH2SKcLNyYsevaUNZH5fz",
+ "correct": 6,
+ "n": 6,
+ "proofPath": "/tmp/plumbline-e2e.EOUCZp/relayer/work/0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62/proof.json",
+ "score": "G718NowFdrMra7K17gn8CgNxNGcvFrK2Di7zRYskx9Q7",
+ "recordTx": "2hgDtWWjY9xqGhcNZeNno3SM8aBwGHxao6iSoaU4Vi8hcueCzBxfTJRmv6NpYu2GhzaiRxYodzqd4jTowhZaVY1u"
+}
+
+== [1315s] 5. onchain checks
+VerifiedScore G718NowFdrMra7K17gn8CgNxNGcvFrK2Di7zRYskx9Q7
+  statement 0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62  6/6  payout CWjBrWkBZkhtbkPJWDiVXj1uH2SKcLNyYsevaUNZH5fz
+  image 3a2c919e2f59c4c1adceb9e78cf95a9ba2c75f3d15962414fce84cfa9257c5f6  compose eb4eba790a10fdd4b3371932135c404b292fa5046d836ad37bd97ed744e023b8  slot 1323  submitter EZDfB8QBUxWF3bigfchHwmPtjFNukYE8jLncXtbSNn9Y
+Bounty CxPFDqL8tZXqRKrCas1GwUZdVsUjmLF3ztQzug932JE7
+  status paid  amount 500000000 lamports  target 4/6
+  winner statement 0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62  winner payout CWjBrWkBZkhtbkPJWDiVXj1uH2SKcLNyYsevaUNZH5fz  paid slot 1324
+  ok  VerifiedScore is for the entrant's statement
+  ok  VerifiedScore.payout = entrant's fresh payout key
+  ok  bounty status paid
+  ok  bounty winner payout = entrant's payout key
+  ok  bounty winner statement = entrant's statement
+payout CWjBrWkBZkhtbkPJWDiVXj1uH2SKcLNyYsevaUNZH5fz: 0 -> 500000000 lamports (+500000000)
+relayer EZDfB8QBUxWF3bigfchHwmPtjFNukYE8jLncXtbSNn9Y: 5000000000 -> 4996405600 lamports (-3594400)
+  ok  payout wallet gained exactly the bounty amount (500000000 lamports)
+  ok  relayer wallet only paid fees (balance went down)
+claim tx 2W8d6JKQggsCAc3S78XuikuUNn71qVmZQiPXwmzZCH37qQA5SZpSyNdwCEg9iCEbgwEXSsX3PSe5yyRZmDj8YMfJ (slot 1324, signer EZDfB8QBUxWF3bigfchHwmPtjFNukYE8jLncXtbSNn9Y)
+  EZDfB8QBUxWF3bigfchHwmPtjFNukYE8jLncXtbSNn9Y  -5000
+  CWjBrWkBZkhtbkPJWDiVXj1uH2SKcLNyYsevaUNZH5fz  +500000000
+  CxPFDqL8tZXqRKrCas1GwUZdVsUjmLF3ztQzug932JE7  -500000000
+  ok  claim tx: relayer received nothing
+  ok  claim tx: payout +amount
+ONCHAIN CHECKS OK
+bounty CxPFDqL8tZXqRKrCas1GwUZdVsUjmLF3ztQzug932JE7 (paid)
+  sponsor 295GZQULBxYhTgxHQzyuh7Q8bnPGeC5KSfdF1ZDzAVPt
+  reward 0.5 SOL, target 4/6
+  suite 8b58dd4e046f826b88e86de90a77c09469a8e600178c6804a5ad543ea8742ba1
+  created slot 45, deadline 216044, grace 1500
+  paid to CWjBrWkBZkhtbkPJWDiVXj1uH2SKcLNyYsevaUNZH5fz at slot 1324
+
+verified scores on this suite: 1
+  1. 6/6  payout CWjBrWkBZkhtbkPJWDiVXj1uH2SKcLNyYsevaUNZH5fz  slot 1323  AlreadyPaid
+payout balance (solana CLI): 0.5 SOL
+
+== [1317s] 6. web app screenshots (headless Chromium, app pointed at http://127.0.0.1:8999)
+== e2e-bounties.png (index.html, show paid bounties)
+  | 0.5 SOL
+  | paid
+  | target 4/6 correct
+  | suite 8b58dd4e…a8742ba1
+  | paid at slot 1324
+  | pins a specific enclave build
+  | Leaderboard and details →
+== e2e-bounty.png (http://127.0.0.1:18081/bounty.html)
+  | Plumbline
+  | Bounties
+  | Verify a bundle
+  | How it works
+  | Cluster
+  | localnet
+  | devnet
+  | ← all bounties
+  | 0.5 SOL for 4/6 paid
+  | Paid in full to the first verified score on this suite that reaches 4/6 (66.7%) over at least 6 items, recorded between slot 45 and slot 216044.
+  | Bounty
+  | CxPFDqL8tZXqRKrCas1GwUZdVsUjmLF3ztQzug932JE7
+  | Sponsor
+  | 295GZQULBxYhTgxHQzyuh7Q8bnPGeC5KSfdF1ZDzAVPt
+  | Suite commitment
+  | 8b58dd4e046f826b88e86de90a77c09469a8e600178c6804a5ad543ea8742ba1
+  | Escrow
+  | 0.00314592 SOL held by the bounty account (reward + rent)
+  | Window
+  | slot 45 → 216044 (now 1337); sponsor refund possible after slot 217544
+  | Enclave pin
+  | eb4eba790a10fdd4b3371932135c404b292fa5046d836ad37bd97ed744e023b8
+  | Guest pin
+  | 3a2c919e2f59c4c1adceb9e78cf95a9ba2c75f3d15962414fce84cfa9257c5f6
+  | Paid to
+  | CWjBrWkBZkhtbkPJWDiVXj1uH2SKcLNyYsevaUNZH5fz at slot 1324
+  | Winning statement
+  | 0eb612bc6df33bf77d7f1ca5b4a1255d456a254f14ddaab0fe02ecc3dee06a62
+  | Leaderboard
+  | Every VerifiedScore on this suite, best first (ties: earlier slot first). Each one exists only because a Groth16 proof of a TDX quote was checked onchain. The payout column is the address inside the attested statement: the only place the reward can go.
+  | #	Score	Payout	Slot	Can claim this bounty	Proof
+  | 1	6/6 100.0%	CWjBrW…NZH5fz	1323	winner	VerifiedScore · check a bundle
+  | Commands
+  | Enter a model
+  | Get the sponsor's sealed-suite.json for this suite, then (full steps):
+  | copy
+  | plumbline enter --enclave <enclave-url> --sealed sealed-suite.json \
+  |   --model <org/name> --revision <40-hex commit> \
+  |   --shard model.safetensors=<sha256> --payout <your Solana address>
+  | Claim
+SCREENSHOTS OK
+
+== [1321s] done in 22 min
+E2E PASS
