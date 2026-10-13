@@ -1,0 +1,17 @@
+# Static site, uploaded as-is: only the pages, styles and scripts. Secrets are denied anyway.
+*
+!index.html
+!bounty.html
+!verify.html
+!howto.html
+!styles.css
+!tessera-verify.js
+!js/
+!js/*.js
+!vercel.json
+.env*
+*keypair*.json
+id.json
+*wallet*
+*.pem
+*.key
