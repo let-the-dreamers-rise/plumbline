@@ -281,3 +281,6 @@ html:not(.js) .foot-line span { transform: none; }
   .rp-log li { grid-template-columns: 1fr; gap: 0; padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
 }
 .rp-log .rp-live { display: block; color: var(--brass); animation: blink 1.2s infinite; }
+
+/* RECORDING */
+.rec-video { display: block; width: 100%; height: auto; aspect-ratio: 16 / 9; margin: 28px 0 12px; border: 1.5px solid var(--ink); border-radius: 14px; background: var(--ink); }
