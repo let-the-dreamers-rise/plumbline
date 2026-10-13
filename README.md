@@ -262,7 +262,7 @@ out to the RPC on every request; server errors are logged and the client gets a 
 3. Operator-input host mode: own GPU report, TDX quote bound to it (`vm_bound = 1`), real Reclaim claims.
 4. TDX collateral checks (TCB status, QE identity, CRLs) and NVIDIA RIM checks in the guest.
 5. Commit only the PASS bit or a salted revenue hash instead of the plaintext total.
-6. Loan-based pricing in the program (a facility fee plus 5 to 15 basis points a year on the loan), matching the site.
+6. Lender-pays pricing in the program, matching the site's planned pricing: onboarding from $15k per facility, then 10 basis points a year on outstanding principal, minimum $1 per GPU per month; operators prove free, and the first facility is free in the pilot.
 7. Second independent attestor (or Reclaim TEE mode), then an audit before mainnet.
 8. Hardening path for the tape: k-of-n independent provers, then aggregating attestations and the
    median into one RISC Zero proof verified on Solana with the same Groth16 verifier.
