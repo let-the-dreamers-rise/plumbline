@@ -1,0 +1,35 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "",
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "redirects": [
+    {
+      "source": "/hallmark",
+      "destination": "/premium/",
+      "permanent": false
+    },
+    {
+      "source": "/lattice",
+      "destination": "/premium/lattice/",
+      "permanent": false
+    },
+    {
+      "source": "/bounties",
+      "destination": "https://app-sigma-flax-80.vercel.app/",
+      "permanent": false
+    },
+    {
+      "source": "/sealed-evals",
+      "destination": "https://app-sigma-flax-80.vercel.app/",
+      "permanent": false
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/:path*",
+      "destination": "https://plumbline-production-56e8.up.railway.app/:path*"
+    }
+  ]
+}

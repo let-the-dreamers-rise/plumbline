@@ -1,0 +1,7 @@
+README.md
+.env*
+*keypair*.json
+id.json
+*wallet*
+*.pem
+*.key
