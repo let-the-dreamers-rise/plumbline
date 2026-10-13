@@ -31,7 +31,7 @@ const link = (kind, id, text) => `<a href="${explorer(kind, id, cluster)}" targe
       <dt>Bounty</dt><dd class="mono">${link('address', b.address, esc(b.address))}</dd>
       <dt>Sponsor</dt><dd class="mono">${esc(b.sponsor)}</dd>
       <dt>Suite commitment</dt><dd class="mono">${esc(b.suiteCommitment)}</dd>
-      <dt>Escrow</dt><dd>${b.lamports !== undefined ? `${sol(b.lamports)} held by the bounty account (reward + rent)` : '–'}</dd>
+      <dt>Escrow</dt><dd>${b.lamports !== undefined ? `${sol(b.lamports)} held by the bounty account (${b.status === 'open' ? 'reward + rent' : 'rent only; the reward is paid out'})` : '–'}</dd>
       <dt>Window</dt><dd>slot ${b.createdSlot} → ${b.deadlineSlot}${slot !== null ? ` (now ${slot})` : ''}; sponsor refund possible after slot ${refundAt}</dd>
       <dt>Enclave pin</dt><dd>${b.requiredComposeHash === Z ? 'any compose the registry approves' : `<span class="mono">${esc(b.requiredComposeHash)}</span>`}</dd>
       <dt>Guest pin</dt><dd>${b.requiredImageId === Z ? 'any guest image the registry approves' : `<span class="mono">${esc(b.requiredImageId)}</span>`}</dd>
@@ -65,8 +65,8 @@ const link = (kind, id, text) => `<a href="${explorer(kind, id, cluster)}" targe
     ${cmd(`plumbline${c} enter --enclave <enclave-url> --sealed sealed-suite.json \\
   --model <org/name> --revision <40-hex commit> \\
   --shard model.safetensors=<sha256> --payout <your Solana address>`)}
-    <h3>Claim</h3>
+    ${b.status === 'open' ? `<h3>Claim</h3>
     <p class="muted">Anyone may send the claim; the money only goes to the payout inside the proven score.</p>
-    ${cmd(`plumbline${c} claim ${b.address} --statement ${best ? best.statementHash : '<statement hash>'}`)}
+    ${cmd(`plumbline${c} claim ${b.address} --statement ${best ? best.statementHash : '<statement hash>'}`)}` : ''}
     ${b.status === 'open' ? `<h3>Refund (sponsor only, after slot ${refundAt})</h3>${cmd(`plumbline${c} bounty refund ${b.address}`)}` : ''}`;
 })();

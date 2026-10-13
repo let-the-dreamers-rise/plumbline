@@ -133,7 +133,10 @@ describe('app pages', () => {
     assert.match(rows[0][2], /5\/6/);
     assert.match(await page.locator('#terms').innerText(), new RegExp(`Paid to[\\s\\S]*${b58encode(otherPayout)}`));
     assert.ok(await page.locator('table.board a[href*="explorer.solana.com/address/"]').count() >= 6);
-    assert.match(await page.locator('#cmds').innerText(), /plumbline claim/);
+    const cmds = await page.locator('#cmds').innerText();
+    assert.match(cmds, /plumbline enter/);
+    assert.doesNotMatch(cmds, /plumbline claim/, 'no claim command once the bounty is paid');
+    assert.match(await page.locator('#terms').innerText(), /rent only/);
     assert.deepEqual(errors, []);
     await close();
     // the open bounty: 5/6 and 4/6 meet 2/3 and were recorded after its creation; 1/6 is below target
