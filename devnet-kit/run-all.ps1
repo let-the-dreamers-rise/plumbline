@@ -1,10 +1,11 @@
 # One command for the laptop: deploy the Plumbline registry + escrow to devnet, then pay one devnet bounty
 # from a real Groth16 proof (TEST ROOT quote; the payout flow is real). Devnet only, no faucet.
 #   powershell -ExecutionPolicy Bypass -File run-all.ps1
-param([string]$Repo = "")
+param([string]$Repo = "", [string]$Keypair = "")
 $ErrorActionPreference = "Stop"
 $Kit = $PSScriptRoot
 $repoArg = @(); if ($Repo) { $repoArg = @("-Repo", $Repo) }
+if ($Keypair) { $repoArg += @("-Keypair", $Keypair) }  # pass a path without spaces; solana cannot read one with a space
 & powershell -ExecutionPolicy Bypass -File "$Kit\deploy-devnet.ps1" @repoArg
 if ($LASTEXITCODE -ne 0) { Write-Host "deploy step stopped; fix the message above and run this again (finished steps are skipped)" -ForegroundColor Red; exit 1 }
 $root = if ($Repo) { $Repo } elseif (Test-Path "$Kit\..\plumbline") { "$Kit\.." } else { "$Kit\..\paid-compute-tape" }

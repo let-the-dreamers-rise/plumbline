@@ -13,6 +13,8 @@ It's devnet only. Both scripts refuse any RPC that isn't devnet, and they never 
 | `programs/SHA256SUMS` | The two hashes above. The deploy script checks them before it sends anything. |
 | `keys/plumbline_registry-keypair.json` | Program keypair. Its public key is `Eicw3HXxXN7kckn5XB4WDGQG2c61BLf7X7QpGehLTgAW`. |
 | `keys/plumbline_bounty-keypair.json` | Program keypair. Its public key is `9mDieYQNR2L9xgaqS6LK26kxR26rA4R9UcFntG369RPf`. |
+
+**Deployed on devnet on 2026-10-13, so the two program keypairs are spent and were removed from the repo.** They only fixed the program addresses; the upgrade authority is the deployer wallet, which was never in the repo. Re-running the deploy needs the original `keys\` folder from `devnet-kit.zip`.
 | `deploy-devnet.ps1` | Deploys both programs and sets up the registry config. Run this now. |
 | `devnet-demo.ps1` | Runs suite register, then bounty create, then record proof, then claim. Run this later, once a real proof exists. |
 | `budget-localnet.txt` | A rehearsal of the same sequence on a private local validator, with exactly 6.48 SOL. |
