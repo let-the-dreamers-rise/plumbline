@@ -179,3 +179,11 @@ html:not(.js) .foot-line span { transform: none; }
 .app-card .go { font: 600 14px var(--mono); color: var(--brass); }
 @media (max-width: 860px) { .app-grid { grid-template-columns: 1fr 1fr; } }
 @media (max-width: 560px) { .app-grid { grid-template-columns: 1fr; } }
+
+/* WALLET NOTE + IN-BROWSER VERIFY */
+.wallet-note { margin-top: 24px; padding: 16px 18px; border-left: 2px solid var(--brass); background: var(--paper-2); border-radius: 0 10px 10px 0; max-width: 72ch; }
+.vq { margin-top: 48px; padding: 28px; border: 1px solid var(--rule); border-radius: 14px; }
+.vq p { color: var(--graphite); max-width: 64ch; }
+.vq-out { margin: 20px 0 0; padding: 16px; min-height: 120px; border-radius: 10px; background: var(--ink); color: var(--paper); font: 400 13px/1.6 var(--mono); white-space: pre-wrap; word-break: break-word; }
+.vq-out.pass { box-shadow: inset 3px 0 0 var(--true); }
+.vq-out.fail { box-shadow: inset 3px 0 0 var(--watch); }

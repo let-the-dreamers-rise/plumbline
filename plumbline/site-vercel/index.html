@@ -98,6 +98,17 @@
     <li data-sig="3aHByAATknm3kwmzQrc9uZVZfAb7ycqQfRec76aKZgQkLG1rSvGkNoPR5y5j4QfRTCPy34a7R3UySmSTrRbTvYJc" data-expect="ok"><span class="what">Sealed-eval bounty claimed, 0.05 SOL</span><span class="state">Checked on devnet</span></li>
   </ol>
   <p class="small" id="live-note" role="status" aria-live="polite">Each row links to the Solana explorer.</p>
+  <p class="wallet-note"><strong>No wallet or SOL needed</strong> to check anything on this page. Sending a new proof or claiming a prize takes a wallet; that is for operators and lenders, and the transactions above show those steps already ran on devnet.</p>
+
+  <div class="vq" aria-labelledby="vq-h">
+    <h3 id="vq-h">Verify a real enclave score in your browser</h3>
+    <p>On Oct 13 a model scored <strong>22/30</strong> on a sealed suite inside an Intel TDX VM on Google Cloud. Check its quote to Intel's root here, in this tab. Nothing is uploaded.</p>
+    <div class="cta-row">
+      <button class="btn" type="button" id="vq-run">Verify the 22/30 quote</button>
+      <button class="btn btn-ghost" type="button" id="vq-flip">Flip one byte and retry</button>
+    </div>
+    <pre id="vq-out" class="vq-out" role="status" aria-live="polite">Needs JavaScript. The bundle and verify output are in the repository.</pre>
+  </div>
 </section>
 
 <!-- APP: the working product behind this page -->
@@ -282,5 +293,6 @@
 <script src="js/scenes.js" defer></script>
 <script src="js/toy.js" defer></script>
 <script src="js/live.js" defer></script>
+<script type="module" src="js/verify.js"></script>
 </body>
 </html>
