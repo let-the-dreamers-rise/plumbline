@@ -1,0 +1,3818 @@
+{
+  "schema": "plumbline.monitor/v1",
+  "generatedAt": "2026-10-12T17:24:41.954Z",
+  "lender": "USD.AI",
+  "chain": "arbitrum-one",
+  "asOfBlock": 514179553,
+  "sources": {
+    "rpc": "https://arb1.arbitrum.io/rpc",
+    "routers": [
+      "0x0C2ED170F2bB1DF1a44292Ad621B577b3C9597D1",
+      "0x1C2ED170de32846316784c4fd58A5e3C7563E12f"
+    ],
+    "collateralNft": "0xb31f04f920f24eda3ad276d55c5afefad6230c5d",
+    "metadata": "https://metadata.usd.ai/v1/{tokenId}",
+    "app": "https://app.usd.ai/loans",
+    "prices": "data/gpu-prices/2026-10-12.json"
+  },
+  "assumptions": {
+    "utilization": 0.7,
+    "depreciationYears": 5,
+    "opexPerGpuHr": 0,
+    "breakevenFlag": 0.8,
+    "hoursPerMonth": 730,
+    "amortization": "Level monthly payment that fully amortizes the principal at origination or last refinance over the term (months = round(days x 12 / 365)) at the lender APR, compounded monthly.",
+    "gpusPerUnit": "H100: 8, H200: 8, B200: 8, B300: 8, GB200: 72, RTX PRO 6000: 8",
+    "depreciation": "Straight line to zero over 5 years from the original origination; the metadata's own useful life is shown separately.",
+    "priceMethod": "Per model, each source's median $/GPU-hr (Vast.ai: every verified on-demand offer, bundle price / GPUs; RunPod: secure and community list prices; Akash: the console's median), then the median across sources. H100 and H200 are SXM; RTX PRO 6000 is the Server Edition. NVL, PCIe, MIG and workstation variants are left out."
+  },
+  "notes": [
+    "Estimates from public data only: Arbitrum logs and view calls, USD.AI's public collateral metadata and app page, and public GPU rental prices.",
+    "APR is the lender tranche rate in the loan terms. Fees (origination, repayment) are not in debt service; the app's all-in APR is shown when available.",
+    "Coverage is gross of operating costs (power, hosting, staff) unless opexPerGpuHr is set, so it overstates what is left for debt service.",
+    "Market price is today's public on-demand rental price; the borrowers' actual contracts (offtake) are not public.",
+    "Not financial advice. Not affiliated with USD.AI."
+  ],
+  "prices": {
+    "H100": {
+      "medianUsdPerGpuHr": 3.34,
+      "sources": [
+        {
+          "source": "vast.ai",
+          "url": "https://console.vast.ai/api/v0/bundles/",
+          "medianUsdPerGpuHr": 3.7929,
+          "quotes": 5
+        },
+        {
+          "source": "runpod",
+          "url": "https://api.runpod.io/graphql",
+          "medianUsdPerGpuHr": 3.34,
+          "quotes": 2
+        },
+        {
+          "source": "akash",
+          "url": "https://console-api.akash.network/v1/gpu-prices",
+          "medianUsdPerGpuHr": 2.56,
+          "quotes": 1
+        }
+      ]
+    },
+    "H200": {
+      "medianUsdPerGpuHr": 4.7206,
+      "sources": [
+        {
+          "source": "vast.ai",
+          "url": "https://console.vast.ai/api/v0/bundles/",
+          "medianUsdPerGpuHr": 5.0011,
+          "quotes": 5
+        },
+        {
+          "source": "runpod",
+          "url": "https://api.runpod.io/graphql",
+          "medianUsdPerGpuHr": 4.44,
+          "quotes": 2
+        }
+      ]
+    },
+    "B200": {
+      "medianUsdPerGpuHr": 7.208,
+      "sources": [
+        {
+          "source": "vast.ai",
+          "url": "https://console.vast.ai/api/v0/bundles/",
+          "medianUsdPerGpuHr": 7.4309,
+          "quotes": 18
+        },
+        {
+          "source": "runpod",
+          "url": "https://api.runpod.io/graphql",
+          "medianUsdPerGpuHr": 6.985,
+          "quotes": 2
+        }
+      ]
+    },
+    "B300": {
+      "medianUsdPerGpuHr": 8.9523,
+      "sources": [
+        {
+          "source": "vast.ai",
+          "url": "https://console.vast.ai/api/v0/bundles/",
+          "medianUsdPerGpuHr": 9.9396,
+          "quotes": 3
+        },
+        {
+          "source": "runpod",
+          "url": "https://api.runpod.io/graphql",
+          "medianUsdPerGpuHr": 7.965,
+          "quotes": 2
+        }
+      ]
+    },
+    "GB200": {
+      "medianUsdPerGpuHr": null,
+      "sources": []
+    },
+    "RTX PRO 6000": {
+      "medianUsdPerGpuHr": 2.04,
+      "sources": [
+        {
+          "source": "vast.ai",
+          "url": "https://console.vast.ai/api/v0/bundles/",
+          "medianUsdPerGpuHr": 1.5305,
+          "quotes": 14
+        },
+        {
+          "source": "runpod",
+          "url": "https://api.runpod.io/graphql",
+          "medianUsdPerGpuHr": 2.09,
+          "quotes": 2
+        },
+        {
+          "source": "akash",
+          "url": "https://console-api.akash.network/v1/gpu-prices",
+          "medianUsdPerGpuHr": 2.04,
+          "quotes": 1
+        }
+      ]
+    }
+  },
+  "book": {
+    "activeLoans": 20,
+    "principalUsd": {
+      "value": 188450938.66,
+      "source": "derived: sum over active loans (see each loan's sources); principal at origination or last refinance"
+    },
+    "outstandingUsd": {
+      "value": 177675862.61,
+      "source": "derived: sum over active loans (see each loan's sources)"
+    },
+    "collateralValueUsd": {
+      "value": 293886394.43,
+      "source": "derived: sum over active loans (see each loan's sources); stated values from https://metadata.usd.ai/v1/{id}"
+    },
+    "gpus": {
+      "value": 4656,
+      "source": "derived: sum over active loans (see each loan's sources); units x assumed GPUs per unit"
+    },
+    "weightedAprPct": {
+      "value": 9.969,
+      "source": "derived: outstanding-weighted lender APR"
+    },
+    "weightedBreakevenUtilization": {
+      "value": 0.2503,
+      "source": "derived: outstanding-weighted breakeven utilization"
+    },
+    "monthlyDebtServiceUsd": {
+      "value": 6196481,
+      "source": "derived: sum of level monthly payments"
+    },
+    "topBorrower": {
+      "key": "0x1c5d1e513d94fee11e169567518ce8b49425ac1f",
+      "outstandingUsd": 54404473.45,
+      "share": 0.3062,
+      "loans": 1
+    },
+    "byBorrower": [
+      {
+        "key": "0x1c5d1e513d94fee11e169567518ce8b49425ac1f",
+        "outstandingUsd": 54404473.45,
+        "share": 0.3062,
+        "loans": 1
+      },
+      {
+        "key": "0x2ff1119d11be35dcd32c056141c82461d530fbd0",
+        "outstandingUsd": 31217550.2,
+        "share": 0.1757,
+        "loans": 1
+      },
+      {
+        "key": "0xd938f18f9b1f067e33da1c82150772f5bbdac35c",
+        "outstandingUsd": 22351369.84,
+        "share": 0.1258,
+        "loans": 1
+      },
+      {
+        "key": "0x015e8730dbf9a2954af53b7d1e9a87f97ddc1b09",
+        "outstandingUsd": 14905804.46,
+        "share": 0.0839,
+        "loans": 1
+      },
+      {
+        "key": "0xface2313fe9f1dfbc794a9367b470390fb745f82",
+        "outstandingUsd": 14077042.61,
+        "share": 0.0792,
+        "loans": 1
+      },
+      {
+        "key": "0x85483aee461914342c6838eae61a23d7d995e5e3",
+        "outstandingUsd": 10490171.2,
+        "share": 0.059,
+        "loans": 1
+      },
+      {
+        "key": "0x25624e2b05616a3c754c20e7be8841cad8e66723",
+        "outstandingUsd": 9561608,
+        "share": 0.0538,
+        "loans": 1
+      },
+      {
+        "key": "0x522c53f972fa3ec06c9ba162274099c27501408a",
+        "outstandingUsd": 7319636.46,
+        "share": 0.0412,
+        "loans": 1
+      },
+      {
+        "key": "0x8cfde17b2919d6c571cca1763a1cfd2677df9b3a",
+        "outstandingUsd": 7132467.81,
+        "share": 0.0401,
+        "loans": 1
+      },
+      {
+        "key": "0x1c3b7613590f7e3e1da0c345ddfeb3aff9cc6d33",
+        "outstandingUsd": 3438231.79,
+        "share": 0.0194,
+        "loans": 1
+      },
+      {
+        "key": "0x2f258acd6f59ae983bfa3655ea0ea2604775b34d",
+        "outstandingUsd": 1786508.26,
+        "share": 0.0101,
+        "loans": 1
+      },
+      {
+        "key": "0x7f5da7c49a7bca00aedd6ac19bc9bf0769da5266",
+        "outstandingUsd": 398940.36,
+        "share": 0.0022,
+        "loans": 1
+      },
+      {
+        "key": "0x4342373c319209f380253fce0be12c0f627b93b9",
+        "outstandingUsd": 163262.36,
+        "share": 0.0009,
+        "loans": 1
+      },
+      {
+        "key": "0x599673a88ff88c27a27995d775d3132b21004b18",
+        "outstandingUsd": 62470.83,
+        "share": 0.0004,
+        "loans": 1
+      },
+      {
+        "key": "0x1eaba9fe1b1dd4eac292229732fa1ef0dfe0d931",
+        "outstandingUsd": 62470.83,
+        "share": 0.0004,
+        "loans": 1
+      },
+      {
+        "key": "0x49ec86d154a0c7449be03553f8b7d48a29d9f56c",
+        "outstandingUsd": 62470.83,
+        "share": 0.0004,
+        "loans": 1
+      },
+      {
+        "key": "0xca6c3113733368d4e81e6e606b6d1b6696d1eb33",
+        "outstandingUsd": 60345.83,
+        "share": 0.0003,
+        "loans": 1
+      },
+      {
+        "key": "0xe12f591502ad38b5fcdb15cd3023982aeeafc5b6",
+        "outstandingUsd": 60345.83,
+        "share": 0.0003,
+        "loans": 1
+      },
+      {
+        "key": "0xace68ba6bec7665e4f698d39184ee5ee5d278de5",
+        "outstandingUsd": 60345.83,
+        "share": 0.0003,
+        "loans": 1
+      },
+      {
+        "key": "0x93673ffb00971eefbdac72683145950a5b32d303",
+        "outstandingUsd": 60345.83,
+        "share": 0.0003,
+        "loans": 1
+      }
+    ],
+    "byModel": [
+      {
+        "key": "B300",
+        "outstandingUsd": 102369333.01,
+        "share": 0.5762,
+        "loans": 5,
+        "gpus": 2152
+      },
+      {
+        "key": "B200",
+        "outstandingUsd": 57946333.93,
+        "share": 0.3261,
+        "loans": 5,
+        "gpus": 1648
+      },
+      {
+        "key": "H200",
+        "outstandingUsd": 14475982.97,
+        "share": 0.0815,
+        "loans": 2,
+        "gpus": 632
+      },
+      {
+        "key": "RTX PRO 6000",
+        "outstandingUsd": 2884212.7,
+        "share": 0.0162,
+        "loans": 9,
+        "gpus": 224
+      }
+    ],
+    "byLocation": [
+      {
+        "key": "OH, USA",
+        "outstandingUsd": 54404473.45,
+        "share": 0.3062,
+        "loans": 1
+      },
+      {
+        "key": "Sweden",
+        "outstandingUsd": 31217550.2,
+        "share": 0.1757,
+        "loans": 1
+      },
+      {
+        "key": "WA, USA",
+        "outstandingUsd": 22351369.84,
+        "share": 0.1258,
+        "loans": 1
+      },
+      {
+        "key": "PA, USA",
+        "outstandingUsd": 18344036.25,
+        "share": 0.1032,
+        "loans": 2
+      },
+      {
+        "key": "TX, USA",
+        "outstandingUsd": 17785901.37,
+        "share": 0.1001,
+        "loans": 3
+      },
+      {
+        "key": "MO, USA",
+        "outstandingUsd": 14077042.61,
+        "share": 0.0792,
+        "loans": 1
+      },
+      {
+        "key": "NE, USA",
+        "outstandingUsd": 9561608,
+        "share": 0.0538,
+        "loans": 1
+      },
+      {
+        "key": "DE, USA",
+        "outstandingUsd": 7319636.46,
+        "share": 0.0412,
+        "loans": 1
+      },
+      {
+        "key": "France",
+        "outstandingUsd": 1786508.26,
+        "share": 0.0101,
+        "loans": 1
+      },
+      {
+        "key": "Montreal, CA",
+        "outstandingUsd": 827736.17,
+        "share": 0.0047,
+        "loans": 8
+      }
+    ],
+    "flagged": [],
+    "closed": {
+      "repaid": 19,
+      "liquidated": 0,
+      "supersededByRefinanceOrMigration": 22,
+      "excluded": 1
+    }
+  },
+  "loans": [
+    {
+      "id": "1008",
+      "hash": "0x45e3c30bc37ab233011a200f3ed38992ac8079b5ee3a4cceba045d0ee7dc6e2b",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0x1c5d1e513d94fee11e169567518ce8b49425ac1f",
+        "source": "https://arbiscan.io/tx/0xa8c56012a96eddf2a780997d4b952d451f2e333be9329740b97b702b71771bfa"
+      },
+      "createdBy": "originated",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 54404473.45,
+        "source": "https://arbiscan.io/tx/0xa8c56012a96eddf2a780997d4b952d451f2e333be9329740b97b702b71771bfa"
+      },
+      "outstandingUsd": {
+        "value": 54404473.45,
+        "source": "derived: principal less principal and prepayment in 1 LoanRepaid events on 0x45e3c30bc37ab233011a200f3ed38992ac8079b5ee3a4cceba045d0ee7dc6e2b"
+      },
+      "aprPct": {
+        "value": 8.5,
+        "source": "https://arbiscan.io/tx/0xa8c56012a96eddf2a780997d4b952d451f2e333be9329740b97b702b71771bfa (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 1095,
+        "source": "https://arbiscan.io/tx/0xa8c56012a96eddf2a780997d4b952d451f2e333be9329740b97b702b71771bfa"
+      },
+      "originatedAt": {
+        "value": "2026-09-03T20:58:03.000Z",
+        "source": "https://arbiscan.io/tx/0xa8c56012a96eddf2a780997d4b952d451f2e333be9329740b97b702b71771bfa"
+      },
+      "currentTermsAt": {
+        "value": "2026-09-03T20:58:03.000Z",
+        "source": "eth_call loanState(0x45e3c30bc37ab233011a200f3ed38992ac8079b5ee3a4cceba045d0ee7dc6e2b) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-09-02T20:58:03.000Z",
+        "source": "derived: current terms start + 1095 days"
+      },
+      "daysToMaturity": {
+        "value": 1056,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 1,
+          "source": "eth_call loanState(0x45e3c30bc37ab233011a200f3ed38992ac8079b5ee3a4cceba045d0ee7dc6e2b) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 1,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-10-01T15:43:18.000Z",
+          "source": "https://arbiscan.io/tx/0x98b94ccb3868c959a8435475698ae5dbf3e3338e88632404364db95c6ef67f2f"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "1008"
+        ],
+        "name": "B300 [130]",
+        "models": [
+          {
+            "model": "B300",
+            "label": "B300",
+            "units": 130,
+            "gpus": 1040
+          }
+        ],
+        "units": {
+          "value": 130,
+          "source": "https://metadata.usd.ai/v1/1008"
+        },
+        "gpuCount": {
+          "value": 1040,
+          "source": "https://metadata.usd.ai/v1/1008 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 77720676.36,
+          "source": "https://metadata.usd.ai/v1/1008"
+        },
+        "usefulLifeDays": {
+          "value": 1095,
+          "source": "https://metadata.usd.ai/v1/1008"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/1008"
+        ]
+      },
+      "enrichment": {
+        "locationName": "OH, USA",
+        "offTakeCode": 2,
+        "dealStatus": "closing",
+        "appAprPct": 10,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 1717415,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xa8c56012a96eddf2a780997d4b952d451f2e333be9329740b97b702b71771bfa at its APR over 36 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 2.2621,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xa8c56012a96eddf2a780997d4b952d451f2e333be9329740b97b702b71771bfa at its APR over 36 months, / 1040 GPUs (https://metadata.usd.ai/v1/1008) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 8.9523,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.2527,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 2.77,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.639,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.7,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/1008)"
+        },
+        "depreciatedLtv": {
+          "value": 0.7152,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0xa8c56012a96eddf2a780997d4b952d451f2e333be9329740b97b702b71771bfa)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0xa8c56012a96eddf2a780997d4b952d451f2e333be9329740b97b702b71771bfa",
+        "originTx": "https://arbiscan.io/tx/0xa8c56012a96eddf2a780997d4b952d451f2e333be9329740b97b702b71771bfa",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/1008"
+      }
+    },
+    {
+      "id": "1004",
+      "hash": "0x71e912bbbfbb3d266012f871c213cd79522c26c24703c7aaee64873b83e8d88c",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0x2ff1119d11be35dcd32c056141c82461d530fbd0",
+        "source": "https://arbiscan.io/tx/0x94aa38ab6b813fcc17e6580a9744acdb220ea98aacd589b420247b46fae129ea"
+      },
+      "createdBy": "refinanced",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 34055508,
+        "source": "https://arbiscan.io/tx/0x94aa38ab6b813fcc17e6580a9744acdb220ea98aacd589b420247b46fae129ea"
+      },
+      "outstandingUsd": {
+        "value": 31217550.2,
+        "source": "derived: principal less principal and prepayment in 3 LoanRepaid events on 0x71e912bbbfbb3d266012f871c213cd79522c26c24703c7aaee64873b83e8d88c"
+      },
+      "aprPct": {
+        "value": 10.5,
+        "source": "https://arbiscan.io/tx/0x94aa38ab6b813fcc17e6580a9744acdb220ea98aacd589b420247b46fae129ea (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 1095,
+        "source": "https://arbiscan.io/tx/0x94aa38ab6b813fcc17e6580a9744acdb220ea98aacd589b420247b46fae129ea"
+      },
+      "originatedAt": {
+        "value": "2026-04-29T14:23:17.000Z",
+        "source": "https://arbiscan.io/tx/0xe84bdfbb3192b725306a3fead42794c7205c25fb673f9614d7d75d7174901aca"
+      },
+      "currentTermsAt": {
+        "value": "2026-06-23T21:56:51.000Z",
+        "source": "eth_call loanState(0x71e912bbbfbb3d266012f871c213cd79522c26c24703c7aaee64873b83e8d88c) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-06-22T21:56:51.000Z",
+        "source": "derived: current terms start + 1095 days"
+      },
+      "daysToMaturity": {
+        "value": 984,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 4,
+          "source": "eth_call loanState(0x71e912bbbfbb3d266012f871c213cd79522c26c24703c7aaee64873b83e8d88c) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 3,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-09-29T15:03:15.000Z",
+          "source": "https://arbiscan.io/tx/0x1b83e97c272f4bbc11aea7999baf0266de8a177dc1cb432039af950486a3fb60"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "1004"
+        ],
+        "name": "NVIDIA B200 [96]",
+        "models": [
+          {
+            "model": "B200",
+            "label": "NVIDIA B200",
+            "units": 96,
+            "gpus": 768
+          }
+        ],
+        "units": {
+          "value": 96,
+          "source": "https://metadata.usd.ai/v1/1004"
+        },
+        "gpuCount": {
+          "value": 768,
+          "source": "https://metadata.usd.ai/v1/1004 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 42734150,
+          "source": "https://metadata.usd.ai/v1/1004"
+        },
+        "usefulLifeDays": {
+          "value": 1080,
+          "source": "https://metadata.usd.ai/v1/1004"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/1004"
+        ]
+      },
+      "enrichment": {
+        "locationName": "Sweden",
+        "offTakeCode": 2,
+        "dealStatus": "closing",
+        "appAprPct": 12,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 1106887,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0x94aa38ab6b813fcc17e6580a9744acdb220ea98aacd589b420247b46fae129ea at its APR over 36 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 1.9743,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0x94aa38ab6b813fcc17e6580a9744acdb220ea98aacd589b420247b46fae129ea at its APR over 36 months, / 768 GPUs (https://metadata.usd.ai/v1/1004) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 7.208,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.2739,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 2.556,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.6087,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.7305,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/1004)"
+        },
+        "depreciatedLtv": {
+          "value": 0.8037,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0xe84bdfbb3192b725306a3fead42794c7205c25fb673f9614d7d75d7174901aca)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0x94aa38ab6b813fcc17e6580a9744acdb220ea98aacd589b420247b46fae129ea",
+        "originTx": "https://arbiscan.io/tx/0xe84bdfbb3192b725306a3fead42794c7205c25fb673f9614d7d75d7174901aca",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/1004"
+      }
+    },
+    {
+      "id": "1002",
+      "hash": "0x61622b0a0a0d81d9571948b97160628e771e53ebf79da32c8893786cbdb77577",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0xd938f18f9b1f067e33da1c82150772f5bbdac35c",
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2"
+      },
+      "createdBy": "migrated",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 25331552.49,
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2"
+      },
+      "outstandingUsd": {
+        "value": 22351369.84,
+        "source": "derived: principal less principal and prepayment in 4 LoanRepaid events on 0x61622b0a0a0d81d9571948b97160628e771e53ebf79da32c8893786cbdb77577"
+      },
+      "aprPct": {
+        "value": 8.5,
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2 (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 1020,
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2"
+      },
+      "originatedAt": {
+        "value": "2026-04-06T13:30:30.000Z",
+        "source": "https://arbiscan.io/tx/0x77dde885b01bed951a7f40376c931eb54bff453a940b1a333c385ec711a410ab"
+      },
+      "currentTermsAt": {
+        "value": "2026-06-05T13:30:30.000Z",
+        "source": "eth_call loanState(0x61622b0a0a0d81d9571948b97160628e771e53ebf79da32c8893786cbdb77577) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-03-21T13:30:30.000Z",
+        "source": "derived: current terms start + 1020 days"
+      },
+      "daysToMaturity": {
+        "value": 891,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 4,
+          "source": "eth_call loanState(0x61622b0a0a0d81d9571948b97160628e771e53ebf79da32c8893786cbdb77577) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 4,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-10-05T13:46:43.000Z",
+          "source": "https://arbiscan.io/tx/0x28e37badd20e30dffe7c630a7ad045795aa80f960d9cbf0b0e3345f382979c3e"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "1002"
+        ],
+        "name": "NVIDIA B300 [72]",
+        "models": [
+          {
+            "model": "B300",
+            "label": "NVIDIA B300",
+            "units": 72,
+            "gpus": 576
+          }
+        ],
+        "units": {
+          "value": 72,
+          "source": "https://metadata.usd.ai/v1/1002"
+        },
+        "gpuCount": {
+          "value": 576,
+          "source": "https://metadata.usd.ai/v1/1002 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 38316634.018552,
+          "source": "https://metadata.usd.ai/v1/1002"
+        },
+        "usefulLifeDays": {
+          "value": 1080,
+          "source": "https://metadata.usd.ai/v1/1002"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/1002"
+        ]
+      },
+      "enrichment": {
+        "locationName": "WA, USA",
+        "offTakeCode": 0,
+        "dealStatus": "closing",
+        "appAprPct": 9.979,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 840982,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2 at its APR over 34 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 2.0001,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2 at its APR over 34 months, / 576 GPUs (https://metadata.usd.ai/v1/1002) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 8.9523,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.2234,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 3.133,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.6808,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.5833,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/1002)"
+        },
+        "depreciatedLtv": {
+          "value": 0.6508,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0x77dde885b01bed951a7f40376c931eb54bff453a940b1a333c385ec711a410ab)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2",
+        "originTx": "https://arbiscan.io/tx/0x77dde885b01bed951a7f40376c931eb54bff453a940b1a333c385ec711a410ab",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/1002"
+      }
+    },
+    {
+      "id": "1007",
+      "hash": "0x3e42df0c8d79889e891cf5454e7f4fe65290e322feb691bb4127ea4a80f16f95",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0x015e8730dbf9a2954af53b7d1e9a87f97ddc1b09",
+        "source": "https://arbiscan.io/tx/0xf7105631cd92b98e64a1b34dc128866f9a765052779dee2caf27d117a9ba2530"
+      },
+      "createdBy": "originated",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 15331684.59,
+        "source": "https://arbiscan.io/tx/0xf7105631cd92b98e64a1b34dc128866f9a765052779dee2caf27d117a9ba2530"
+      },
+      "outstandingUsd": {
+        "value": 14905804.46,
+        "source": "derived: principal less principal and prepayment in 2 LoanRepaid events on 0x3e42df0c8d79889e891cf5454e7f4fe65290e322feb691bb4127ea4a80f16f95"
+      },
+      "aprPct": {
+        "value": 13.5,
+        "source": "https://arbiscan.io/tx/0xf7105631cd92b98e64a1b34dc128866f9a765052779dee2caf27d117a9ba2530 (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 1095,
+        "source": "https://arbiscan.io/tx/0xf7105631cd92b98e64a1b34dc128866f9a765052779dee2caf27d117a9ba2530"
+      },
+      "originatedAt": {
+        "value": "2026-08-07T22:21:34.000Z",
+        "source": "https://arbiscan.io/tx/0xf7105631cd92b98e64a1b34dc128866f9a765052779dee2caf27d117a9ba2530"
+      },
+      "currentTermsAt": {
+        "value": "2026-08-07T22:21:34.000Z",
+        "source": "eth_call loanState(0x3e42df0c8d79889e891cf5454e7f4fe65290e322feb691bb4127ea4a80f16f95) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-08-06T22:21:34.000Z",
+        "source": "derived: current terms start + 1095 days"
+      },
+      "daysToMaturity": {
+        "value": 1029,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 2,
+          "source": "eth_call loanState(0x3e42df0c8d79889e891cf5454e7f4fe65290e322feb691bb4127ea4a80f16f95) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 2,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-10-01T17:51:56.000Z",
+          "source": "https://arbiscan.io/tx/0xb8d7def3896f4bf15adcd6cf224600188802971830cde5ee04cf6ab46e07cb44"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "1007"
+        ],
+        "name": "NVIDIA B300 [34]",
+        "models": [
+          {
+            "model": "B300",
+            "label": "NVIDIA B300",
+            "units": 34,
+            "gpus": 272
+          }
+        ],
+        "units": {
+          "value": 34,
+          "source": "https://metadata.usd.ai/v1/1007"
+        },
+        "gpuCount": {
+          "value": 272,
+          "source": "https://metadata.usd.ai/v1/1007 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 19164605.73,
+          "source": "https://metadata.usd.ai/v1/1007"
+        },
+        "usefulLifeDays": {
+          "value": 1095,
+          "source": "https://metadata.usd.ai/v1/1007"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/1007"
+        ]
+      },
+      "enrichment": {
+        "locationName": "PA, USA",
+        "offTakeCode": 0,
+        "dealStatus": "closing",
+        "appAprPct": 15,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 520285,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xf7105631cd92b98e64a1b34dc128866f9a765052779dee2caf27d117a9ba2530 at its APR over 36 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 2.6203,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xf7105631cd92b98e64a1b34dc128866f9a765052779dee2caf27d117a9ba2530 at its APR over 36 months, / 272 GPUs (https://metadata.usd.ai/v1/1007) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 8.9523,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.2927,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 2.392,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.5819,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.7778,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/1007)"
+        },
+        "depreciatedLtv": {
+          "value": 0.8069,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0xf7105631cd92b98e64a1b34dc128866f9a765052779dee2caf27d117a9ba2530)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0xf7105631cd92b98e64a1b34dc128866f9a765052779dee2caf27d117a9ba2530",
+        "originTx": "https://arbiscan.io/tx/0xf7105631cd92b98e64a1b34dc128866f9a765052779dee2caf27d117a9ba2530",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/1007"
+      }
+    },
+    {
+      "id": "1003",
+      "hash": "0x0bc66289cef46eaacfaaf8f57e3c75509f224df44bd6a38d1b63427e4e09b066",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0xface2313fe9f1dfbc794a9367b470390fb745f82",
+        "source": "https://arbiscan.io/tx/0x1d705f718582923917e43dd2960fa5371a425219d952d4d4e7b556b2f9f9a684"
+      },
+      "createdBy": "migrated",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 15484746.87,
+        "source": "https://arbiscan.io/tx/0x1d705f718582923917e43dd2960fa5371a425219d952d4d4e7b556b2f9f9a684"
+      },
+      "outstandingUsd": {
+        "value": 14077042.61,
+        "source": "derived: principal less principal and prepayment in 4 LoanRepaid events on 0x0bc66289cef46eaacfaaf8f57e3c75509f224df44bd6a38d1b63427e4e09b066"
+      },
+      "aprPct": {
+        "value": 10.5,
+        "source": "https://arbiscan.io/tx/0x1d705f718582923917e43dd2960fa5371a425219d952d4d4e7b556b2f9f9a684 (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 1020,
+        "source": "https://arbiscan.io/tx/0x1d705f718582923917e43dd2960fa5371a425219d952d4d4e7b556b2f9f9a684"
+      },
+      "originatedAt": {
+        "value": "2026-04-17T17:07:00.000Z",
+        "source": "https://arbiscan.io/tx/0x212748989c6b8848b91e5def9bbea345e7930d9271a3a4cf1569f29dcefd923e"
+      },
+      "currentTermsAt": {
+        "value": "2026-06-16T17:07:00.000Z",
+        "source": "eth_call loanState(0x0bc66289cef46eaacfaaf8f57e3c75509f224df44bd6a38d1b63427e4e09b066) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-04-01T17:07:00.000Z",
+        "source": "derived: current terms start + 1020 days"
+      },
+      "daysToMaturity": {
+        "value": 902,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 4,
+          "source": "eth_call loanState(0x0bc66289cef46eaacfaaf8f57e3c75509f224df44bd6a38d1b63427e4e09b066) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 3,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-10-01T17:51:42.000Z",
+          "source": "https://arbiscan.io/tx/0xb561c391cd6f9d598c2a5a9cf4efe095cfef4197a9bbac02d5e1e87ab274825e"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "1003"
+        ],
+        "name": "NVIDIA H200 [75]",
+        "models": [
+          {
+            "model": "H200",
+            "label": "NVIDIA H200",
+            "units": 75,
+            "gpus": 600
+          }
+        ],
+        "units": {
+          "value": 75,
+          "source": "https://metadata.usd.ai/v1/1003"
+        },
+        "gpuCount": {
+          "value": 600,
+          "source": "https://metadata.usd.ai/v1/1003 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 20494517.92,
+          "source": "https://metadata.usd.ai/v1/1003"
+        },
+        "usefulLifeDays": {
+          "value": 1080,
+          "source": "https://metadata.usd.ai/v1/1003"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/1003"
+        ]
+      },
+      "enrichment": {
+        "locationName": "MO, USA",
+        "offTakeCode": 2,
+        "dealStatus": "closing",
+        "appAprPct": 11.979,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 528509,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0x1d705f718582923917e43dd2960fa5371a425219d952d4d4e7b556b2f9f9a684 at its APR over 34 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 1.2066,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0x1d705f718582923917e43dd2960fa5371a425219d952d4d4e7b556b2f9f9a684 at its APR over 34 months, / 600 GPUs (https://metadata.usd.ai/v1/1003) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 4.7206,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.2556,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 2.739,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.6348,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.6869,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/1003)"
+        },
+        "depreciatedLtv": {
+          "value": 0.7611,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0x212748989c6b8848b91e5def9bbea345e7930d9271a3a4cf1569f29dcefd923e)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0x1d705f718582923917e43dd2960fa5371a425219d952d4d4e7b556b2f9f9a684",
+        "originTx": "https://arbiscan.io/tx/0x212748989c6b8848b91e5def9bbea345e7930d9271a3a4cf1569f29dcefd923e",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/1003"
+      }
+    },
+    {
+      "id": "1005",
+      "hash": "0x59d9bf04e3baeee2144c6ff7848dc9ce33fab576a2a343996defdb611e9cd72e",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0x85483aee461914342c6838eae61a23d7d995e5e3",
+        "source": "https://arbiscan.io/tx/0x6bb4498d7f5bda61abd8b906b00fed268c178ccc972974322c3bfdb6d9f63d9d"
+      },
+      "createdBy": "refinanced",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 11295783,
+        "source": "https://arbiscan.io/tx/0x6bb4498d7f5bda61abd8b906b00fed268c178ccc972974322c3bfdb6d9f63d9d"
+      },
+      "outstandingUsd": {
+        "value": 10490171.2,
+        "source": "derived: principal less principal and prepayment in 3 LoanRepaid events on 0x59d9bf04e3baeee2144c6ff7848dc9ce33fab576a2a343996defdb611e9cd72e"
+      },
+      "aprPct": {
+        "value": 10,
+        "source": "https://arbiscan.io/tx/0x6bb4498d7f5bda61abd8b906b00fed268c178ccc972974322c3bfdb6d9f63d9d (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 1095,
+        "source": "https://arbiscan.io/tx/0x6bb4498d7f5bda61abd8b906b00fed268c178ccc972974322c3bfdb6d9f63d9d"
+      },
+      "originatedAt": {
+        "value": "2026-04-29T14:18:24.000Z",
+        "source": "https://arbiscan.io/tx/0x58fb839bfa7bf35910752726fe1c48b1e979d4451571bd8a22b29f2a63a511e6"
+      },
+      "currentTermsAt": {
+        "value": "2026-06-02T00:00:00.000Z",
+        "source": "eth_call loanState(0x59d9bf04e3baeee2144c6ff7848dc9ce33fab576a2a343996defdb611e9cd72e) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-06-01T00:00:00.000Z",
+        "source": "derived: current terms start + 1095 days"
+      },
+      "daysToMaturity": {
+        "value": 962,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 4,
+          "source": "eth_call loanState(0x59d9bf04e3baeee2144c6ff7848dc9ce33fab576a2a343996defdb611e9cd72e) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 4,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-09-29T01:03:06.000Z",
+          "source": "https://arbiscan.io/tx/0x683b82bbd304195ee6a1dd2061095c2b1a7114c569b361670521810d78e15065"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "1005"
+        ],
+        "name": "NVIDIA B200 [32]",
+        "models": [
+          {
+            "model": "B200",
+            "label": "NVIDIA B200",
+            "units": 32,
+            "gpus": 256
+          }
+        ],
+        "units": {
+          "value": 32,
+          "source": "https://metadata.usd.ai/v1/1005"
+        },
+        "gpuCount": {
+          "value": 256,
+          "source": "https://metadata.usd.ai/v1/1005 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 14119728,
+          "source": "https://metadata.usd.ai/v1/1005"
+        },
+        "usefulLifeDays": {
+          "value": 1095,
+          "source": "https://metadata.usd.ai/v1/1005"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/1005"
+        ]
+      },
+      "enrichment": {
+        "locationName": "TX, USA",
+        "offTakeCode": 2,
+        "dealStatus": "closing",
+        "appAprPct": 11.5,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 364483,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0x6bb4498d7f5bda61abd8b906b00fed268c178ccc972974322c3bfdb6d9f63d9d at its APR over 36 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 1.9504,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0x6bb4498d7f5bda61abd8b906b00fed268c178ccc972974322c3bfdb6d9f63d9d at its APR over 36 months, / 256 GPUs (https://metadata.usd.ai/v1/1005) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 7.208,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.2706,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 2.587,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.6135,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.7429,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/1005)"
+        },
+        "depreciatedLtv": {
+          "value": 0.8173,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0x58fb839bfa7bf35910752726fe1c48b1e979d4451571bd8a22b29f2a63a511e6)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0x6bb4498d7f5bda61abd8b906b00fed268c178ccc972974322c3bfdb6d9f63d9d",
+        "originTx": "https://arbiscan.io/tx/0x58fb839bfa7bf35910752726fe1c48b1e979d4451571bd8a22b29f2a63a511e6",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/1005"
+      }
+    },
+    {
+      "id": "1011",
+      "hash": "0xa7e8b487d1910142b44276ccc98a25b523863888c7a20ae2486794b01b20abf6",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0x25624e2b05616a3c754c20e7be8841cad8e66723",
+        "source": "https://arbiscan.io/tx/0x5767cea7add51ef39bd4a8d6ea50efbe559f7f21bde6b9d01dd90ba712e2afd5"
+      },
+      "createdBy": "refinanced",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 9561608,
+        "source": "https://arbiscan.io/tx/0x5767cea7add51ef39bd4a8d6ea50efbe559f7f21bde6b9d01dd90ba712e2afd5"
+      },
+      "outstandingUsd": {
+        "value": 9561608,
+        "source": "derived: principal less principal and prepayment in 0 LoanRepaid events on 0xa7e8b487d1910142b44276ccc98a25b523863888c7a20ae2486794b01b20abf6"
+      },
+      "aprPct": {
+        "value": 13.5,
+        "source": "https://arbiscan.io/tx/0x5767cea7add51ef39bd4a8d6ea50efbe559f7f21bde6b9d01dd90ba712e2afd5 (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 1095,
+        "source": "https://arbiscan.io/tx/0x5767cea7add51ef39bd4a8d6ea50efbe559f7f21bde6b9d01dd90ba712e2afd5"
+      },
+      "originatedAt": {
+        "value": "2026-09-14T20:29:21.000Z",
+        "source": "https://arbiscan.io/tx/0xca97d891b6acdf0edb2dde877c64ef4f5951508352a5d2229b86c23b30d57580"
+      },
+      "currentTermsAt": {
+        "value": "2026-09-14T20:29:21.000Z",
+        "source": "eth_call loanState(0xa7e8b487d1910142b44276ccc98a25b523863888c7a20ae2486794b01b20abf6) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-09-13T20:29:21.000Z",
+        "source": "derived: current terms start + 1095 days"
+      },
+      "daysToMaturity": {
+        "value": 1067,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 1,
+          "source": "eth_call loanState(0xa7e8b487d1910142b44276ccc98a25b523863888c7a20ae2486794b01b20abf6) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 0,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": null,
+          "source": "no LoanRepaid event"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "1011"
+        ],
+        "name": "NVIDIA DGX B300 [24]",
+        "models": [
+          {
+            "model": "B300",
+            "label": "NVIDIA DGX B300",
+            "units": 24,
+            "gpus": 192
+          }
+        ],
+        "units": {
+          "value": 24,
+          "source": "https://metadata.usd.ai/v1/1011"
+        },
+        "gpuCount": {
+          "value": 192,
+          "source": "https://metadata.usd.ai/v1/1011 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 40060848.24,
+          "source": "https://metadata.usd.ai/v1/1011"
+        },
+        "usefulLifeDays": {
+          "value": 1095,
+          "source": "https://metadata.usd.ai/v1/1011"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/1011"
+        ]
+      },
+      "enrichment": {
+        "locationName": "NE, USA",
+        "offTakeCode": 2,
+        "dealStatus": "closing",
+        "appAprPct": 15.001,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 324476,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0x5767cea7add51ef39bd4a8d6ea50efbe559f7f21bde6b9d01dd90ba712e2afd5 at its APR over 36 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 2.315,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0x5767cea7add51ef39bd4a8d6ea50efbe559f7f21bde6b9d01dd90ba712e2afd5 at its APR over 36 months, / 192 GPUs (https://metadata.usd.ai/v1/1011) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 8.9523,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.2586,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 2.707,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.6306,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.2387,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/1011)"
+        },
+        "depreciatedLtv": {
+          "value": 0.2424,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0xca97d891b6acdf0edb2dde877c64ef4f5951508352a5d2229b86c23b30d57580)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0x5767cea7add51ef39bd4a8d6ea50efbe559f7f21bde6b9d01dd90ba712e2afd5",
+        "originTx": "https://arbiscan.io/tx/0xca97d891b6acdf0edb2dde877c64ef4f5951508352a5d2229b86c23b30d57580",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/1011"
+      }
+    },
+    {
+      "id": "1009",
+      "hash": "0x7b8200dce30fca734b539b07999a86a824dd3c34470b3402cb3fa14ff86a69a6",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0x522c53f972fa3ec06c9ba162274099c27501408a",
+        "source": "https://arbiscan.io/tx/0xda653596bced73f4373db0df0a96639a582b618f1c5b25aa673366881240bfac"
+      },
+      "createdBy": "originated",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 7499999,
+        "source": "https://arbiscan.io/tx/0xda653596bced73f4373db0df0a96639a582b618f1c5b25aa673366881240bfac"
+      },
+      "outstandingUsd": {
+        "value": 7319636.46,
+        "source": "derived: principal less principal and prepayment in 2 LoanRepaid events on 0x7b8200dce30fca734b539b07999a86a824dd3c34470b3402cb3fa14ff86a69a6"
+      },
+      "aprPct": {
+        "value": 8.5,
+        "source": "https://arbiscan.io/tx/0xda653596bced73f4373db0df0a96639a582b618f1c5b25aa673366881240bfac (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 1095,
+        "source": "https://arbiscan.io/tx/0xda653596bced73f4373db0df0a96639a582b618f1c5b25aa673366881240bfac"
+      },
+      "originatedAt": {
+        "value": "2026-08-04T02:59:16.000Z",
+        "source": "https://arbiscan.io/tx/0xda653596bced73f4373db0df0a96639a582b618f1c5b25aa673366881240bfac"
+      },
+      "currentTermsAt": {
+        "value": "2026-08-04T02:59:16.000Z",
+        "source": "eth_call loanState(0x7b8200dce30fca734b539b07999a86a824dd3c34470b3402cb3fa14ff86a69a6) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-08-03T02:59:16.000Z",
+        "source": "derived: current terms start + 1095 days"
+      },
+      "daysToMaturity": {
+        "value": 1025,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 2,
+          "source": "eth_call loanState(0x7b8200dce30fca734b539b07999a86a824dd3c34470b3402cb3fa14ff86a69a6) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 2,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-09-30T15:50:12.000Z",
+          "source": "https://arbiscan.io/tx/0x63490fb25c4409247747d5c227fabe41648984eb1750d74ebfb3cd3908bf58e5"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "1009"
+        ],
+        "name": "NVIDIA B200 [32]",
+        "models": [
+          {
+            "model": "B200",
+            "label": "NVIDIA B200",
+            "units": 32,
+            "gpus": 256
+          }
+        ],
+        "units": {
+          "value": 32,
+          "source": "https://metadata.usd.ai/v1/1009"
+        },
+        "gpuCount": {
+          "value": 256,
+          "source": "https://metadata.usd.ai/v1/1009 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 14213752.84,
+          "source": "https://metadata.usd.ai/v1/1009"
+        },
+        "usefulLifeDays": {
+          "value": 1095,
+          "source": "https://metadata.usd.ai/v1/1009"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/1009"
+        ]
+      },
+      "enrichment": {
+        "locationName": "DE, USA",
+        "offTakeCode": 2,
+        "dealStatus": "closing",
+        "appAprPct": 10,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 236756,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xda653596bced73f4373db0df0a96639a582b618f1c5b25aa673366881240bfac at its APR over 36 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 1.2669,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xda653596bced73f4373db0df0a96639a582b618f1c5b25aa673366881240bfac at its APR over 36 months, / 256 GPUs (https://metadata.usd.ai/v1/1009) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 7.208,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.1758,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 3.983,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.7489,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.515,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/1009)"
+        },
+        "depreciatedLtv": {
+          "value": 0.5354,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0xda653596bced73f4373db0df0a96639a582b618f1c5b25aa673366881240bfac)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0xda653596bced73f4373db0df0a96639a582b618f1c5b25aa673366881240bfac",
+        "originTx": "https://arbiscan.io/tx/0xda653596bced73f4373db0df0a96639a582b618f1c5b25aa673366881240bfac",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/1009"
+      }
+    },
+    {
+      "id": "1001",
+      "hash": "0xfe56f5c7329d53e2769071bc1f6e964e6145798b44754783f9a473b82d534dd8",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0x8cfde17b2919d6c571cca1763a1cfd2677df9b3a",
+        "source": "https://arbiscan.io/tx/0x6bb4498d7f5bda61abd8b906b00fed268c178ccc972974322c3bfdb6d9f63d9d"
+      },
+      "createdBy": "refinanced",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 8560856.89,
+        "source": "https://arbiscan.io/tx/0x6bb4498d7f5bda61abd8b906b00fed268c178ccc972974322c3bfdb6d9f63d9d"
+      },
+      "outstandingUsd": {
+        "value": 7132467.81,
+        "source": "derived: principal less principal and prepayment in 6 LoanRepaid events on 0xfe56f5c7329d53e2769071bc1f6e964e6145798b44754783f9a473b82d534dd8"
+      },
+      "aprPct": {
+        "value": 10,
+        "source": "https://arbiscan.io/tx/0x6bb4498d7f5bda61abd8b906b00fed268c178ccc972974322c3bfdb6d9f63d9d (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 990,
+        "source": "https://arbiscan.io/tx/0x6bb4498d7f5bda61abd8b906b00fed268c178ccc972974322c3bfdb6d9f63d9d"
+      },
+      "originatedAt": {
+        "value": "2026-03-05T04:24:15.000Z",
+        "source": "https://arbiscan.io/tx/0x38260de7da8e5f207b22eaf71128ccb8b0c3889e603e2b6392845be242be7e9e"
+      },
+      "currentTermsAt": {
+        "value": "2026-06-03T04:24:15.000Z",
+        "source": "eth_call loanState(0xfe56f5c7329d53e2769071bc1f6e964e6145798b44754783f9a473b82d534dd8) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-02-17T04:24:15.000Z",
+        "source": "derived: current terms start + 990 days"
+      },
+      "daysToMaturity": {
+        "value": 858,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 4,
+          "source": "eth_call loanState(0xfe56f5c7329d53e2769071bc1f6e964e6145798b44754783f9a473b82d534dd8) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 4,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-09-29T00:35:19.000Z",
+          "source": "https://arbiscan.io/tx/0xec0c63cc9b558c86557ac44f3bbfbf85eeb6fb9fc97763836e57b6d2bb5f506e"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "1001"
+        ],
+        "name": "NVIDIA B200 [38]",
+        "models": [
+          {
+            "model": "B200",
+            "label": "NVIDIA B200",
+            "units": 38,
+            "gpus": 304
+          }
+        ],
+        "units": {
+          "value": 38,
+          "source": "https://metadata.usd.ai/v1/1001"
+        },
+        "gpuCount": {
+          "value": 304,
+          "source": "https://metadata.usd.ai/v1/1001 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 15764706.68,
+          "source": "https://metadata.usd.ai/v1/1001"
+        },
+        "usefulLifeDays": {
+          "value": 1080,
+          "source": "https://metadata.usd.ai/v1/1001"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/1001"
+        ]
+      },
+      "enrichment": {
+        "locationName": "TX, USA",
+        "offTakeCode": 0,
+        "dealStatus": "closing",
+        "appAprPct": 11.479,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 297796,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0x6bb4498d7f5bda61abd8b906b00fed268c178ccc972974322c3bfdb6d9f63d9d at its APR over 33 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 1.3419,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0x6bb4498d7f5bda61abd8b906b00fed268c178ccc972974322c3bfdb6d9f63d9d at its APR over 33 months, / 304 GPUs (https://metadata.usd.ai/v1/1001) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 7.208,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.1862,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 3.76,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.734,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.4524,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/1001)"
+        },
+        "depreciatedLtv": {
+          "value": 0.5149,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0x38260de7da8e5f207b22eaf71128ccb8b0c3889e603e2b6392845be242be7e9e)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0x6bb4498d7f5bda61abd8b906b00fed268c178ccc972974322c3bfdb6d9f63d9d",
+        "originTx": "https://arbiscan.io/tx/0x38260de7da8e5f207b22eaf71128ccb8b0c3889e603e2b6392845be242be7e9e",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/1001"
+      }
+    },
+    {
+      "id": "401+402+403+404+405+406+407+408+409+410+411+412+413+414+415+416+417+418+419+420+421+422+423+424+425+426+427",
+      "hash": "0x577785f1bd90b3f0c654e78b3bb9c3b0b2fc9ca17c1dcf006948aa6630079ecb",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0x1c3b7613590f7e3e1da0c345ddfeb3aff9cc6d33",
+        "source": "https://arbiscan.io/tx/0x1d705f718582923917e43dd2960fa5371a425219d952d4d4e7b556b2f9f9a684"
+      },
+      "createdBy": "migrated",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 3806613.77,
+        "source": "https://arbiscan.io/tx/0x1d705f718582923917e43dd2960fa5371a425219d952d4d4e7b556b2f9f9a684"
+      },
+      "outstandingUsd": {
+        "value": 3438231.79,
+        "source": "derived: principal less principal and prepayment in 4 LoanRepaid events on 0x577785f1bd90b3f0c654e78b3bb9c3b0b2fc9ca17c1dcf006948aa6630079ecb"
+      },
+      "aprPct": {
+        "value": 10.5,
+        "source": "https://arbiscan.io/tx/0x1d705f718582923917e43dd2960fa5371a425219d952d4d4e7b556b2f9f9a684 (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 960,
+        "source": "https://arbiscan.io/tx/0x1d705f718582923917e43dd2960fa5371a425219d952d4d4e7b556b2f9f9a684"
+      },
+      "originatedAt": {
+        "value": "2026-02-17T17:45:39.000Z",
+        "source": "https://arbiscan.io/tx/0xfe5d224241aa447690ead7fa81c35926d9bce600b3d791d140d512d5976cd4fe"
+      },
+      "currentTermsAt": {
+        "value": "2026-06-17T17:45:39.000Z",
+        "source": "eth_call loanState(0x577785f1bd90b3f0c654e78b3bb9c3b0b2fc9ca17c1dcf006948aa6630079ecb) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-02-01T17:45:39.000Z",
+        "source": "derived: current terms start + 960 days"
+      },
+      "daysToMaturity": {
+        "value": 843,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 4,
+          "source": "eth_call loanState(0x577785f1bd90b3f0c654e78b3bb9c3b0b2fc9ca17c1dcf006948aa6630079ecb) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 3,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-10-01T17:52:07.000Z",
+          "source": "https://arbiscan.io/tx/0xa95da6ec96dbd4585fe0aca4564b1f9cba9b3316fe3293df3d4fc94fae8d10da"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "401",
+          "402",
+          "403",
+          "404",
+          "405",
+          "406",
+          "407",
+          "408",
+          "409",
+          "410",
+          "411",
+          "412",
+          "413",
+          "414",
+          "415",
+          "416",
+          "417",
+          "418",
+          "419",
+          "420",
+          "421",
+          "422",
+          "423",
+          "424",
+          "425",
+          "426",
+          "427"
+        ],
+        "name": "18 x Supermicro NVIDIA RTX 6000 Pro Server, 9 x Supermicro NVIDIA B300 Server",
+        "models": [
+          {
+            "model": "RTX PRO 6000",
+            "label": "RTX PRO 6000",
+            "units": 18,
+            "gpus": 144
+          },
+          {
+            "model": "B300",
+            "label": "B300",
+            "units": 9,
+            "gpus": 72
+          }
+        ],
+        "units": {
+          "value": 27,
+          "source": "https://metadata.usd.ai/v1/401 https://metadata.usd.ai/v1/402 https://metadata.usd.ai/v1/403 https://metadata.usd.ai/v1/404 https://metadata.usd.ai/v1/405 https://metadata.usd.ai/v1/406 https://metadata.usd.ai/v1/407 https://metadata.usd.ai/v1/408 https://metadata.usd.ai/v1/409 https://metadata.usd.ai/v1/410 https://metadata.usd.ai/v1/411 https://metadata.usd.ai/v1/412 https://metadata.usd.ai/v1/413 https://metadata.usd.ai/v1/414 https://metadata.usd.ai/v1/415 https://metadata.usd.ai/v1/416 https://metadata.usd.ai/v1/417 https://metadata.usd.ai/v1/418 https://metadata.usd.ai/v1/419 https://metadata.usd.ai/v1/420 https://metadata.usd.ai/v1/421 https://metadata.usd.ai/v1/422 https://metadata.usd.ai/v1/423 https://metadata.usd.ai/v1/424 https://metadata.usd.ai/v1/425 https://metadata.usd.ai/v1/426 https://metadata.usd.ai/v1/427"
+        },
+        "gpuCount": {
+          "value": 216,
+          "source": "https://metadata.usd.ai/v1/401 https://metadata.usd.ai/v1/402 https://metadata.usd.ai/v1/403 https://metadata.usd.ai/v1/404 https://metadata.usd.ai/v1/405 https://metadata.usd.ai/v1/406 https://metadata.usd.ai/v1/407 https://metadata.usd.ai/v1/408 https://metadata.usd.ai/v1/409 https://metadata.usd.ai/v1/410 https://metadata.usd.ai/v1/411 https://metadata.usd.ai/v1/412 https://metadata.usd.ai/v1/413 https://metadata.usd.ai/v1/414 https://metadata.usd.ai/v1/415 https://metadata.usd.ai/v1/416 https://metadata.usd.ai/v1/417 https://metadata.usd.ai/v1/418 https://metadata.usd.ai/v1/419 https://metadata.usd.ai/v1/420 https://metadata.usd.ai/v1/421 https://metadata.usd.ai/v1/422 https://metadata.usd.ai/v1/423 https://metadata.usd.ai/v1/424 https://metadata.usd.ai/v1/425 https://metadata.usd.ai/v1/426 https://metadata.usd.ai/v1/427 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 6117776.639999999,
+          "source": "https://metadata.usd.ai/v1/401 https://metadata.usd.ai/v1/402 https://metadata.usd.ai/v1/403 https://metadata.usd.ai/v1/404 https://metadata.usd.ai/v1/405 https://metadata.usd.ai/v1/406 https://metadata.usd.ai/v1/407 https://metadata.usd.ai/v1/408 https://metadata.usd.ai/v1/409 https://metadata.usd.ai/v1/410 https://metadata.usd.ai/v1/411 https://metadata.usd.ai/v1/412 https://metadata.usd.ai/v1/413 https://metadata.usd.ai/v1/414 https://metadata.usd.ai/v1/415 https://metadata.usd.ai/v1/416 https://metadata.usd.ai/v1/417 https://metadata.usd.ai/v1/418 https://metadata.usd.ai/v1/419 https://metadata.usd.ai/v1/420 https://metadata.usd.ai/v1/421 https://metadata.usd.ai/v1/422 https://metadata.usd.ai/v1/423 https://metadata.usd.ai/v1/424 https://metadata.usd.ai/v1/425 https://metadata.usd.ai/v1/426 https://metadata.usd.ai/v1/427"
+        },
+        "usefulLifeDays": {
+          "value": 1080,
+          "source": "https://metadata.usd.ai/v1/401 https://metadata.usd.ai/v1/402 https://metadata.usd.ai/v1/403 https://metadata.usd.ai/v1/404 https://metadata.usd.ai/v1/405 https://metadata.usd.ai/v1/406 https://metadata.usd.ai/v1/407 https://metadata.usd.ai/v1/408 https://metadata.usd.ai/v1/409 https://metadata.usd.ai/v1/410 https://metadata.usd.ai/v1/411 https://metadata.usd.ai/v1/412 https://metadata.usd.ai/v1/413 https://metadata.usd.ai/v1/414 https://metadata.usd.ai/v1/415 https://metadata.usd.ai/v1/416 https://metadata.usd.ai/v1/417 https://metadata.usd.ai/v1/418 https://metadata.usd.ai/v1/419 https://metadata.usd.ai/v1/420 https://metadata.usd.ai/v1/421 https://metadata.usd.ai/v1/422 https://metadata.usd.ai/v1/423 https://metadata.usd.ai/v1/424 https://metadata.usd.ai/v1/425 https://metadata.usd.ai/v1/426 https://metadata.usd.ai/v1/427"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/401",
+          "https://metadata.usd.ai/v1/402",
+          "https://metadata.usd.ai/v1/403",
+          "https://metadata.usd.ai/v1/404",
+          "https://metadata.usd.ai/v1/405",
+          "https://metadata.usd.ai/v1/406",
+          "https://metadata.usd.ai/v1/407",
+          "https://metadata.usd.ai/v1/408",
+          "https://metadata.usd.ai/v1/409",
+          "https://metadata.usd.ai/v1/410",
+          "https://metadata.usd.ai/v1/411",
+          "https://metadata.usd.ai/v1/412",
+          "https://metadata.usd.ai/v1/413",
+          "https://metadata.usd.ai/v1/414",
+          "https://metadata.usd.ai/v1/415",
+          "https://metadata.usd.ai/v1/416",
+          "https://metadata.usd.ai/v1/417",
+          "https://metadata.usd.ai/v1/418",
+          "https://metadata.usd.ai/v1/419",
+          "https://metadata.usd.ai/v1/420",
+          "https://metadata.usd.ai/v1/421",
+          "https://metadata.usd.ai/v1/422",
+          "https://metadata.usd.ai/v1/423",
+          "https://metadata.usd.ai/v1/424",
+          "https://metadata.usd.ai/v1/425",
+          "https://metadata.usd.ai/v1/426",
+          "https://metadata.usd.ai/v1/427"
+        ]
+      },
+      "enrichment": {
+        "locationName": "PA, USA",
+        "offTakeCode": 2,
+        "dealStatus": "closing",
+        "appAprPct": 11.979,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 136903,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0x1d705f718582923917e43dd2960fa5371a425219d952d4d4e7b556b2f9f9a684 at its APR over 32 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 0.8682,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0x1d705f718582923917e43dd2960fa5371a425219d952d4d4e7b556b2f9f9a684 at its APR over 32 months, / 216 GPUs (https://metadata.usd.ai/v1/401 https://metadata.usd.ai/v1/402 https://metadata.usd.ai/v1/403 https://metadata.usd.ai/v1/404 https://metadata.usd.ai/v1/405 https://metadata.usd.ai/v1/406 https://metadata.usd.ai/v1/407 https://metadata.usd.ai/v1/408 https://metadata.usd.ai/v1/409 https://metadata.usd.ai/v1/410 https://metadata.usd.ai/v1/411 https://metadata.usd.ai/v1/412 https://metadata.usd.ai/v1/413 https://metadata.usd.ai/v1/414 https://metadata.usd.ai/v1/415 https://metadata.usd.ai/v1/416 https://metadata.usd.ai/v1/417 https://metadata.usd.ai/v1/418 https://metadata.usd.ai/v1/419 https://metadata.usd.ai/v1/420 https://metadata.usd.ai/v1/421 https://metadata.usd.ai/v1/422 https://metadata.usd.ai/v1/423 https://metadata.usd.ai/v1/424 https://metadata.usd.ai/v1/425 https://metadata.usd.ai/v1/426 https://metadata.usd.ai/v1/427) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 4.3441,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.1999,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 3.502,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.7145,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.562,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/401 https://metadata.usd.ai/v1/402 https://metadata.usd.ai/v1/403 https://metadata.usd.ai/v1/404 https://metadata.usd.ai/v1/405 https://metadata.usd.ai/v1/406 https://metadata.usd.ai/v1/407 https://metadata.usd.ai/v1/408 https://metadata.usd.ai/v1/409 https://metadata.usd.ai/v1/410 https://metadata.usd.ai/v1/411 https://metadata.usd.ai/v1/412 https://metadata.usd.ai/v1/413 https://metadata.usd.ai/v1/414 https://metadata.usd.ai/v1/415 https://metadata.usd.ai/v1/416 https://metadata.usd.ai/v1/417 https://metadata.usd.ai/v1/418 https://metadata.usd.ai/v1/419 https://metadata.usd.ai/v1/420 https://metadata.usd.ai/v1/421 https://metadata.usd.ai/v1/422 https://metadata.usd.ai/v1/423 https://metadata.usd.ai/v1/424 https://metadata.usd.ai/v1/425 https://metadata.usd.ai/v1/426 https://metadata.usd.ai/v1/427)"
+        },
+        "depreciatedLtv": {
+          "value": 0.6459,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0xfe5d224241aa447690ead7fa81c35926d9bce600b3d791d140d512d5976cd4fe)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0x1d705f718582923917e43dd2960fa5371a425219d952d4d4e7b556b2f9f9a684",
+        "originTx": "https://arbiscan.io/tx/0xfe5d224241aa447690ead7fa81c35926d9bce600b3d791d140d512d5976cd4fe",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/401"
+      }
+    },
+    {
+      "id": "251+252+253+254+255+256+257+258+259+260+261+262",
+      "hash": "0x956b9d9b0dc7bff346091aa46b4b38c547fb52cda0ade63b13f27e91aec34824",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0x2f258acd6f59ae983bfa3655ea0ea2604775b34d",
+        "source": "https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52"
+      },
+      "createdBy": "migrated",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 1977919.85,
+        "source": "https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52"
+      },
+      "outstandingUsd": {
+        "value": 1786508.26,
+        "source": "derived: principal less principal and prepayment in 3 LoanRepaid events on 0x956b9d9b0dc7bff346091aa46b4b38c547fb52cda0ade63b13f27e91aec34824"
+      },
+      "aprPct": {
+        "value": 15,
+        "source": "https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52 (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 930,
+        "source": "https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52"
+      },
+      "originatedAt": {
+        "value": "2026-01-28T22:50:12.000Z",
+        "source": "https://arbiscan.io/tx/0x511193e509eee0c246404e871ee27c72b3e474305c99e120fb02eea796c73662"
+      },
+      "currentTermsAt": {
+        "value": "2026-06-27T22:50:12.000Z",
+        "source": "eth_call loanState(0x956b9d9b0dc7bff346091aa46b4b38c547fb52cda0ade63b13f27e91aec34824) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-01-12T22:50:12.000Z",
+        "source": "derived: current terms start + 930 days"
+      },
+      "daysToMaturity": {
+        "value": 823,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 3,
+          "source": "eth_call loanState(0x956b9d9b0dc7bff346091aa46b4b38c547fb52cda0ade63b13f27e91aec34824) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 3,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-09-27T19:07:03.000Z",
+          "source": "https://arbiscan.io/tx/0x8b782765b525641cb623b6f58567922ebf34cb6cc2a99aae42751b8392114967"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "251",
+          "252",
+          "253",
+          "254",
+          "255",
+          "256",
+          "257",
+          "258",
+          "259",
+          "260",
+          "261",
+          "262"
+        ],
+        "name": "8 x Supermicro B200 8-GPU Server, 1 x InfiniBand Network (E-W), 1 x Ethernet Network (N-S), 1 x Additional Fiber, 1 x Data Center Peripheral Infrastructure",
+        "models": [
+          {
+            "model": "B200",
+            "label": "B200",
+            "units": 8,
+            "gpus": 64
+          },
+          {
+            "model": null,
+            "label": "non-GPU items",
+            "units": 28,
+            "gpus": 0
+          }
+        ],
+        "units": {
+          "value": 36,
+          "source": "https://metadata.usd.ai/v1/251 https://metadata.usd.ai/v1/252 https://metadata.usd.ai/v1/253 https://metadata.usd.ai/v1/254 https://metadata.usd.ai/v1/255 https://metadata.usd.ai/v1/256 https://metadata.usd.ai/v1/257 https://metadata.usd.ai/v1/258 https://metadata.usd.ai/v1/259 https://metadata.usd.ai/v1/260 https://metadata.usd.ai/v1/261 https://metadata.usd.ai/v1/262"
+        },
+        "gpuCount": {
+          "value": 64,
+          "source": "https://metadata.usd.ai/v1/251 https://metadata.usd.ai/v1/252 https://metadata.usd.ai/v1/253 https://metadata.usd.ai/v1/254 https://metadata.usd.ai/v1/255 https://metadata.usd.ai/v1/256 https://metadata.usd.ai/v1/257 https://metadata.usd.ai/v1/258 https://metadata.usd.ai/v1/259 https://metadata.usd.ai/v1/260 https://metadata.usd.ai/v1/261 https://metadata.usd.ai/v1/262 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 3281343.0000000005,
+          "source": "https://metadata.usd.ai/v1/251 https://metadata.usd.ai/v1/252 https://metadata.usd.ai/v1/253 https://metadata.usd.ai/v1/254 https://metadata.usd.ai/v1/255 https://metadata.usd.ai/v1/256 https://metadata.usd.ai/v1/257 https://metadata.usd.ai/v1/258 https://metadata.usd.ai/v1/259 https://metadata.usd.ai/v1/260 https://metadata.usd.ai/v1/261 https://metadata.usd.ai/v1/262"
+        },
+        "usefulLifeDays": {
+          "value": 1080,
+          "source": "https://metadata.usd.ai/v1/251 https://metadata.usd.ai/v1/252 https://metadata.usd.ai/v1/253 https://metadata.usd.ai/v1/254 https://metadata.usd.ai/v1/255 https://metadata.usd.ai/v1/256 https://metadata.usd.ai/v1/257 https://metadata.usd.ai/v1/258 https://metadata.usd.ai/v1/259 https://metadata.usd.ai/v1/260 https://metadata.usd.ai/v1/261 https://metadata.usd.ai/v1/262"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/251",
+          "https://metadata.usd.ai/v1/252",
+          "https://metadata.usd.ai/v1/253",
+          "https://metadata.usd.ai/v1/254",
+          "https://metadata.usd.ai/v1/255",
+          "https://metadata.usd.ai/v1/256",
+          "https://metadata.usd.ai/v1/257",
+          "https://metadata.usd.ai/v1/258",
+          "https://metadata.usd.ai/v1/259",
+          "https://metadata.usd.ai/v1/260",
+          "https://metadata.usd.ai/v1/261",
+          "https://metadata.usd.ai/v1/262"
+        ]
+      },
+      "enrichment": {
+        "locationName": "France",
+        "offTakeCode": 0,
+        "dealStatus": "closing",
+        "appAprPct": 15,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 77355,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52 at its APR over 31 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 1.6557,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52 at its APR over 31 months, / 64 GPUs (https://metadata.usd.ai/v1/251 https://metadata.usd.ai/v1/252 https://metadata.usd.ai/v1/253 https://metadata.usd.ai/v1/254 https://metadata.usd.ai/v1/255 https://metadata.usd.ai/v1/256 https://metadata.usd.ai/v1/257 https://metadata.usd.ai/v1/258 https://metadata.usd.ai/v1/259 https://metadata.usd.ai/v1/260 https://metadata.usd.ai/v1/261 https://metadata.usd.ai/v1/262) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 7.208,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.2297,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 3.047,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.6718,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.5444,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/251 https://metadata.usd.ai/v1/252 https://metadata.usd.ai/v1/253 https://metadata.usd.ai/v1/254 https://metadata.usd.ai/v1/255 https://metadata.usd.ai/v1/256 https://metadata.usd.ai/v1/257 https://metadata.usd.ai/v1/258 https://metadata.usd.ai/v1/259 https://metadata.usd.ai/v1/260 https://metadata.usd.ai/v1/261 https://metadata.usd.ai/v1/262)"
+        },
+        "depreciatedLtv": {
+          "value": 0.6336,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0x511193e509eee0c246404e871ee27c72b3e474305c99e120fb02eea796c73662)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52",
+        "originTx": "https://arbiscan.io/tx/0x511193e509eee0c246404e871ee27c72b3e474305c99e120fb02eea796c73662",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/251"
+      }
+    },
+    {
+      "id": "101+102+103+104+105+106+107+108",
+      "hash": "0x25a1f986a73e18eafd9a55b9486a877083a99704e5f4dc66db8dd8f8f5b51c02",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0x7f5da7c49a7bca00aedd6ac19bc9bf0769da5266",
+        "source": "https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52"
+      },
+      "createdBy": "migrated",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 471474.97,
+        "source": "https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52"
+      },
+      "outstandingUsd": {
+        "value": 398940.36,
+        "source": "derived: principal less principal and prepayment in 4 LoanRepaid events on 0x25a1f986a73e18eafd9a55b9486a877083a99704e5f4dc66db8dd8f8f5b51c02"
+      },
+      "aprPct": {
+        "value": 10.5,
+        "source": "https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52 (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 780,
+        "source": "https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52"
+      },
+      "originatedAt": {
+        "value": "2026-03-11T20:56:42.000Z",
+        "source": "https://arbiscan.io/tx/0x6742570be7f17a1d359c77143d013241a2bb98e3a3a47d1d8f180f51d63bb761"
+      },
+      "currentTermsAt": {
+        "value": "2026-06-09T20:56:42.000Z",
+        "source": "eth_call loanState(0x25a1f986a73e18eafd9a55b9486a877083a99704e5f4dc66db8dd8f8f5b51c02) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2028-07-28T20:56:42.000Z",
+        "source": "derived: current terms start + 780 days"
+      },
+      "daysToMaturity": {
+        "value": 655,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 4,
+          "source": "eth_call loanState(0x25a1f986a73e18eafd9a55b9486a877083a99704e5f4dc66db8dd8f8f5b51c02) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 4,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-10-09T16:34:17.000Z",
+          "source": "https://arbiscan.io/tx/0xa15d16b8c42bab26f80155ae892db9e982ceecee538427a5d419883d2589e6ee"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "101",
+          "102",
+          "103",
+          "104",
+          "105",
+          "106",
+          "107",
+          "108"
+        ],
+        "name": "4 x Nvidia H200 x8 Server, 4 x NDR 400Gb/s InfiniBand",
+        "models": [
+          {
+            "model": "H200",
+            "label": "H200",
+            "units": 4,
+            "gpus": 32
+          },
+          {
+            "model": null,
+            "label": "non-GPU items",
+            "units": 4,
+            "gpus": 0
+          }
+        ],
+        "units": {
+          "value": 8,
+          "source": "https://metadata.usd.ai/v1/101 https://metadata.usd.ai/v1/102 https://metadata.usd.ai/v1/103 https://metadata.usd.ai/v1/104 https://metadata.usd.ai/v1/105 https://metadata.usd.ai/v1/106 https://metadata.usd.ai/v1/107 https://metadata.usd.ai/v1/108"
+        },
+        "gpuCount": {
+          "value": 32,
+          "source": "https://metadata.usd.ai/v1/101 https://metadata.usd.ai/v1/102 https://metadata.usd.ai/v1/103 https://metadata.usd.ai/v1/104 https://metadata.usd.ai/v1/105 https://metadata.usd.ai/v1/106 https://metadata.usd.ai/v1/107 https://metadata.usd.ai/v1/108 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 928000,
+          "source": "https://metadata.usd.ai/v1/101 https://metadata.usd.ai/v1/102 https://metadata.usd.ai/v1/103 https://metadata.usd.ai/v1/104 https://metadata.usd.ai/v1/105 https://metadata.usd.ai/v1/106 https://metadata.usd.ai/v1/107 https://metadata.usd.ai/v1/108"
+        },
+        "usefulLifeDays": {
+          "value": 1080,
+          "source": "https://metadata.usd.ai/v1/101 https://metadata.usd.ai/v1/102 https://metadata.usd.ai/v1/103 https://metadata.usd.ai/v1/104 https://metadata.usd.ai/v1/105 https://metadata.usd.ai/v1/106 https://metadata.usd.ai/v1/107 https://metadata.usd.ai/v1/108"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/101",
+          "https://metadata.usd.ai/v1/102",
+          "https://metadata.usd.ai/v1/103",
+          "https://metadata.usd.ai/v1/104",
+          "https://metadata.usd.ai/v1/105",
+          "https://metadata.usd.ai/v1/106",
+          "https://metadata.usd.ai/v1/107",
+          "https://metadata.usd.ai/v1/108"
+        ]
+      },
+      "enrichment": {
+        "locationName": "Montreal, CA",
+        "offTakeCode": 0,
+        "dealStatus": "closing",
+        "appAprPct": 11.979,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 20353,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52 at its APR over 26 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 0.8713,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52 at its APR over 26 months, / 32 GPUs (https://metadata.usd.ai/v1/101 https://metadata.usd.ai/v1/102 https://metadata.usd.ai/v1/103 https://metadata.usd.ai/v1/104 https://metadata.usd.ai/v1/105 https://metadata.usd.ai/v1/106 https://metadata.usd.ai/v1/107 https://metadata.usd.ai/v1/108) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 4.7206,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.1846,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 3.793,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.7363,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.4299,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/101 https://metadata.usd.ai/v1/102 https://metadata.usd.ai/v1/103 https://metadata.usd.ai/v1/104 https://metadata.usd.ai/v1/105 https://metadata.usd.ai/v1/106 https://metadata.usd.ai/v1/107 https://metadata.usd.ai/v1/108)"
+        },
+        "depreciatedLtv": {
+          "value": 0.4873,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0x6742570be7f17a1d359c77143d013241a2bb98e3a3a47d1d8f180f51d63bb761)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52",
+        "originTx": "https://arbiscan.io/tx/0x6742570be7f17a1d359c77143d013241a2bb98e3a3a47d1d8f180f51d63bb761",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/101"
+      }
+    },
+    {
+      "id": "351+352+353",
+      "hash": "0x225dd05a00281ef89f98ad063842409634609351a9b6b72ade8ad65cc04d6230",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0x4342373c319209f380253fce0be12c0f627b93b9",
+        "source": "https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52"
+      },
+      "createdBy": "migrated",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 179588.6,
+        "source": "https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52"
+      },
+      "outstandingUsd": {
+        "value": 163262.36,
+        "source": "derived: principal less principal and prepayment in 3 LoanRepaid events on 0x225dd05a00281ef89f98ad063842409634609351a9b6b72ade8ad65cc04d6230"
+      },
+      "aprPct": {
+        "value": 13.5,
+        "source": "https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52 (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 990,
+        "source": "https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52"
+      },
+      "originatedAt": {
+        "value": "2026-03-20T18:09:46.000Z",
+        "source": "https://arbiscan.io/tx/0x8a70683b2429f5b2cf8254e2c995f4b54d7011335fc61dfb8bc803cf53d41d7e"
+      },
+      "currentTermsAt": {
+        "value": "2026-06-18T18:09:46.000Z",
+        "source": "eth_call loanState(0x225dd05a00281ef89f98ad063842409634609351a9b6b72ade8ad65cc04d6230) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-03-04T18:09:46.000Z",
+        "source": "derived: current terms start + 990 days"
+      },
+      "daysToMaturity": {
+        "value": 874,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 3,
+          "source": "eth_call loanState(0x225dd05a00281ef89f98ad063842409634609351a9b6b72ade8ad65cc04d6230) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 3,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-09-18T14:16:28.000Z",
+          "source": "https://arbiscan.io/tx/0x2013c737d1ebb98e3a30cc41b751408513decfb08b68d971236069cc18c23f79"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "351",
+          "352",
+          "353"
+        ],
+        "name": "3 x Asus NVIDIA RTX PRO 6000",
+        "models": [
+          {
+            "model": "RTX PRO 6000",
+            "label": "RTX PRO 6000",
+            "units": 3,
+            "gpus": 24
+          }
+        ],
+        "units": {
+          "value": 3,
+          "source": "https://metadata.usd.ai/v1/351 https://metadata.usd.ai/v1/352 https://metadata.usd.ai/v1/353"
+        },
+        "gpuCount": {
+          "value": 24,
+          "source": "https://metadata.usd.ai/v1/351 https://metadata.usd.ai/v1/352 https://metadata.usd.ai/v1/353 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 245655,
+          "source": "https://metadata.usd.ai/v1/351 https://metadata.usd.ai/v1/352 https://metadata.usd.ai/v1/353"
+        },
+        "usefulLifeDays": {
+          "value": 1080,
+          "source": "https://metadata.usd.ai/v1/351 https://metadata.usd.ai/v1/352 https://metadata.usd.ai/v1/353"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/351",
+          "https://metadata.usd.ai/v1/352",
+          "https://metadata.usd.ai/v1/353"
+        ]
+      },
+      "enrichment": {
+        "locationName": "TX, USA",
+        "offTakeCode": 2,
+        "dealStatus": "closing",
+        "appAprPct": 14.979,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 6545,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52 at its APR over 33 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 0.3736,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52 at its APR over 33 months, / 24 GPUs (https://metadata.usd.ai/v1/351 https://metadata.usd.ai/v1/352 https://metadata.usd.ai/v1/353) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 2.04,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.1831,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 3.823,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.7384,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.6646,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/351 https://metadata.usd.ai/v1/352 https://metadata.usd.ai/v1/353)"
+        },
+        "depreciatedLtv": {
+          "value": 0.7491,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0x8a70683b2429f5b2cf8254e2c995f4b54d7011335fc61dfb8bc803cf53d41d7e)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0xd9b28abebf9f53691b73255548366930a4b6dda31dbae2d62bd5d8877c18ea52",
+        "originTx": "https://arbiscan.io/tx/0x8a70683b2429f5b2cf8254e2c995f4b54d7011335fc61dfb8bc803cf53d41d7e",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/351"
+      }
+    },
+    {
+      "id": "305",
+      "hash": "0xca5f7c1c245d223569f369fc39d6a191e004d2dcdb2b0c5d93651b311c4f7388",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0x599673a88ff88c27a27995d775d3132b21004b18",
+        "source": "https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550"
+      },
+      "createdBy": "migrated",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 71087.5,
+        "source": "https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550"
+      },
+      "outstandingUsd": {
+        "value": 62470.83,
+        "source": "derived: principal less principal and prepayment in 4 LoanRepaid events on 0xca5f7c1c245d223569f369fc39d6a191e004d2dcdb2b0c5d93651b311c4f7388"
+      },
+      "aprPct": {
+        "value": 12,
+        "source": "https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550 (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 990,
+        "source": "https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550"
+      },
+      "originatedAt": {
+        "value": "2026-03-09T10:05:41.000Z",
+        "source": "https://arbiscan.io/tx/0xc0ccef2be93d9239a61a9f22f61a529bae9b30595e7e86e7a3e396410df39191"
+      },
+      "currentTermsAt": {
+        "value": "2026-06-07T10:05:41.000Z",
+        "source": "eth_call loanState(0xca5f7c1c245d223569f369fc39d6a191e004d2dcdb2b0c5d93651b311c4f7388) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-02-21T10:05:41.000Z",
+        "source": "derived: current terms start + 990 days"
+      },
+      "daysToMaturity": {
+        "value": 863,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 4,
+          "source": "eth_call loanState(0xca5f7c1c245d223569f369fc39d6a191e004d2dcdb2b0c5d93651b311c4f7388) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 4,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-10-05T19:08:27.000Z",
+          "source": "https://arbiscan.io/tx/0x176c9f8cebbc41711a42d4b9ee7f00ed20a2f74ea5a81fe928d38b1dfccd553f"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "305"
+        ],
+        "name": "Octoserver NVIDIA Pro 6000 Blackwell Server",
+        "models": [
+          {
+            "model": "RTX PRO 6000",
+            "label": "Octoserver NVIDIA Pro 6000 Blackwell Server",
+            "units": 1,
+            "gpus": 8
+          }
+        ],
+        "units": {
+          "value": 1,
+          "source": "https://metadata.usd.ai/v1/305"
+        },
+        "gpuCount": {
+          "value": 8,
+          "source": "https://metadata.usd.ai/v1/305 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 103400,
+          "source": "https://metadata.usd.ai/v1/305"
+        },
+        "usefulLifeDays": {
+          "value": 1080,
+          "source": "https://metadata.usd.ai/v1/305"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/305"
+        ]
+      },
+      "enrichment": {
+        "locationName": "Montreal, CA",
+        "offTakeCode": 0,
+        "dealStatus": "closing",
+        "appAprPct": 13.479,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 2540,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550 at its APR over 33 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 0.4349,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550 at its APR over 33 months, / 8 GPUs (https://metadata.usd.ai/v1/305) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 2.04,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.2132,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 3.284,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.6955,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.6042,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/305)"
+        },
+        "depreciatedLtv": {
+          "value": 0.6858,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0xc0ccef2be93d9239a61a9f22f61a529bae9b30595e7e86e7a3e396410df39191)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550",
+        "originTx": "https://arbiscan.io/tx/0xc0ccef2be93d9239a61a9f22f61a529bae9b30595e7e86e7a3e396410df39191",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/305"
+      }
+    },
+    {
+      "id": "307",
+      "hash": "0xc7661a3732a6e558c4701443b0859e3b75e471675db243394ffb1da0334690e1",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0x1eaba9fe1b1dd4eac292229732fa1ef0dfe0d931",
+        "source": "https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550"
+      },
+      "createdBy": "migrated",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 71087.5,
+        "source": "https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550"
+      },
+      "outstandingUsd": {
+        "value": 62470.83,
+        "source": "derived: principal less principal and prepayment in 4 LoanRepaid events on 0xc7661a3732a6e558c4701443b0859e3b75e471675db243394ffb1da0334690e1"
+      },
+      "aprPct": {
+        "value": 12,
+        "source": "https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550 (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 990,
+        "source": "https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550"
+      },
+      "originatedAt": {
+        "value": "2026-03-09T10:13:25.000Z",
+        "source": "https://arbiscan.io/tx/0x791d746b528027c85d3c35ab8fa5e7a2c278fe69f7268c4858778be0effb1f7d"
+      },
+      "currentTermsAt": {
+        "value": "2026-06-07T10:13:25.000Z",
+        "source": "eth_call loanState(0xc7661a3732a6e558c4701443b0859e3b75e471675db243394ffb1da0334690e1) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-02-21T10:13:25.000Z",
+        "source": "derived: current terms start + 990 days"
+      },
+      "daysToMaturity": {
+        "value": 863,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 4,
+          "source": "eth_call loanState(0xc7661a3732a6e558c4701443b0859e3b75e471675db243394ffb1da0334690e1) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 4,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-10-05T19:09:58.000Z",
+          "source": "https://arbiscan.io/tx/0xe94aea9611f74d594ef32384831c7464ffe43bcf3efef3863b10477282def75b"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "307"
+        ],
+        "name": "Octoserver NVIDIA Pro 6000 Blackwell Server",
+        "models": [
+          {
+            "model": "RTX PRO 6000",
+            "label": "Octoserver NVIDIA Pro 6000 Blackwell Server",
+            "units": 1,
+            "gpus": 8
+          }
+        ],
+        "units": {
+          "value": 1,
+          "source": "https://metadata.usd.ai/v1/307"
+        },
+        "gpuCount": {
+          "value": 8,
+          "source": "https://metadata.usd.ai/v1/307 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 103400,
+          "source": "https://metadata.usd.ai/v1/307"
+        },
+        "usefulLifeDays": {
+          "value": 1080,
+          "source": "https://metadata.usd.ai/v1/307"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/307"
+        ]
+      },
+      "enrichment": {
+        "locationName": "Montreal, CA",
+        "offTakeCode": 0,
+        "dealStatus": "closing",
+        "appAprPct": null,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 2540,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550 at its APR over 33 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 0.4349,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550 at its APR over 33 months, / 8 GPUs (https://metadata.usd.ai/v1/307) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 2.04,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.2132,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 3.284,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.6955,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.6042,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/307)"
+        },
+        "depreciatedLtv": {
+          "value": 0.6858,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0x791d746b528027c85d3c35ab8fa5e7a2c278fe69f7268c4858778be0effb1f7d)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550",
+        "originTx": "https://arbiscan.io/tx/0x791d746b528027c85d3c35ab8fa5e7a2c278fe69f7268c4858778be0effb1f7d",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/307"
+      }
+    },
+    {
+      "id": "306",
+      "hash": "0xe26e8170dbc7884346aefbd12dc140d3f7ec73a3bbc53ee37efbc4d9a6f14654",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0x49ec86d154a0c7449be03553f8b7d48a29d9f56c",
+        "source": "https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550"
+      },
+      "createdBy": "migrated",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 71087.5,
+        "source": "https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550"
+      },
+      "outstandingUsd": {
+        "value": 62470.83,
+        "source": "derived: principal less principal and prepayment in 4 LoanRepaid events on 0xe26e8170dbc7884346aefbd12dc140d3f7ec73a3bbc53ee37efbc4d9a6f14654"
+      },
+      "aprPct": {
+        "value": 12,
+        "source": "https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550 (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 990,
+        "source": "https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550"
+      },
+      "originatedAt": {
+        "value": "2026-03-09T10:15:00.000Z",
+        "source": "https://arbiscan.io/tx/0xbe5af579e2cfa5bc4a9939f4e7d5e9132041dc9559a0fc479c74e6d48cb2863f"
+      },
+      "currentTermsAt": {
+        "value": "2026-06-07T10:15:00.000Z",
+        "source": "eth_call loanState(0xe26e8170dbc7884346aefbd12dc140d3f7ec73a3bbc53ee37efbc4d9a6f14654) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-02-21T10:15:00.000Z",
+        "source": "derived: current terms start + 990 days"
+      },
+      "daysToMaturity": {
+        "value": 863,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 4,
+          "source": "eth_call loanState(0xe26e8170dbc7884346aefbd12dc140d3f7ec73a3bbc53ee37efbc4d9a6f14654) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 4,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-10-05T19:11:02.000Z",
+          "source": "https://arbiscan.io/tx/0x410271fdff8e983c68f3460e8732c4831c6d5698b3f747196131ec5f82878ffe"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "306"
+        ],
+        "name": "Octoserver NVIDIA Pro 6000 Blackwell Server",
+        "models": [
+          {
+            "model": "RTX PRO 6000",
+            "label": "Octoserver NVIDIA Pro 6000 Blackwell Server",
+            "units": 1,
+            "gpus": 8
+          }
+        ],
+        "units": {
+          "value": 1,
+          "source": "https://metadata.usd.ai/v1/306"
+        },
+        "gpuCount": {
+          "value": 8,
+          "source": "https://metadata.usd.ai/v1/306 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 103400,
+          "source": "https://metadata.usd.ai/v1/306"
+        },
+        "usefulLifeDays": {
+          "value": 1080,
+          "source": "https://metadata.usd.ai/v1/306"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/306"
+        ]
+      },
+      "enrichment": {
+        "locationName": "Montreal, CA",
+        "offTakeCode": 0,
+        "dealStatus": "closing",
+        "appAprPct": null,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 2540,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550 at its APR over 33 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 0.4349,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550 at its APR over 33 months, / 8 GPUs (https://metadata.usd.ai/v1/306) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 2.04,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.2132,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 3.284,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.6955,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.6042,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/306)"
+        },
+        "depreciatedLtv": {
+          "value": 0.6858,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0xbe5af579e2cfa5bc4a9939f4e7d5e9132041dc9559a0fc479c74e6d48cb2863f)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0xe741ed69f3ef12e0706d9fb2ef2fda2a6a41c60c82a82313098dc13323b4a550",
+        "originTx": "https://arbiscan.io/tx/0xbe5af579e2cfa5bc4a9939f4e7d5e9132041dc9559a0fc479c74e6d48cb2863f",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/306"
+      }
+    },
+    {
+      "id": "301",
+      "hash": "0xa31f685da9208944da0889e7643560f6f0a51c5529b58f1d99a717a0770721d4",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0xca6c3113733368d4e81e6e606b6d1b6696d1eb33",
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2"
+      },
+      "createdBy": "migrated",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 68966.67,
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2"
+      },
+      "outstandingUsd": {
+        "value": 60345.83,
+        "source": "derived: principal less principal and prepayment in 4 LoanRepaid events on 0xa31f685da9208944da0889e7643560f6f0a51c5529b58f1d99a717a0770721d4"
+      },
+      "aprPct": {
+        "value": 12,
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2 (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 960,
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2"
+      },
+      "originatedAt": {
+        "value": "2026-02-07T09:06:44.000Z",
+        "source": "https://arbiscan.io/tx/0xbb297ab325458ee16e3752bc92be0af1a1c526dffcf09ffc26d5995a1b28f7bc"
+      },
+      "currentTermsAt": {
+        "value": "2026-06-07T09:06:44.000Z",
+        "source": "eth_call loanState(0xa31f685da9208944da0889e7643560f6f0a51c5529b58f1d99a717a0770721d4) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-01-22T09:06:44.000Z",
+        "source": "derived: current terms start + 960 days"
+      },
+      "daysToMaturity": {
+        "value": 833,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 4,
+          "source": "eth_call loanState(0xa31f685da9208944da0889e7643560f6f0a51c5529b58f1d99a717a0770721d4) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 4,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-10-05T18:58:53.000Z",
+          "source": "https://arbiscan.io/tx/0xb65de0c50cfe52dccac7fc297db3d27853d61d94211f036a16260ab0d19f33dd"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "301"
+        ],
+        "name": "Octoserver NVIDIA RTX Pro 6000 Blackwell Server",
+        "models": [
+          {
+            "model": "RTX PRO 6000",
+            "label": "Octoserver NVIDIA RTX Pro 6000 Blackwell Server",
+            "units": 1,
+            "gpus": 8
+          }
+        ],
+        "units": {
+          "value": 1,
+          "source": "https://metadata.usd.ai/v1/301"
+        },
+        "gpuCount": {
+          "value": 8,
+          "source": "https://metadata.usd.ai/v1/301 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 103450,
+          "source": "https://metadata.usd.ai/v1/301"
+        },
+        "usefulLifeDays": {
+          "value": 1080,
+          "source": "https://metadata.usd.ai/v1/301"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/301"
+        ]
+      },
+      "enrichment": {
+        "locationName": "Montreal, CA",
+        "offTakeCode": 0,
+        "dealStatus": "closing",
+        "appAprPct": null,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 2529,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2 at its APR over 32 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 0.4331,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2 at its APR over 32 months, / 8 GPUs (https://metadata.usd.ai/v1/301) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 2.04,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.2123,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 3.297,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.6967,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.5833,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/301)"
+        },
+        "depreciatedLtv": {
+          "value": 0.6748,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0xbb297ab325458ee16e3752bc92be0af1a1c526dffcf09ffc26d5995a1b28f7bc)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2",
+        "originTx": "https://arbiscan.io/tx/0xbb297ab325458ee16e3752bc92be0af1a1c526dffcf09ffc26d5995a1b28f7bc",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/301"
+      }
+    },
+    {
+      "id": "302",
+      "hash": "0xcf135c55ea602f3587f5f63aeea6bd63a309afc82b3d592233c6c096e7c18f36",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0xe12f591502ad38b5fcdb15cd3023982aeeafc5b6",
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2"
+      },
+      "createdBy": "migrated",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 68966.67,
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2"
+      },
+      "outstandingUsd": {
+        "value": 60345.83,
+        "source": "derived: principal less principal and prepayment in 4 LoanRepaid events on 0xcf135c55ea602f3587f5f63aeea6bd63a309afc82b3d592233c6c096e7c18f36"
+      },
+      "aprPct": {
+        "value": 12,
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2 (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 960,
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2"
+      },
+      "originatedAt": {
+        "value": "2026-02-07T09:24:25.000Z",
+        "source": "https://arbiscan.io/tx/0xa0578d2534608b7126fcb30e2d84ef5e445ac6446049bb5d5ec6870876c2a838"
+      },
+      "currentTermsAt": {
+        "value": "2026-06-07T09:24:25.000Z",
+        "source": "eth_call loanState(0xcf135c55ea602f3587f5f63aeea6bd63a309afc82b3d592233c6c096e7c18f36) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-01-22T09:24:25.000Z",
+        "source": "derived: current terms start + 960 days"
+      },
+      "daysToMaturity": {
+        "value": 833,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 4,
+          "source": "eth_call loanState(0xcf135c55ea602f3587f5f63aeea6bd63a309afc82b3d592233c6c096e7c18f36) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 4,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-10-05T19:00:11.000Z",
+          "source": "https://arbiscan.io/tx/0x5dc3bc5c13bb618669ebeaf197ad6afc972ddbab4282a8610e4ca3bd70a920ac"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "302"
+        ],
+        "name": "Octoserver NVIDIA Pro 6000 Blackwell Server",
+        "models": [
+          {
+            "model": "RTX PRO 6000",
+            "label": "Octoserver NVIDIA Pro 6000 Blackwell Server",
+            "units": 1,
+            "gpus": 8
+          }
+        ],
+        "units": {
+          "value": 1,
+          "source": "https://metadata.usd.ai/v1/302"
+        },
+        "gpuCount": {
+          "value": 8,
+          "source": "https://metadata.usd.ai/v1/302 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 103450,
+          "source": "https://metadata.usd.ai/v1/302"
+        },
+        "usefulLifeDays": {
+          "value": 1080,
+          "source": "https://metadata.usd.ai/v1/302"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/302"
+        ]
+      },
+      "enrichment": {
+        "locationName": "Montreal, CA",
+        "offTakeCode": 0,
+        "dealStatus": "closing",
+        "appAprPct": 13.479,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 2529,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2 at its APR over 32 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 0.4331,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2 at its APR over 32 months, / 8 GPUs (https://metadata.usd.ai/v1/302) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 2.04,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.2123,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 3.297,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.6967,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.5833,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/302)"
+        },
+        "depreciatedLtv": {
+          "value": 0.6748,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0xa0578d2534608b7126fcb30e2d84ef5e445ac6446049bb5d5ec6870876c2a838)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2",
+        "originTx": "https://arbiscan.io/tx/0xa0578d2534608b7126fcb30e2d84ef5e445ac6446049bb5d5ec6870876c2a838",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/302"
+      }
+    },
+    {
+      "id": "304",
+      "hash": "0x5a64fcd97d6ea60d1faf7c68c195e2fb980e77789928b9fddf288449f52fa137",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0xace68ba6bec7665e4f698d39184ee5ee5d278de5",
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2"
+      },
+      "createdBy": "migrated",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 68966.67,
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2"
+      },
+      "outstandingUsd": {
+        "value": 60345.83,
+        "source": "derived: principal less principal and prepayment in 4 LoanRepaid events on 0x5a64fcd97d6ea60d1faf7c68c195e2fb980e77789928b9fddf288449f52fa137"
+      },
+      "aprPct": {
+        "value": 12,
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2 (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 960,
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2"
+      },
+      "originatedAt": {
+        "value": "2026-02-07T09:50:03.000Z",
+        "source": "https://arbiscan.io/tx/0x70d73d622c78f9286c635ed587dc8b1c5605a372baf36f17091750b6e718f4e3"
+      },
+      "currentTermsAt": {
+        "value": "2026-06-07T09:50:03.000Z",
+        "source": "eth_call loanState(0x5a64fcd97d6ea60d1faf7c68c195e2fb980e77789928b9fddf288449f52fa137) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-01-22T09:50:03.000Z",
+        "source": "derived: current terms start + 960 days"
+      },
+      "daysToMaturity": {
+        "value": 833,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 4,
+          "source": "eth_call loanState(0x5a64fcd97d6ea60d1faf7c68c195e2fb980e77789928b9fddf288449f52fa137) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 4,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-10-05T19:01:43.000Z",
+          "source": "https://arbiscan.io/tx/0x73973c3d6c74600959e17d8cc9d5a760b32c564e94d1fcbae460f117e4b6de08"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "304"
+        ],
+        "name": "Octoserver NVIDIA Pro 6000 Blackwell Server",
+        "models": [
+          {
+            "model": "RTX PRO 6000",
+            "label": "Octoserver NVIDIA Pro 6000 Blackwell Server",
+            "units": 1,
+            "gpus": 8
+          }
+        ],
+        "units": {
+          "value": 1,
+          "source": "https://metadata.usd.ai/v1/304"
+        },
+        "gpuCount": {
+          "value": 8,
+          "source": "https://metadata.usd.ai/v1/304 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 103450,
+          "source": "https://metadata.usd.ai/v1/304"
+        },
+        "usefulLifeDays": {
+          "value": 1080,
+          "source": "https://metadata.usd.ai/v1/304"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/304"
+        ]
+      },
+      "enrichment": {
+        "locationName": "Montreal, CA",
+        "offTakeCode": 0,
+        "dealStatus": "closing",
+        "appAprPct": null,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 2529,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2 at its APR over 32 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 0.4331,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2 at its APR over 32 months, / 8 GPUs (https://metadata.usd.ai/v1/304) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 2.04,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.2123,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 3.297,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.6967,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.5833,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/304)"
+        },
+        "depreciatedLtv": {
+          "value": 0.6748,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0x70d73d622c78f9286c635ed587dc8b1c5605a372baf36f17091750b6e718f4e3)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2",
+        "originTx": "https://arbiscan.io/tx/0x70d73d622c78f9286c635ed587dc8b1c5605a372baf36f17091750b6e718f4e3",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/304"
+      }
+    },
+    {
+      "id": "303",
+      "hash": "0xad083b27b572d15ceb5b967b735b82b8a2f43720f970747cd5f992f0aa6c0d0e",
+      "router": "0x1c2ed170de32846316784c4fd58a5e3c7563e12f",
+      "routerVersion": "v2",
+      "status": "Active",
+      "borrower": {
+        "value": "0x93673ffb00971eefbdac72683145950a5b32d303",
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2"
+      },
+      "createdBy": "migrated",
+      "termsSource": "event",
+      "principalUsd": {
+        "value": 68966.67,
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2"
+      },
+      "outstandingUsd": {
+        "value": 60345.83,
+        "source": "derived: principal less principal and prepayment in 4 LoanRepaid events on 0xad083b27b572d15ceb5b967b735b82b8a2f43720f970747cd5f992f0aa6c0d0e"
+      },
+      "aprPct": {
+        "value": 12,
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2 (principal-weighted lender tranche rate; placeholder tranches under 1,000 USDai left out)"
+      },
+      "termDays": {
+        "value": 960,
+        "source": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2"
+      },
+      "originatedAt": {
+        "value": "2026-02-07T09:53:03.000Z",
+        "source": "https://arbiscan.io/tx/0x8da0c937fb14b8a64662329f3450220eb588599c81893d6180e27d8c31997f95"
+      },
+      "currentTermsAt": {
+        "value": "2026-06-07T09:53:03.000Z",
+        "source": "eth_call loanState(0xad083b27b572d15ceb5b967b735b82b8a2f43720f970747cd5f992f0aa6c0d0e) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+      },
+      "maturityAt": {
+        "value": "2029-01-22T09:53:03.000Z",
+        "source": "derived: current terms start + 960 days"
+      },
+      "daysToMaturity": {
+        "value": 833,
+        "source": "derived: maturity - snapshot time"
+      },
+      "repayments": {
+        "count": {
+          "value": 4,
+          "source": "eth_call loanState(0xad083b27b572d15ceb5b967b735b82b8a2f43720f970747cd5f992f0aa6c0d0e) on 0x1c2ed170de32846316784c4fd58a5e3c7563e12f at block 514179553"
+        },
+        "expectedApprox": {
+          "value": 4,
+          "source": "derived: whole months since current terms start"
+        },
+        "lastPaidAt": {
+          "value": "2026-10-05T19:03:07.000Z",
+          "source": "https://arbiscan.io/tx/0xdf6dd9d27a198af942a1fc58de3848207ee77717b19b88dafeae0ff2239859b7"
+        },
+        "health": "current"
+      },
+      "collateral": {
+        "tokenIds": [
+          "303"
+        ],
+        "name": "Octoserver NVIDIA Pro 6000 Blackwell Server",
+        "models": [
+          {
+            "model": "RTX PRO 6000",
+            "label": "Octoserver NVIDIA Pro 6000 Blackwell Server",
+            "units": 1,
+            "gpus": 8
+          }
+        ],
+        "units": {
+          "value": 1,
+          "source": "https://metadata.usd.ai/v1/303"
+        },
+        "gpuCount": {
+          "value": 8,
+          "source": "https://metadata.usd.ai/v1/303 (units x assumed GPUs per unit)"
+        },
+        "valueUsd": {
+          "value": 103450,
+          "source": "https://metadata.usd.ai/v1/303"
+        },
+        "usefulLifeDays": {
+          "value": 1080,
+          "source": "https://metadata.usd.ai/v1/303"
+        },
+        "metadataUrls": [
+          "https://metadata.usd.ai/v1/303"
+        ]
+      },
+      "enrichment": {
+        "locationName": "Montreal, CA",
+        "offTakeCode": 0,
+        "dealStatus": "closing",
+        "appAprPct": null,
+        "source": "https://app.usd.ai/loans"
+      },
+      "metrics": {
+        "monthlyPaymentUsd": {
+          "value": 2529,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2 at its APR over 32 months"
+        },
+        "debtServicePerGpuHr": {
+          "value": 0.4331,
+          "source": "derived: level monthly payment on principal https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2 at its APR over 32 months, / 8 GPUs (https://metadata.usd.ai/v1/303) / 730 h"
+        },
+        "marketPerGpuHr": {
+          "value": 2.04,
+          "source": "data/gpu-prices/2026-10-12.json (median across sources)"
+        },
+        "breakevenUtilization": {
+          "value": 0.2123,
+          "source": "derived: (debt service) / market price"
+        },
+        "coverageAtAssumedUtilization": {
+          "value": 3.297,
+          "source": "derived: market price x 0.7 utilization / debt service (gross of opex unless opex is set)"
+        },
+        "rentDropToBreakeven": {
+          "value": 0.6967,
+          "source": "derived: 1 - 1 / coverage"
+        },
+        "statedLtv": {
+          "value": 0.5833,
+          "source": "derived: outstanding / collateral value (https://metadata.usd.ai/v1/303)"
+        },
+        "depreciatedLtv": {
+          "value": 0.6748,
+          "source": "derived: outstanding / (collateral value straight-line depreciated over 5 years from https://arbiscan.io/tx/0x8da0c937fb14b8a64662329f3450220eb588599c81893d6180e27d8c31997f95)"
+        }
+      },
+      "flags": [],
+      "links": {
+        "createdTx": "https://arbiscan.io/tx/0xa2b2ef51e3cec332aa3eea7bc87a9acde40d8e93f761ea454a4d8cfe34880ad2",
+        "originTx": "https://arbiscan.io/tx/0x8da0c937fb14b8a64662329f3450220eb588599c81893d6180e27d8c31997f95",
+        "collateral": "https://arbiscan.io/nft/0xb31f04f920f24eda3ad276d55c5afefad6230c5d/303"
+      }
+    }
+  ],
+  "closedLoans": [
+    {
+      "hash": "0xbf19ec938f91b22605a5a07e87aa6b3b8ff5d7daeaec3a75c3a810c5c3fd7454",
+      "routerVersion": "v1",
+      "phase": "repaid",
+      "borrower": "0x7c5ed528421ebe86e759fbfc626b6631f9a7854e",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0xe48d23442e64a191e0ae7e68f44b0623b48f4dd1d8a145cc9e396eb9765a53ac"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0xaab64e2d4a4e6c39c0216fd540935093607093c2ea81393bc22c861bff326232",
+      "routerVersion": "v1",
+      "phase": "superseded",
+      "borrower": "0x8db66b7de0aad23bf724d2c2f7672d40da122fb9",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x511193e509eee0c246404e871ee27c72b3e474305c99e120fb02eea796c73662"
+      },
+      "successor": "0x956b9d9b0dc7bff346091aa46b4b38c547fb52cda0ade63b13f27e91aec34824",
+      "note": null
+    },
+    {
+      "hash": "0x8e0a968ed1854e1f2b62c70c53b10c4efbd9fd893b5fddd918166eb2abc5f95a",
+      "routerVersion": "v1",
+      "phase": "superseded",
+      "borrower": "0xe277b53c60c43012394d52b5f21c6d5c08ca0eb9",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0xbb297ab325458ee16e3752bc92be0af1a1c526dffcf09ffc26d5995a1b28f7bc"
+      },
+      "successor": "0xa31f685da9208944da0889e7643560f6f0a51c5529b58f1d99a717a0770721d4",
+      "note": null
+    },
+    {
+      "hash": "0x196e8b5bd231a782bb023324df2b695092b54d140980e0ebcfbfc3f55260ce76",
+      "routerVersion": "v1",
+      "phase": "superseded",
+      "borrower": "0xe277b53c60c43012394d52b5f21c6d5c08ca0eb9",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0xa0578d2534608b7126fcb30e2d84ef5e445ac6446049bb5d5ec6870876c2a838"
+      },
+      "successor": "0xcf135c55ea602f3587f5f63aeea6bd63a309afc82b3d592233c6c096e7c18f36",
+      "note": null
+    },
+    {
+      "hash": "0x3dd21d776db9cbdac1c5f1077a0046be2baed6b08b30f46aea3c5f81133757b7",
+      "routerVersion": "v1",
+      "phase": "superseded",
+      "borrower": "0xe277b53c60c43012394d52b5f21c6d5c08ca0eb9",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x70d73d622c78f9286c635ed587dc8b1c5605a372baf36f17091750b6e718f4e3"
+      },
+      "successor": "0x5a64fcd97d6ea60d1faf7c68c195e2fb980e77789928b9fddf288449f52fa137",
+      "note": null
+    },
+    {
+      "hash": "0x3047c57b06074d55a3fe804ec5e8b9325d445462e9946dd89f755cfb5741b338",
+      "routerVersion": "v1",
+      "phase": "superseded",
+      "borrower": "0xe277b53c60c43012394d52b5f21c6d5c08ca0eb9",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x8da0c937fb14b8a64662329f3450220eb588599c81893d6180e27d8c31997f95"
+      },
+      "successor": "0xad083b27b572d15ceb5b967b735b82b8a2f43720f970747cd5f992f0aa6c0d0e",
+      "note": null
+    },
+    {
+      "hash": "0xe4ed597cd290ff2c855659ff0bc8206146c1a9bd48ba2e90253bd81c60bfd919",
+      "routerVersion": "v1",
+      "phase": "superseded",
+      "borrower": "0xefc645aef6c484adb71fe02e94e9519bb8cde332",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0xfe5d224241aa447690ead7fa81c35926d9bce600b3d791d140d512d5976cd4fe"
+      },
+      "successor": "0x577785f1bd90b3f0c654e78b3bb9c3b0b2fc9ca17c1dcf006948aa6630079ecb",
+      "note": null
+    },
+    {
+      "hash": "0x1fc721e9cec553c731f487ad0537bc17ab2e1356d157ea36a006c300ec005955",
+      "routerVersion": "v1",
+      "phase": "repaid",
+      "borrower": "0x633c3153e42c629775924a070702f70a0ee1d079",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0xf223a9fadb2216b0d0fb45de0b3985d382667e45f5496ff2da308455278f4188"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0xe321e6759b10299f6a403ad72a46fc699d7d466779f277b6955aa8acd7b08daf",
+      "routerVersion": "v1",
+      "phase": "superseded",
+      "borrower": "0xc991b09a2b6ca5bcf88780d657a3ffdde2205398",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x38260de7da8e5f207b22eaf71128ccb8b0c3889e603e2b6392845be242be7e9e"
+      },
+      "successor": "0x114daf7fb45878684269ab2af04ce838adfe9cd9b64b906c73d6e049fee971d5",
+      "note": null
+    },
+    {
+      "hash": "0x58255b96f0dae4c8e8e21e8c43d238f095aa5ac3be7afce2456a0e552f932a6c",
+      "routerVersion": "v1",
+      "phase": "superseded",
+      "borrower": "0xe277b53c60c43012394d52b5f21c6d5c08ca0eb9",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0xc0ccef2be93d9239a61a9f22f61a529bae9b30595e7e86e7a3e396410df39191"
+      },
+      "successor": "0xca5f7c1c245d223569f369fc39d6a191e004d2dcdb2b0c5d93651b311c4f7388",
+      "note": null
+    },
+    {
+      "hash": "0xfe3478d859184793e97b82f394dad7facd63e1ab8521c6cc939983c075365491",
+      "routerVersion": "v1",
+      "phase": "superseded",
+      "borrower": "0xe277b53c60c43012394d52b5f21c6d5c08ca0eb9",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x791d746b528027c85d3c35ab8fa5e7a2c278fe69f7268c4858778be0effb1f7d"
+      },
+      "successor": "0xc7661a3732a6e558c4701443b0859e3b75e471675db243394ffb1da0334690e1",
+      "note": null
+    },
+    {
+      "hash": "0xacbc25f966d804b6ac755f544519a7397a37947db4907cb13c4fb2b35b558fde",
+      "routerVersion": "v1",
+      "phase": "superseded",
+      "borrower": "0xe277b53c60c43012394d52b5f21c6d5c08ca0eb9",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0xbe5af579e2cfa5bc4a9939f4e7d5e9132041dc9559a0fc479c74e6d48cb2863f"
+      },
+      "successor": "0xe26e8170dbc7884346aefbd12dc140d3f7ec73a3bbc53ee37efbc4d9a6f14654",
+      "note": null
+    },
+    {
+      "hash": "0x661ea7f0453ff837236074224f691134b2fb835ecfe0e94c4f101e104ecf86bb",
+      "routerVersion": "v1",
+      "phase": "superseded",
+      "borrower": "0x672643ad5a5db85ae9cdecc2fd0dd1b5da6bbe31",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x6742570be7f17a1d359c77143d013241a2bb98e3a3a47d1d8f180f51d63bb761"
+      },
+      "successor": "0x25a1f986a73e18eafd9a55b9486a877083a99704e5f4dc66db8dd8f8f5b51c02",
+      "note": null
+    },
+    {
+      "hash": "0xb1dc03c9b405db8e86dcda3ace01b5cd8ff127de0eb3b394687a51cf5c6eb2b5",
+      "routerVersion": "v1",
+      "phase": "repaid",
+      "borrower": "0x7b79dfbc125e8284432907fa3ba15f63843d4462",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0xa1d706844931b913dbccd8b4913a6d8a325698dc7a0c2596d98f546750116171"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0xd13ab531f2c58c083759b927322a0357ddc796a686b4d25f14fb5721ac720af0",
+      "routerVersion": "v1",
+      "phase": "repaid",
+      "borrower": "0x7b79dfbc125e8284432907fa3ba15f63843d4462",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x6930309fdbff041efe6e48b57af7f7828ec5a48412eda6e7d0ed044cc4afee90"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0xcc94d86f4dc6771551bc374d7f895af66080deb01c6f6786f993f1241a6bc273",
+      "routerVersion": "v1",
+      "phase": "repaid",
+      "borrower": "0x7b79dfbc125e8284432907fa3ba15f63843d4462",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x91e8c2c4e001d26016c773725e95c7dbb6960336a5276377a443c1f337fc3be3"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0xff05b5fe96a0cb9711cf1af6d1473230876420d1f52af55384dbb0437c2bd4c7",
+      "routerVersion": "v1",
+      "phase": "repaid",
+      "borrower": "0x7b79dfbc125e8284432907fa3ba15f63843d4462",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0xdf7e34df7b164155b8a214d8c6ecb25918affbf54a81734f6503ca664e847c61"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0x714d677b24828261fdafa4f9c97644f0f0e95064fda87f7c651786bd39ad5536",
+      "routerVersion": "v1",
+      "phase": "repaid",
+      "borrower": "0x7b79dfbc125e8284432907fa3ba15f63843d4462",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x2955921bb22bee0f43bddc7647da4e479f8843f0f8d57833bf93c8a33ee1bcbd"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0x48409fb58560dd34bdc8a819a9c7ca283cf257f7d0ef431f6f563bc304fbf1a9",
+      "routerVersion": "v1",
+      "phase": "repaid",
+      "borrower": "0x7b79dfbc125e8284432907fa3ba15f63843d4462",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x6d494c8a3312dc1b4d376e169f4489d47d7f2f10a33819a3e2b0494ffd74cfe8"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0x424678b0af9360ac9fcf684b801c57406a01fd14dadca27dd496b3b275354ca1",
+      "routerVersion": "v1",
+      "phase": "repaid",
+      "borrower": "0x7b79dfbc125e8284432907fa3ba15f63843d4462",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x19f2a9aa12fb920c235e3d5627ea8b95a83f8017c2679b5660bccb229b097676"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0x1f6fb0248fa504887b00ab100fb73bb0f9126f8e5624f6f053d8c2c90749470f",
+      "routerVersion": "v1",
+      "phase": "repaid",
+      "borrower": "0x7b79dfbc125e8284432907fa3ba15f63843d4462",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x9f74c645dddca9d5ba6d1057aa77704bd8688f9d6ca00d692538ecb2b9d88f04"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0x24fd06a16fcfaf08d49704f1b5ee4c535b272f05c29b6ea80a6e4abcf4a4fad9",
+      "routerVersion": "v1",
+      "phase": "repaid",
+      "borrower": "0x7b79dfbc125e8284432907fa3ba15f63843d4462",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0xb71ea97ff8c577c72c463b1c45ed152d562b8afbae19fa7a1a19b34134e7001f"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0xc09f98a5e98348b9cc7cf0a7a7901ee66d9bd1b9cf56c351b482b0384596961b",
+      "routerVersion": "v1",
+      "phase": "repaid",
+      "borrower": "0x7b79dfbc125e8284432907fa3ba15f63843d4462",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0xeca27e4d8d947685865b468125e77dd0fe8476829bf907b91acb528f992a687a"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0xf00696072a85f84f12a1c2d980b3c9eeeec6cba8bd1b5f5210fee76b48c3c5d3",
+      "routerVersion": "v1",
+      "phase": "repaid",
+      "borrower": "0x7b79dfbc125e8284432907fa3ba15f63843d4462",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0xb7e104e9017158e2cd4fcb7646207991d252f5e7d80509fde488775e39b5ee52"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0xf98fd3c9265f0255c90c8498a21418f02881ad5993441d8c8a1473b7de3733ab",
+      "routerVersion": "v1",
+      "phase": "repaid",
+      "borrower": "0x7b79dfbc125e8284432907fa3ba15f63843d4462",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x55ae19047cd6206970dab959117039ad13db8c41f38ef37635b0ff3ab6607b40"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0xca58b694112cc002d61efbd234704418e087bcb9d0ee4b33c53a24f69b3f3471",
+      "routerVersion": "v1",
+      "phase": "repaid",
+      "borrower": "0x7b79dfbc125e8284432907fa3ba15f63843d4462",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x67b10e1ac1e228727554886fd1c1d1346e3cae8ebf0876c8794cba548ad5e002"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0x198a8cbaa3fd8cdf64847ea14c329702ecbeef851b4824a5b58fb3cb80363718",
+      "routerVersion": "v1",
+      "phase": "repaid",
+      "borrower": "0x7b79dfbc125e8284432907fa3ba15f63843d4462",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x2a24c8b26eb845aedfd5bb991e26ab3a73689a71b8ce409dc7782c7cf1bfc237"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0x4976069aa58a99b55ded6f59c85d4ce27d3770527ce3cda02a44a9b88ac3c239",
+      "routerVersion": "v1",
+      "phase": "repaid",
+      "borrower": "0x7b79dfbc125e8284432907fa3ba15f63843d4462",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x699fbb2c8e929d93d8598e9de3e1168ba57de4a9e9d0d9ca984abefea8393991"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0x207fc4ca86f44ef43c6d95ed42aafb1a178289f33a2230ea865d15a8130eb47d",
+      "routerVersion": "v1",
+      "phase": "superseded",
+      "borrower": "0x45b3091f31b1dc9f577e03973bb6de4c77a894d3",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x8a70683b2429f5b2cf8254e2c995f4b54d7011335fc61dfb8bc803cf53d41d7e"
+      },
+      "successor": "0x225dd05a00281ef89f98ad063842409634609351a9b6b72ade8ad65cc04d6230",
+      "note": null
+    },
+    {
+      "hash": "0xe4b5c38fb3a137d055f0031e7d8534ca89963dbcb938425fdb6aa3d4b6bb40e4",
+      "routerVersion": "v1",
+      "phase": "superseded",
+      "borrower": "0xaae6fe82cc9fffa0871bdc94a7e95b720cf925b0",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x77dde885b01bed951a7f40376c931eb54bff453a940b1a333c385ec711a410ab"
+      },
+      "successor": "0x61622b0a0a0d81d9571948b97160628e771e53ebf79da32c8893786cbdb77577",
+      "note": null
+    },
+    {
+      "hash": "0xf302e75f3b054b2c0a7a2e5cafd1e6fdb950cfb86e3e5d7b26e875347be19b9e",
+      "routerVersion": "v1",
+      "phase": "excluded",
+      "borrower": "0xbce39c25ef9cf423695895965a9bba70e06790ff",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x0a8c4074095628dc1d66a29000f9ad35096f9ce7c43e7ff68fc9b5be85314caa"
+      },
+      "successor": null,
+      "note": "collateral 0x5fcc3db106dd173efa457360b401fe66e296c0da is not the USD.AI Tokenized Hardware NFT"
+    },
+    {
+      "hash": "0x6e7f7518fd25857ac22bc72224e3441094cdc356abaf331c82caf4daa44f7504",
+      "routerVersion": "v1",
+      "phase": "superseded",
+      "borrower": "0xefc645aef6c484adb71fe02e94e9519bb8cde332",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x212748989c6b8848b91e5def9bbea345e7930d9271a3a4cf1569f29dcefd923e"
+      },
+      "successor": "0x0bc66289cef46eaacfaaf8f57e3c75509f224df44bd6a38d1b63427e4e09b066",
+      "note": null
+    },
+    {
+      "hash": "0xd02b09c87297425e7eb87f2c4ddb1870eda855f7645458b0399521b319dced16",
+      "routerVersion": "v1",
+      "phase": "superseded",
+      "borrower": "0x64447901dc34bd610ac562b2c612784a9954d39d",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x58fb839bfa7bf35910752726fe1c48b1e979d4451571bd8a22b29f2a63a511e6"
+      },
+      "successor": "0x5d9a1e60b5ecd05b66bc7230b754cb4a10222bc7c52840e98a1ed79ff01743a3",
+      "note": null
+    },
+    {
+      "hash": "0x0357ad958e40e8db67e33de2114c7fc83aff9a7ed91b70704adadd7e76943e75",
+      "routerVersion": "v1",
+      "phase": "superseded",
+      "borrower": "0x64447901dc34bd610ac562b2c612784a9954d39d",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0xe84bdfbb3192b725306a3fead42794c7205c25fb673f9614d7d75d7174901aca"
+      },
+      "successor": "0x1f5efd88cbd039733075ba273f22ccdde03130c6dcb72114d2738a17cd0bdafd",
+      "note": null
+    },
+    {
+      "hash": "0x7330b176758e746301d18b8610361ef188fdf6b53eaf2f6bf87b0400eb8981c3",
+      "routerVersion": "v1",
+      "phase": "superseded",
+      "borrower": "0x64447901dc34bd610ac562b2c612784a9954d39d",
+      "principalUsd": {
+        "value": 0,
+        "source": "https://arbiscan.io/tx/0x7891318e2e804cd7912842db341e23363b69a3bdbf4a6462625a1aba7cfbd6be"
+      },
+      "successor": "0xfdd957cba68a5620e086bddf7bc7a5a4c5cca47950b37755b88892f43077e817",
+      "note": null
+    },
+    {
+      "hash": "0x5d9a1e60b5ecd05b66bc7230b754cb4a10222bc7c52840e98a1ed79ff01743a3",
+      "routerVersion": "v2",
+      "phase": "superseded",
+      "borrower": "0x85483aee461914342c6838eae61a23d7d995e5e3",
+      "principalUsd": {
+        "value": 11295783,
+        "source": "https://arbiscan.io/tx/0xa313164c5d0a464bc00160e54992a6a53ea71dbe8a777d99d9ca4a9c4f5ed3e3"
+      },
+      "successor": "0x81c8c9796cfa9e769b91bd4d84e8647dbae23e4227fe9cbc3fe2c20f38695aa2",
+      "note": null
+    },
+    {
+      "hash": "0x1f5efd88cbd039733075ba273f22ccdde03130c6dcb72114d2738a17cd0bdafd",
+      "routerVersion": "v2",
+      "phase": "superseded",
+      "borrower": "0x2ff1119d11be35dcd32c056141c82461d530fbd0",
+      "principalUsd": {
+        "value": 34055508,
+        "source": "https://arbiscan.io/tx/0xc91a3e5a5152981708f53076cb109dccaa2d892e3ca823a98091bde4577fba18"
+      },
+      "successor": "0x71e912bbbfbb3d266012f871c213cd79522c26c24703c7aaee64873b83e8d88c",
+      "note": null
+    },
+    {
+      "hash": "0x114daf7fb45878684269ab2af04ce838adfe9cd9b64b906c73d6e049fee971d5",
+      "routerVersion": "v2",
+      "phase": "superseded",
+      "borrower": "0x8cfde17b2919d6c571cca1763a1cfd2677df9b3a",
+      "principalUsd": {
+        "value": 8560856.89,
+        "source": "https://arbiscan.io/tx/0x1d705f718582923917e43dd2960fa5371a425219d952d4d4e7b556b2f9f9a684"
+      },
+      "successor": "0xfe56f5c7329d53e2769071bc1f6e964e6145798b44754783f9a473b82d534dd8",
+      "note": null
+    },
+    {
+      "hash": "0xfdd957cba68a5620e086bddf7bc7a5a4c5cca47950b37755b88892f43077e817",
+      "routerVersion": "v2",
+      "phase": "repaid",
+      "borrower": "0xce242ccca55809933928ae9c77e50ef8ef927ff2",
+      "principalUsd": {
+        "value": 87053370.13,
+        "source": "https://arbiscan.io/tx/0xd7bedd602391d828bd36420aaa3b3acbb717bbc17e6ec57367c2642869459cf1"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0x81c8c9796cfa9e769b91bd4d84e8647dbae23e4227fe9cbc3fe2c20f38695aa2",
+      "routerVersion": "v2",
+      "phase": "superseded",
+      "borrower": "0x85483aee461914342c6838eae61a23d7d995e5e3",
+      "principalUsd": {
+        "value": 11295783,
+        "source": "https://arbiscan.io/tx/0x94aa38ab6b813fcc17e6580a9744acdb220ea98aacd589b420247b46fae129ea"
+      },
+      "successor": "0x59d9bf04e3baeee2144c6ff7848dc9ce33fab576a2a343996defdb611e9cd72e",
+      "note": null
+    },
+    {
+      "hash": "0xcc3b0f364f07a9a0db653359c9bc258446af58bd76e3767dbbb56e06441c4774",
+      "routerVersion": "v2",
+      "phase": "repaid",
+      "borrower": "0x6034ae654911e23baa2c10a414bafb7a187923ef",
+      "principalUsd": {
+        "value": 4565269,
+        "source": "https://arbiscan.io/tx/0x40dbbbfc07150634476513bab16d0fd33dc301d626506e29000bbc87a81a4c9d"
+      },
+      "successor": null,
+      "note": null
+    },
+    {
+      "hash": "0x50b0d9c015c4f33ea5b9346eebab6b09f1ec4c08ddefdff3b122d2b6bbac50cb",
+      "routerVersion": "v2",
+      "phase": "superseded",
+      "borrower": "0x25624e2b05616a3c754c20e7be8841cad8e66723",
+      "principalUsd": {
+        "value": 9561607,
+        "source": "https://arbiscan.io/tx/0xca97d891b6acdf0edb2dde877c64ef4f5951508352a5d2229b86c23b30d57580"
+      },
+      "successor": "0xa7e8b487d1910142b44276ccc98a25b523863888c7a20ae2486794b01b20abf6",
+      "note": null
+    }
+  ],
+  "unavailable": [
+    "public price for GB200"
+  ]
+}

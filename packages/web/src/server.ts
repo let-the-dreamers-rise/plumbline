@@ -6,8 +6,10 @@ import { loadLoan, loadLoans } from "./loans.js";
 import { loadState } from "./state.js";
 import { badge } from "./zk.js";
 import { bodyKind, LEAD_BODY_LIMIT, leadRedirect, parseLead } from "./lead.js";
+import { monitorReply, snapshotReader } from "./monitor.js";
 
 // Product page (/), prover onboarding (/prove), docs (/docs), lender view (/lender), price tape (/tape),
+// the GPU Credit Monitor (/monitor, /api/monitor, from a static snapshot of USD.AI's public loan book),
 // and a public verify page and badge per loan (/loan/<address>, /badge/<address>.svg). Reads the
 // oracle straight from Solana; the only thing written is leads.jsonl from the contact form.
 const rpc = process.env.SOLANA_RPC_URL?.trim() || "https://api.devnet.solana.com";
@@ -25,7 +27,10 @@ const pages: Record<string, URL> = {
   "/tape": page("index.html"),
   "/prove": page("prove.html"),
   "/docs": page("docs.html"),
+  "/monitor": page("monitor.html"),
 };
+// GPU Credit Monitor snapshot (npm run monitor:snapshot); a static file, read per request.
+const readMonitor = snapshotReader(process.env.MONITOR_FILE);
 // Retired design explorations and the first landing page: send old links home.
 const retired = new Set(["/simple", "/hallmark", "/hallmark/", "/lens", "/lens/", "/lattice", "/lattice/"]);
 const port = Number(process.env.PORT ?? 8787);
@@ -64,6 +69,11 @@ createServer(async (req, res) => {
   try {
     if (path === "/api/state") {
       return json(res, 200, await loadState(connection, programId));
+    }
+    if (path === "/api/monitor") {
+      const r = monitorReply(readMonitor);
+      res.writeHead(r.status, r.headers).end(r.body);
+      return;
     }
     if (path === "/api/loans") {
       const loans = await loadLoans(connection, programId);

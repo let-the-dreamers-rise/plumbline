@@ -78,14 +78,14 @@ dialog code { font: 12px var(--mono); background: var(--sunken); padding: 1px 4p
 <div class="wrap">
   <header>
     <div><h1><a href="/">Plumbline</a></h1><div class="meta">H100 price tape</div></div>
-    <nav aria-label="Site"><a href="/">Home</a><a href="/prove">Prove</a><a href="/docs">Docs</a><a href="/lender">Lender</a><a href="/tape" aria-current="page">Tape</a><a href="https://github.com/let-the-dreamers-rise/plumbline" rel="noopener">Source</a></nav>
+    <nav aria-label="Site"><a href="/">Home</a><a href="/prove">Prove</a><a href="/docs">Docs</a><a href="/lender">Lender</a><a href="/tape" aria-current="page">Tape</a><a href="/monitor">Monitor</a><a href="https://github.com/let-the-dreamers-rise/plumbline" rel="noopener">Source</a></nav>
   </header>
   <p class="meta" id="meta">loading…</p>
 
   <section class="empty" id="empty" hidden>
     <h2>No price proofs on this cluster yet</h2>
     <p>The tape is a public H100 index of what renters proved they paid per GPU-hour. Each entry is a zkTLS proof of an invoice or a price page, checked onchain: attestor signature, registered source, freshness, and a receipt so one invoice counts once. With proofs from three or more providers the program publishes a weighted median, shown below next to the posted list price.</p>
-    <p>The program runs end to end on a local Solana validator today; its devnet deploy is pending and no price proofs have been published yet. The tape is designed to feed a Hyperliquid HIP-3 perp; that relayer is dry-run tested and a testnet market is pending.</p>
+    <p>The program is live on Solana devnet, but no price proofs have been published to the tape yet. The tape is designed to feed a Hyperliquid HIP-3 perp; that relayer is dry-run tested and a testnet market is pending.</p>
     <p><a href="/docs">Read how it works</a> · <a href="/">Back to Plumbline</a></p>
   </section>
 

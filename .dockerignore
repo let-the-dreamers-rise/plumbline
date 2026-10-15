@@ -4,5 +4,7 @@
 !package-lock.json
 !tsconfig.json
 !packages/
+# The GPU Credit Monitor's committed snapshot and price archive (public data only).
+!data/
 packages/*/node_modules
 packages/**/*.test.ts

@@ -1,0 +1,110 @@
+{
+  "schema": "plumbline.gpu-prices/v1",
+  "date": "2026-10-12",
+  "fetchedAt": "2026-10-12T17:24:41.954Z",
+  "method": "Per model, each source's median $/GPU-hr (Vast.ai: every verified on-demand offer, bundle price / GPUs; RunPod: secure and community list prices; Akash: the console's median), then the median across sources. H100 and H200 are SXM; RTX PRO 6000 is the Server Edition. NVL, PCIe, MIG and workstation variants are left out.",
+  "models": {
+    "H100": {
+      "medianUsdPerGpuHr": 3.34,
+      "sources": [
+        {
+          "source": "vast.ai",
+          "url": "https://console.vast.ai/api/v0/bundles/",
+          "medianUsdPerGpuHr": 3.7929,
+          "quotes": 5
+        },
+        {
+          "source": "runpod",
+          "url": "https://api.runpod.io/graphql",
+          "medianUsdPerGpuHr": 3.34,
+          "quotes": 2
+        },
+        {
+          "source": "akash",
+          "url": "https://console-api.akash.network/v1/gpu-prices",
+          "medianUsdPerGpuHr": 2.56,
+          "quotes": 1
+        }
+      ]
+    },
+    "H200": {
+      "medianUsdPerGpuHr": 4.7206,
+      "sources": [
+        {
+          "source": "vast.ai",
+          "url": "https://console.vast.ai/api/v0/bundles/",
+          "medianUsdPerGpuHr": 5.0011,
+          "quotes": 5
+        },
+        {
+          "source": "runpod",
+          "url": "https://api.runpod.io/graphql",
+          "medianUsdPerGpuHr": 4.44,
+          "quotes": 2
+        }
+      ]
+    },
+    "B200": {
+      "medianUsdPerGpuHr": 7.208,
+      "sources": [
+        {
+          "source": "vast.ai",
+          "url": "https://console.vast.ai/api/v0/bundles/",
+          "medianUsdPerGpuHr": 7.4309,
+          "quotes": 18
+        },
+        {
+          "source": "runpod",
+          "url": "https://api.runpod.io/graphql",
+          "medianUsdPerGpuHr": 6.985,
+          "quotes": 2
+        }
+      ]
+    },
+    "B300": {
+      "medianUsdPerGpuHr": 8.9523,
+      "sources": [
+        {
+          "source": "vast.ai",
+          "url": "https://console.vast.ai/api/v0/bundles/",
+          "medianUsdPerGpuHr": 9.9396,
+          "quotes": 3
+        },
+        {
+          "source": "runpod",
+          "url": "https://api.runpod.io/graphql",
+          "medianUsdPerGpuHr": 7.965,
+          "quotes": 2
+        }
+      ]
+    },
+    "GB200": {
+      "medianUsdPerGpuHr": null,
+      "sources": []
+    },
+    "RTX PRO 6000": {
+      "medianUsdPerGpuHr": 2.04,
+      "sources": [
+        {
+          "source": "vast.ai",
+          "url": "https://console.vast.ai/api/v0/bundles/",
+          "medianUsdPerGpuHr": 1.5305,
+          "quotes": 14
+        },
+        {
+          "source": "runpod",
+          "url": "https://api.runpod.io/graphql",
+          "medianUsdPerGpuHr": 2.09,
+          "quotes": 2
+        },
+        {
+          "source": "akash",
+          "url": "https://console-api.akash.network/v1/gpu-prices",
+          "medianUsdPerGpuHr": 2.04,
+          "quotes": 1
+        }
+      ]
+    }
+  },
+  "errors": []
+}

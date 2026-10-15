@@ -1,0 +1,37 @@
+{
+  "name": "Supermicro NVIDIA RTX 6000 Pro Server",
+  "description": "Supermicro NVIDIA RTX 6000 Pro Server and corresponding RAM, SSD, NVMe, CPU, PCIe",
+  "image": "https://zggcmphqypwbbvpexdet.supabase.co/storage/v1/object/public/usdai_assets/collateral/2f314569fb6b94ee29e957da4c43b54d.png",
+  "attributes": [
+    {
+      "trait_type": "Collateral Value USD",
+      "value": 102519.58,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Useful Life (days)",
+      "value": 1080,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Depreciation Start",
+      "value": "On Borrow",
+      "display_type": "string"
+    },
+    {
+      "trait_type": "Serial Number",
+      "value": "S942190X5622221; 1323725086417; 1323725084709; 1323725085895; 1323725085943; 1323725086574; 1323725085035; 1323825000964; 1323725083637",
+      "display_type": "string"
+    },
+    {
+      "trait_type": "Manufacturer",
+      "value": "Supermicro",
+      "display_type": "string"
+    },
+    {
+      "trait_type": "Quantity",
+      "value": 1,
+      "display_type": "number"
+    }
+  ]
+}

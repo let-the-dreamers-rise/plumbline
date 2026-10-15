@@ -1,0 +1,42 @@
+{
+  "name": "Nvidia H200 x8 Server",
+  "description": "Gigabyte G593-SD1-AAX3 H200 x8 Server",
+  "image": "https://humble-frogs-a5378764e2.media.strapiapp.com/Nvidia_H200_x8_Server_7c982bd2ea.png",
+  "attributes": [
+    {
+      "trait_type": "Collateral Value USD",
+      "value": 220000,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Useful Life (days)",
+      "value": 1080,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Depreciation Start",
+      "value": 1755012800,
+      "display_type": "date"
+    },
+    {
+      "trait_type": "Serial Number",
+      "value": "GPL663612A0005",
+      "display_type": "string"
+    },
+    {
+      "trait_type": "Manufacturer",
+      "value": "Gigabyte",
+      "display_type": "string"
+    },
+    {
+      "trait_type": "Quantity",
+      "value": 1,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "PSA",
+      "value": "https://metadata.usd.ai/v1/101-108/psa",
+      "display_type": "string"
+    }
+  ]
+}

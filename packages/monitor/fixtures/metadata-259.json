@@ -1,0 +1,32 @@
+{
+  "name": "InfiniBand Network (E-W)",
+  "description": "2-QUANTUM 2 BASED NDR INFINIBAND PERP SUPPORT\nREQUIRED / 2-ProSupport and Next Business Day Onsite Service Initial, 36\nMonth(s) / 64-2PORT TRANS 800GBPS 2XNDR OSFP PERP 2XMPO12 APC\n850NM / MMF UP TO 50M / 32-Passive fiber cable MMF MPO12 APC to MPO12 APC 2M NVIDIA\nCompatible / 32-Passive fiber cable MMF MPO12 APC to MPO12 APC 5M NVIDIA\nCompatible / 32-Passive fiber cable MMF MPO12 APC to MPO12 APC 10M\nNVIDIA Compatible / 20-TRANS 200GBE UPTO 200GB/S PERP NPI ENGINEERING\nSAMPLE NCNR / 2-CABLE MODULE ETH 25GBE 100GB/S CABL TO 25GB/S QSFP28\nTO SFP28",
+  "image": "https://zggcmphqypwbbvpexdet.supabase.co/storage/v1/object/public/usdai_assets/collateral/cd3021ae9fbe5df25aad2136f5a9a646.png",
+  "attributes": [
+    {
+      "trait_type": "Collateral Value USD",
+      "value": 236067.84,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Useful Life (days)",
+      "value": 1080,
+      "display_type": "number"
+    },
+    {
+      "trait_type": "Depreciation Start",
+      "value": "On Borrow",
+      "display_type": "string"
+    },
+    {
+      "trait_type": "Manufacturer",
+      "value": "Dell",
+      "display_type": "string"
+    },
+    {
+      "trait_type": "Quantity",
+      "value": 2,
+      "display_type": "number"
+    }
+  ]
+}

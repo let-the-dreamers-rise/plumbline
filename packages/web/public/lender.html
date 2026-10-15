@@ -89,7 +89,7 @@ dialog code { font: 12px var(--mono); background: var(--sunken); padding: 1px 4p
 <div class="wrap">
   <header>
     <div><h1><a href="/">Plumbline</a></h1><div class="meta">Lender view · every loan on the program</div></div>
-    <nav aria-label="Site"><a href="/">Home</a><a href="/prove">Prove</a><a href="/docs">Docs</a><a href="/lender" aria-current="page">Lender</a><a href="/tape">Tape</a><a href="https://github.com/let-the-dreamers-rise/plumbline" rel="noopener">Source</a></nav>
+    <nav aria-label="Site"><a href="/">Home</a><a href="/prove">Prove</a><a href="/docs">Docs</a><a href="/lender" aria-current="page">Lender</a><a href="/tape">Tape</a><a href="/monitor">Monitor</a><a href="https://github.com/let-the-dreamers-rise/plumbline" rel="noopener">Source</a></nav>
   </header>
   <p class="meta" id="meta">loading…</p>
   <div id="loans"></div>
@@ -221,7 +221,7 @@ function emptyState() {
       el("li", {}, "proven revenue by week, with every proof transaction and a step-by-step check of each"),
       el("li", {}, "each draw the program approved, and a public verify page per loan at /loan/<address>"),
     ),
-    el("p", {}, "The program runs end to end on a local Solana validator today; its devnet deploy is pending, so this page has nothing to read yet."),
+    el("p", {}, "No loans found at this RPC endpoint. The program is live on Solana devnet; point SOLANA_RPC_URL at devnet to see the demo loans."),
     el("p", {}, a("/docs", "Read how it works"), " · ", a("/prove", "How an operator proves a fleet"), " · ", a("/#request", "Request a proof")),
   );
 }
